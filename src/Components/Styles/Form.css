@@ -1,0 +1,73 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f4f8;
+  }
+  
+  .form-wrapper {
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .form-box {
+    width: 100%;
+  }
+  
+  .form-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .input-field {
+    position: relative;
+    margin-bottom: 25px;
+  }
+  
+  .input-field i {
+    position: absolute;
+    left: 10px;
+    top: 12px;
+    color: #888;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  
+  .btn.solid:hover {
+    background-color: #45a049;
+  }
+  
+  .errors {
+    color: red;
+    font-size: 14px;
+  }
+
+  /* Override styles specifically for the logout button */
+.btn-logout {
+  width: auto; /* Prevents it from being 100% width */
+  padding: 8px 16px; /* Adjust the padding for a smaller size */
+  font-size: 14px; /* Adjust the font size if needed */
+}
+
+  
