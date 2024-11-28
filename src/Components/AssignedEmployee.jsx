@@ -21,7 +21,7 @@ const AssignedEmployee = () => {
   const [assignedEmployees, setAssignedEmployees] = useState([]);
   const [assignedEmployeeMap, setAssignedEmployeeMap] = useState(new Map());
   const [loading, setLoading] = useState(true);
-  const [loadingMap, setLoadingMap] = useState({}); // Track loading per employee
+  const [loadingMap, setLoadingMap] = useState({});
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,21 +89,24 @@ const AssignedEmployee = () => {
   const handleGenerateOfferLetter = async (employeeId, roleAssignId) => {
     setError("");
     setSuccessMessage("");
-    updateLoadingMap(roleAssignId, true); // Set loading state for this roleAssignId
+    updateLoadingMap(roleAssignId, true);
 
     try {
-      const response = await fetch("https://hrmsasp.runasp.net/api/assignedemployee/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          employeeId,
-          roleAssignId,
-          generatedBy: "Admin",
-        }),
-      });
+      const response = await fetch(
+        "https://hrmsasp.runasp.net/api/assignedemployee/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            employeeId,
+            roleAssignId,
+            generatedBy: "Admin",
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -111,26 +114,19 @@ const AssignedEmployee = () => {
       }
 
       setSuccessMessage("Offer letter generated successfully!");
-      fetchAssignedEmployees(); // Refresh both lists
+      fetchAssignedEmployees();
     } catch (error) {
       console.error("Error generating offer letter:", error);
       setError(error.message);
     } finally {
-      updateLoadingMap(roleAssignId, false); // Reset loading state for this roleAssignId
+      updateLoadingMap(roleAssignId, false);
     }
   };
 
-  const handleDownloadOfferLetter = async (roleAssignId) => {
+  const handleDownloadOfferLetter = async (assignedEmployeeId) => {
     setError("");
-    const assignedEmployeeId = assignedEmployeeMap.get(roleAssignId);
-  
-    if (!assignedEmployeeId) {
-      setError("Offer letter not found for this employee.");
-      return;
-    }
-  
-    updateLoadingMap(roleAssignId, true); // Set loading state for this roleAssignId
-  
+    updateLoadingMap(assignedEmployeeId, true);
+
     try {
       const response = await fetch(
         `https://hrmsasp.runasp.net/api/assignedemployee/download?id=${assignedEmployeeId}`,
@@ -141,30 +137,26 @@ const AssignedEmployee = () => {
           },
         }
       );
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to download the offer letter.");
       }
-  
-      // Fetch the PDF blob
+
       const blob = await response.blob();
-  
-      // Create a link to download the file
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
       link.download = `OfferLetter_${assignedEmployeeId}.pdf`;
       link.click();
-  
+
       setSuccessMessage("Offer letter downloaded successfully!");
     } catch (error) {
       console.error("Error downloading offer letter:", error);
       setError(error.message || "Failed to download offer letter.");
     } finally {
-      updateLoadingMap(roleAssignId, false); // Reset loading state for this roleAssignId
+      updateLoadingMap(assignedEmployeeId, false);
     }
   };
-  
 
   const filteredEmployees = assignedEmployees.filter((item) => {
     const searchLower = searchQuery.toLowerCase();
@@ -241,17 +233,17 @@ const AssignedEmployee = () => {
                     <Button
                       variant="contained"
                       color="primary"
-                      disabled={loadingMap[item.id]}
+                      disabled={item.hasGeneratedOfferLetter || loadingMap[item.id]}
                       onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
                     >
                       {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudUploadAlt />}
-                      Generate
+                      {item.hasGeneratedOfferLetter ? "Generated" : "Generate"}
                     </Button>
                     <Button
                       variant="contained"
                       color="success"
-                      disabled={loadingMap[item.id]}
-                      onClick={() => handleDownloadOfferLetter(item.id)}
+                      disabled={!assignedEmployeeMap.get(item.id) || loadingMap[item.id]}
+                      onClick={() => handleDownloadOfferLetter(assignedEmployeeMap.get(item.id))}
                     >
                       {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudDownloadAlt />}
                       Download
@@ -268,4 +260,3 @@ const AssignedEmployee = () => {
 };
 
 export default AssignedEmployee;
-
