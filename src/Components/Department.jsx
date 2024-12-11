@@ -17,141 +17,139 @@ import {
   TableRow,
   Paper,
 } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const baseUrl = process.env.REACT_APP_BASE_URL;
 
 const Department = () => {
-  const [dialogOpen, setDialogOpen] = useState(false); // State to control dialog
-  const [departmentToDelete, setDepartmentToDelete] = useState(null); // Store department to delete
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [department, setDepartment] = useState({
     name: '',
   });
-  const [searchQuery, setSearchQuery] = useState(''); // State for search query
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch departments from the API
   const fetchDepartments = async () => {
     try {
       const response = await fetch(
-        "https://hrmsasp.runasp.net/api/departments"
+        `${baseUrl}/api/departments`
       );
       if (!response.ok) throw new Error("Failed to fetch departments");
       const result = await response.json();
 
       if (Array.isArray(result.data)) {
-        setDepartments(result.data); // Set departments from API
+        setDepartments(result.data);
       } else {
         console.error("Unexpected data format:", result);
         setDepartments([]);
       }
     } catch (error) {
       console.error("Error fetching departments:", error);
+      toast.error(`Error fetching departments: ${error.message}`);
       setDepartments([]);
     }
   };
 
   useEffect(() => {
-    fetchDepartments(); // Load departments on mount
+    fetchDepartments();
   }, []);
 
-  // Handle input change in the form
   const handleChange = (e) => {
     const { name, value } = e.target;
     setDepartment({ ...department, [name]: value });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!department.name) {
-      alert("Please fill in the department name.");
+      toast.error("Please fill in the department name.");
       return;
     }
-  
+
     const url = selectedDepartment
-      ? `https://hrmsasp.runasp.net/api/create-department/update`
-      : "https://hrmsasp.runasp.net/api/create-department";
-  
+      ? `${baseUrl}/api/create-department/update`
+      : `${baseUrl}/api/create-department`;
+
     const payload = selectedDepartment
-      ? { id: selectedDepartment.id, name: department.name } // Include ID for updates
-      : { name: department.name }; // Only name for creation
-  
+      ? { id: selectedDepartment.id, name: department.name }
+      : { name: department.name };
+
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify(payload),
       });
-  
+
       if (response.ok) {
+        toast.success(`Department ${selectedDepartment ? 'updated' : 'created'} successfully!`);
         resetForm();
-        fetchDepartments(); // Refresh the department list
+        fetchDepartments();
       } else {
         const errorText = await response.text();
         throw new Error(`Error: ${response.statusText} - ${errorText || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error during department operation:", error);
-      alert(`Operation failed: ${error.message}`);
+      toast.error(`Operation failed: ${error.message}`);
     }
   };
 
-  // Reset form fields
   const resetForm = () => {
-    setDepartment({ name: "" }); // Clear the form
-    setSelectedDepartment(null); // Clear the selected department
-    setShowForm(false); // Hide the form
+    setDepartment({ name: "" });
+    setSelectedDepartment(null);
+    setShowForm(false);
   };
 
-  // Handle editing a department
   const handleEdit = (department) => {
-    setSelectedDepartment(department); // Set the department to edit
-    setDepartment({ name: department.name }); // Populate the form with the department's name
-    setShowForm(true); // Show the form
+    setSelectedDepartment(department);
+    setDepartment({ name: department.name });
+    setShowForm(true);
   };
 
-  // Open the delete confirmation dialog
   const openDialog = (id) => {
     setDepartmentToDelete(id);
     setDialogOpen(true);
   };
 
-  // Confirm deletion of a department
   const confirmDelete = async () => {
     if (!departmentToDelete) return;
-  
+
     try {
       const response = await fetch(
-        `https://hrmsasp.runasp.net/api/create-department/delete`,
+        `${baseUrl}/api/create-department/delete`,
         {
-          method: "POST", // Use POST for delete
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify(departmentToDelete), // Send the raw integer ID
+          body: JSON.stringify(departmentToDelete),
         }
       );
-  
+
       if (response.ok) {
-        fetchDepartments(); // Refresh the department list
-        setDialogOpen(false); // Close the dialog
+        toast.success("Department deleted successfully!");
+        fetchDepartments();
+        setDialogOpen(false);
       } else {
         const errorText = await response.text();
         throw new Error(`Error deleting department: ${response.statusText} - ${errorText}`);
       }
     } catch (error) {
       console.error("Error deleting department:", error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     }
   };
-  
-  
-  // Filtered departments based on search query
+
   const filteredDepartments = Array.isArray(departments)
     ? departments.filter((department) =>
         department.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -160,18 +158,20 @@ const Department = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4"
+        gutterBottom
+        sx={{ textAlign: "center", fontWeight: "bold" }}>
         Department Management
       </Typography>
+      <ToastContainer />
 
-      {/* Search input for filtering departments */}
       {!showForm && (
         <TextField
           fullWidth
           label="Search by Department Name"
           variant="outlined"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} // Update search query state
+          onChange={(e) => setSearchQuery(e.target.value)}
           sx={{ marginBottom: 2 }}
         />
       )}
@@ -226,19 +226,23 @@ const Department = () => {
               <TableBody>
                 {filteredDepartments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan="3">No departments found.</TableCell>
+                    <TableCell colSpan="3" align="center">
+                      <Typography variant="body1" align="center">
+                        No departments found.
+                      </Typography>
+                    </TableCell>
                   </TableRow>
                 ) : (
-                  filteredDepartments.map((department,index) => (
+                  filteredDepartments.map((department, index) => (
                     <TableRow key={department.id}>
-                      <TableCell>{index+1}</TableCell>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{department.name}</TableCell>
                       <TableCell>
                         <Box
                           sx={{
                             display: 'flex',
-                            gap: 1, // default gap
-                            flexDirection: { xs: 'column', sm: 'row' } // Change layout on smaller screens
+                            gap: 1,
+                            flexDirection: { xs: 'column', sm: 'row' }
                           }}
                         >
                           <Button
@@ -267,7 +271,6 @@ const Department = () => {
           </TableContainer>
         </>
       )}
-      {/* Confirmation Dialog */}
       <ConfirmationDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}

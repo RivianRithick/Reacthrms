@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
+import { MdDelete } from "react-icons/md";
+import { FaEdit } from "react-icons/fa";
 import {
   Box,
   Button,
@@ -20,6 +22,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import axiosInstance from "../apiService"; // Use the shared Axios instance
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const JobRole = () => {
   const [jobRoles, setJobRoles] = useState([]);
@@ -53,7 +57,7 @@ const JobRole = () => {
       setJobRoles(allJobRoles);
     } catch (error) {
       console.error("Error fetching job roles:", error);
-      alert("Failed to fetch job roles.");
+      // toast.error("Failed to fetch job roles.");
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +68,7 @@ const JobRole = () => {
     try {
       const response = await axiosInstance.get("/api/departments");
       const { data } = response.data;
-  
+
       if (Array.isArray(data)) {
         setDepartments(data); // Set departments from API
       } else {
@@ -73,9 +77,9 @@ const JobRole = () => {
       }
     } catch (error) {
       console.error("Error fetching departments:", error);
-      alert("Failed to fetch departments.");
+      toast.error("Failed to fetch departments.");
     }
-  };  
+  };
 
   useEffect(() => {
     fetchJobRoles();
@@ -92,7 +96,7 @@ const JobRole = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jobRole.title || !jobRole.departmentId) {
-      alert("Please fill in all required fields.");
+      toast.error("Please fill in all required fields.");
       return;
     }
 
@@ -105,12 +109,12 @@ const JobRole = () => {
 
     try {
       await axiosInstance.post(url, payload);
-      alert(`Job role ${selectedJobRole ? "updated" : "created"} successfully!`);
+      toast.success(`Job role ${selectedJobRole ? "updated" : "created"} successfully!`);
       fetchJobRoles();
       resetForm();
     } catch (error) {
       console.error("Error saving job role:", error);
-      alert("Failed to save job role. Please try again.");
+      toast.error("Failed to save job role. Please try again.");
     }
   };
 
@@ -130,20 +134,17 @@ const JobRole = () => {
   // Handle delete confirmation
   const confirmDelete = async () => {
     if (!jobRoleToDelete) return;
-  
-    console.log("Deleting JobRole ID:", jobRoleToDelete); // Log the ID being sent
-  
+
     try {
-      const response = await axiosInstance.post("/api/jobroles/delete", jobRoleToDelete);
-      alert("Job role deleted successfully.");
+      await axiosInstance.post("/api/jobroles/delete", jobRoleToDelete);
+      toast.success("Job role deleted successfully.");
       fetchJobRoles();
       setDialogOpen(false);
     } catch (error) {
       console.error("Error deleting job role:", error);
-      alert("Failed to delete job role. Please try again.");
+      toast.error("Failed to delete job role. Please try again.");
     }
   };
-  
 
   // Filter job roles based on search query
   const filteredJobRoles = jobRoles.filter(
@@ -161,9 +162,12 @@ const JobRole = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4"
+        gutterBottom
+        sx={{ textAlign: "center", fontWeight: "bold" }}>
         Job Role Management
       </Typography>
+      <ToastContainer />
 
       {!showForm && (
         <TextField
@@ -253,7 +257,9 @@ const JobRole = () => {
               <TableBody>
                 {filteredJobRoles.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4}>No job roles available.</TableCell>
+                    <TableCell colSpan={4} align="center">
+                      No job roles available.
+                    </TableCell>
                   </TableRow>
                 ) : (
                   filteredJobRoles.map((role, index) => (
@@ -269,7 +275,7 @@ const JobRole = () => {
                             size="small"
                             onClick={() => handleEdit(role)}
                           >
-                            Edit
+                            <FaEdit className="me-1" />Edit
                           </Button>
                           <Button
                             variant="contained"
@@ -277,7 +283,7 @@ const JobRole = () => {
                             size="small"
                             onClick={() => openDialog(role.id)}
                           >
-                            Delete
+                            <MdDelete className="me-1" />Delete
                           </Button>
                         </Box>
                       </TableCell>

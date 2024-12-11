@@ -3,7 +3,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ConfirmationDialog from "./ConfirmationDialog";
 import CircularProgress from "@mui/material/CircularProgress";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdClear } from "react-icons/md";
 import { IoIosAddCircle } from "react-icons/io";
 import { FaEdit } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
@@ -27,10 +27,11 @@ import {
   MenuItem,
   Checkbox,
   IconButton,
+  InputAdornment,
   FormControlLabel,
 } from "@mui/material";
 
-const baseUrl = "https://hrmsasp.runasp.net";
+const baseUrl = process.env.REACT_APP_BASE_URL;
 const EmployeeComponent = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
@@ -77,16 +78,13 @@ const EmployeeComponent = () => {
     setError(""); // Clear any previous error
 
     try {
-      const response = await fetch(
-        "https://hrmsasp.runasp.net/api/employee-registration",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await fetch(`${baseUrl}/api/employee-registration`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -103,39 +101,6 @@ const EmployeeComponent = () => {
       setError(error.message || "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleApprove = async (employeeId) => {
-    if (!employeeId) {
-      setError("Invalid employee ID.");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "https://hrmsasp.runasp.net/api/employee-registration/update-is-approved",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({ employeeId }),
-        }
-      );
-
-      const responseBody = await response.text(); // Log response body
-      if (!response.ok) {
-        console.error("Server response:", responseBody); // Log the response text
-        throw new Error(responseBody || "Failed to update approval status.");
-      }
-
-      toast.success("Employee approved successfully!");
-      fetchEmployees(); // Refresh the list
-    } catch (error) {
-      console.error("Error approving employee:", error.message);
-      setError("Error approving employee.");
     }
   };
 
@@ -158,9 +123,9 @@ const EmployeeComponent = () => {
         };
         return mapping[type] || type.toLowerCase();
       };
-  
+
       const normalizedDocumentType = mapDocumentType(documentType);
-  
+
       // API request
       const response = await apiService.get(
         `/api/employee-registration/download-document?contact=${encodeURIComponent(
@@ -168,23 +133,23 @@ const EmployeeComponent = () => {
         )}&documentType=${normalizedDocumentType}`,
         { responseType: "blob" } // Expect binary data
       );
-  
+
       const contentType = response.headers["content-type"];
       const blob = new Blob([response.data], { type: contentType });
-  
+
       // Open in a new tab
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (error) {
       console.error("Error viewing document:", error);
-      alert(
+      toast.error(
         error.response?.status === 404
           ? `Document of type "${documentType}" not found.`
           : "Failed to view the document."
       );
     }
   };
-  
+
   const handleDownload = async (contact, documentType) => {
     try {
       // Map documentType to backend-compatible format
@@ -196,9 +161,9 @@ const EmployeeComponent = () => {
         };
         return mapping[type] || type.toLowerCase();
       };
-  
+
       const normalizedDocumentType = mapDocumentType(documentType);
-  
+
       // API request
       const response = await apiService.get(
         `/api/employee-registration/download-document?contact=${encodeURIComponent(
@@ -206,10 +171,10 @@ const EmployeeComponent = () => {
         )}&documentType=${normalizedDocumentType}`,
         { responseType: "blob" }
       );
-  
+
       const contentType = response.headers["content-type"];
       const blob = new Blob([response.data], { type: contentType });
-  
+
       // Trigger file download
       const fileName = `${normalizedDocumentType}_${contact}.${
         contentType.includes("pdf") ? "pdf" : "jpg"
@@ -220,15 +185,14 @@ const EmployeeComponent = () => {
       link.click();
     } catch (error) {
       console.error("Error downloading document:", error);
-      alert(
+      toast.error(
         error.response?.status === 404
           ? `Document of type "${documentType}" not found.`
           : "Failed to download the document."
       );
     }
   };
-  
-  
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
@@ -251,7 +215,7 @@ const EmployeeComponent = () => {
     try {
       const response = await apiService[method](endpoint, payload);
       if (response?.data?.status === "Success") {
-        alert(
+        toast.success(
           selectedEmployee
             ? "Employee updated successfully!"
             : "Employee created successfully!"
@@ -263,7 +227,7 @@ const EmployeeComponent = () => {
       }
     } catch (error) {
       console.error("Error submitting employee form:", error);
-      alert("Failed to save employee data.");
+      toast.error("Failed to save employee data.");
     }
   };
 
@@ -317,7 +281,7 @@ const EmployeeComponent = () => {
       );
 
       if (response?.data?.status === "Success") {
-        alert("Employee deleted successfully.");
+        toast.success("Employee deleted successfully.");
         fetchEmployees(); // Refresh the employee list
         setDialogOpen(false); // Close the confirmation dialog
       } else {
@@ -327,7 +291,7 @@ const EmployeeComponent = () => {
       }
     } catch (error) {
       console.error("Error deleting employee:", error);
-      alert("Failed to delete employee.");
+      toast.error("Failed to delete employee.");
     }
   };
 
@@ -345,7 +309,7 @@ const EmployeeComponent = () => {
         </Typography>
         <TextField
           fullWidth
-          value={filePath || "Not Uploaded"} 
+          value={filePath || "Not Uploaded"}
           InputProps={{ readOnly: true }}
         />
         <Box sx={{ display: "flex", gap: 1 }}>
@@ -373,7 +337,7 @@ const EmployeeComponent = () => {
       </Box>
     </Grid>
   );
-  
+
   return (
     <Box sx={{ padding: 2 }}>
       <Typography
@@ -468,14 +432,32 @@ const EmployeeComponent = () => {
             label="Contact"
             type="text"
             name="contact"
-            value={employee.contact || ""}
+            value={employee.contact || "+91"}
             onChange={(e) =>
-              setEmployee((prev) => ({ ...prev, contact: e.target.value }))
+              setEmployee((prev) => ({
+                ...prev,
+                contact: e.target.value.startsWith("+91")
+                  ? e.target.value
+                  : `+91${e.target.value.replace(/^\+91/, "")}`,
+              }))
             }
             required
             sx={{ marginBottom: 2 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() =>
+                      setEmployee((prev) => ({ ...prev, contact: "+91" }))
+                    }
+                    title="Clear Contact"
+                  >
+                    <MdClear />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
-
           {/* Edit Mode Specific Fields */}
           {selectedEmployee && (
             <Grid container spacing={2} sx={{ marginBottom: 3 }}>
@@ -587,69 +569,101 @@ const EmployeeComponent = () => {
                     marginTop: 2,
                   }}
                 >
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        name="isBlocked"
-                        checked={employee.isBlocked || false}
-                        onChange={(e) =>
-                          setEmployee((prev) => ({
-                            ...prev,
-                            isBlocked: e.target.checked,
-                          }))
+                  {/* Block/Unblock Button */}
+                  <Button
+                    variant={employee.isBlocked ? "contained" : "outlined"}
+                    color="secondary"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(
+                          `${baseUrl}/api/employee-registration/update-is-blocked`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${localStorage.getItem(
+                                "token"
+                              )}`,
+                            },
+                            body: JSON.stringify({
+                              employeeId: selectedEmployee.id,
+                              isBlocked: !employee.isBlocked, // Toggle block status
+                              remarks: !employee.isBlocked
+                                ? "Blocked by Admin"
+                                : null, // Optional remarks
+                            }),
+                          }
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("Failed to update block status.");
                         }
-                      />
-                    }
-                    label="Is Blocked"
-                  />
-                  <FormControlLabel
-                      control={
-                        <Checkbox
-                          name="isApproved"
-                          checked={employee.isApproved}
-                          disabled={employee.isAssigned} // Disable if assigned
-                          onChange={async (e) => {
-                            const isChecked = e.target.checked;
 
-                            // Update state
-                            setEmployee((prev) => ({ ...prev, isApproved: isChecked }));
+                        toast.success(
+                          !employee.isBlocked
+                            ? "Employee blocked successfully!"
+                            : "Employee unblocked successfully!"
+                        );
 
-                            // Trigger API call for approval
-                            if (isChecked && selectedEmployee?.id) {
-                              const token = localStorage.getItem("token");
-                              if (!token) {
-                                alert("Session expired. Please log in again.");
-                                return;
-                              }
-
-                              try {
-                                const response = await fetch(
-                                  `https://hrmsasp.runasp.net/api/employee-registration/update-is-approved`,
-                                  {
-                                    method: "POST",
-                                    headers: {
-                                      "Content-Type": "application/json",
-                                      Authorization: `Bearer ${token}`,
-                                    },
-                                    body: JSON.stringify({ employeeId: selectedEmployee.id }),
-                                  }
-                                );
-
-                                if (!response.ok) {
-                                  throw new Error("Failed to update approval status.");
-                                }
-
-                                alert("Employee approval updated successfully!");
-                              } catch (error) {
-                                alert("Error approving employee.");
-                              }
-                            }
-                          }}
-                        />
+                        setEmployee((prev) => ({
+                          ...prev,
+                          isBlocked: !prev.isBlocked, // Update local state
+                        }));
+                      } catch (error) {
+                        console.error("Error updating block status:", error);
+                        toast.error("Error updating block status.");
                       }
-                      label="I have verified"
-                    />
-                  </Box>
+                    }}
+                  >
+                    {employee.isBlocked ? "Unblock" : "Block"}
+                  </Button>
+
+                  {/* Verify/Unverify Button */}
+                  <Button
+                    variant={employee.isApproved ? "contained" : "outlined"}
+                    color="primary"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(
+                          `${baseUrl}/api/employee-registration/update-is-approved`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${localStorage.getItem(
+                                "token"
+                              )}`,
+                            },
+                            body: JSON.stringify({
+                              employeeId: selectedEmployee.id,
+                              isApproved: !employee.isApproved, // Toggle verify status
+                            }),
+                          }
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("Failed to update approval status.");
+                        }
+
+                        toast.success(
+                          !employee.isApproved
+                            ? "Employee unverified successfully!"
+                            : "Employee verified successfully!"
+                        );
+
+                        setEmployee((prev) => ({
+                          ...prev,
+                          isApproved: !prev.isApproved, // Update local state
+                        }));
+                      } catch (error) {
+                        console.error("Error updating approval status:", error);
+                        toast.error("Error updating approval status.");
+                      }
+                    }}
+                  >
+                    {employee.isApproved ? "Unverify" : "Verify"}
+                  </Button>
+                </Box>
               )}
             </Grid>
           )}
@@ -696,86 +710,94 @@ const EmployeeComponent = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {employees
-                  .filter((employee) => {
-                    const matchesSearchQuery =
-                      employee.firstName
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                      employee.lastName
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                      employee.email
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                      employee.address
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase());
+                {employees.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No Employee added till now.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  employees
+                    .filter((employee) => {
+                      const matchesSearchQuery =
+                        employee.firstName
+                          .toLowerCase()
+                          .includes(searchQuery.toLowerCase()) ||
+                        employee.lastName
+                          .toLowerCase()
+                          .includes(searchQuery.toLowerCase()) ||
+                        employee.email
+                          .toLowerCase()
+                          .includes(searchQuery.toLowerCase()) ||
+                        employee.address
+                          .toLowerCase()
+                          .includes(searchQuery.toLowerCase());
 
-                    const matchesBlockedFilter =
-                      filters.isBlocked === "" ||
-                      employee.isBlocked.toString() === filters.isBlocked;
+                      const matchesBlockedFilter =
+                        filters.isBlocked === "" ||
+                        employee.isBlocked.toString() === filters.isBlocked;
 
-                    const matchesApprovedFilter =
-                      filters.isApproved === "" ||
-                      employee.isApproved.toString() === filters.isApproved;
+                      const matchesApprovedFilter =
+                        filters.isApproved === "" ||
+                        employee.isApproved.toString() === filters.isApproved;
 
-                    const matchesDataStatusFilter = (() => {
-                      if (filters.dataStatus === "complete") {
-                        return (
-                          employee.firstName &&
-                          employee.lastName &&
-                          employee.email &&
-                          employee.address
-                        );
-                      }
-                      if (filters.dataStatus === "incomplete") {
-                        return (
-                          !employee.firstName &&
-                          !employee.lastName &&
-                          !employee.email &&
-                          !employee.address
-                        );
-                      }
-                      return true;
-                    })();
+                      const matchesDataStatusFilter = (() => {
+                        if (filters.dataStatus === "complete") {
+                          return (
+                            employee.firstName &&
+                            employee.lastName &&
+                            employee.email &&
+                            employee.address
+                          );
+                        }
+                        if (filters.dataStatus === "incomplete") {
+                          return (
+                            !employee.firstName &&
+                            !employee.lastName &&
+                            !employee.email &&
+                            !employee.address
+                          );
+                        }
+                        return true;
+                      })();
 
-                    return (
-                      matchesSearchQuery &&
-                      matchesBlockedFilter &&
-                      matchesApprovedFilter &&
-                      matchesDataStatusFilter
-                    );
-                  })
-                  .map((employee, index) => (
-                    <TableRow key={employee.id}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{employee.firstName || "N/A"}</TableCell>
-                      <TableCell>{employee.lastName || "N/A"}</TableCell>
-                      <TableCell>{employee.contact || "N/A"}</TableCell>
-                      <TableCell>{employee.email || "N/A"}</TableCell>
-                      <TableCell>
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <Button
-                            variant="contained"
-                            color="warning"
-                            size="small"
-                            onClick={() => handleEdit(employee)}
-                          >
-                            <FaEdit className="me-1" /> Edit
-                          </Button>
-                          <Button
-                            onClick={() => openDialog(employee.id)}
-                            variant="contained"
-                            color="error"
-                            size="small"
-                          >
-                            <MdDelete className="me-1" /> Delete
-                          </Button>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                      return (
+                        matchesSearchQuery &&
+                        matchesBlockedFilter &&
+                        matchesApprovedFilter &&
+                        matchesDataStatusFilter
+                      );
+                    })
+                    .map((employee, index) => (
+                      <TableRow key={employee.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{employee.firstName || "N/A"}</TableCell>
+                        <TableCell>{employee.lastName || "N/A"}</TableCell>
+                        <TableCell>{employee.contact || "N/A"}</TableCell>
+                        <TableCell>{employee.email || "N/A"}</TableCell>
+                        <TableCell>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              color="warning"
+                              size="small"
+                              onClick={() => handleEdit(employee)}
+                            >
+                              <FaEdit className="me-1" /> Edit
+                            </Button>
+                            <Button
+                              onClick={() => openDialog(employee.id)}
+                              variant="contained"
+                              color="error"
+                              size="small"
+                            >
+                              <MdDelete className="me-1" /> Delete
+                            </Button>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>

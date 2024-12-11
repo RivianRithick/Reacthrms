@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
 import { TextField, Button, Typography, Box, CircularProgress } from "@mui/material";
 import axios from "axios"; // Axios instance for API calls
 
+const baseUrl = process.env.REACT_APP_BASE_URL;
+
 const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,7 +26,7 @@ const ForgotPassword = () => {
         setIsLoading(true);
 
         // API call to send reset password email
-        const response = await axios.post("https://hrmsasp.runasp.net/api/forgot-password", values);
+        const response = await axios.post(`${baseUrl}/api/forgot-password`, values);
 
         if (response.status === 200) {
           toast.success(response.data?.message || "Reset password email sent!");

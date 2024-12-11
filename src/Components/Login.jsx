@@ -113,35 +113,34 @@ const Login = () => {
             name="password"
           />
           <Box textAlign="right" sx={{ mt: 1 }}>
-  <Link
-    component="button"
-    variant="body2"
-    sx={{ cursor: "pointer" }}
-    onClick={() => navigate("/forgot-password")}
-    type="button" // Add type="button" here
-  >
-    Forgot Password?
-  </Link>
-</Box>
+            <Link
+              component="button"
+              variant="body2"
+              sx={{ cursor: "pointer" }}
+              onClick={() => navigate("/forgot-password")}
+              type="button" // Add type="button" here
+            >
+              Forgot Password?
+            </Link>
+          </Box>
 
-<Button
-  type="submit" // This ensures the button is for form submission
-  fullWidth
-  variant="contained"
-  color="primary"
-  sx={{ marginTop: 2 }}
-  disabled={isLoading}
->
-  {isLoading ? "Logging in..." : "Login"}
-</Button>
-
+          <Button
+            type="submit" // This ensures the button is for form submission
+            fullWidth
+            variant="contained"
+            color="primary"
+            sx={{ marginTop: 2 }}
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging in..." : "Login"}
+          </Button>
         </form>
-        <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
+        {/* <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
           Don't have an account?{" "}
           <Link href="/" underline="hover" sx={{ cursor: "pointer" }}>
             Create an account
           </Link>
-        </Typography>
+        </Typography> */}
       </Box>
       <ToastContainer />
     </Box>

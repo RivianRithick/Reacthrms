@@ -17,6 +17,8 @@ import {
   Alert,
 } from "@mui/material";
 
+const baseUrl = process.env.REACT_APP_BASE_URL;
+
 const AssignedEmployee = () => {
   const [assignedEmployees, setAssignedEmployees] = useState([]);
   const [assignedEmployeeMap, setAssignedEmployeeMap] = useState(new Map());
@@ -35,14 +37,14 @@ const AssignedEmployee = () => {
     setError("");
     try {
       const [roleAssignResponse, assignedEmployeeResponse] = await Promise.all([
-        fetch("https://hrmsasp.runasp.net/api/employeeroleassign?isAssigned=true", {
+        fetch(`${baseUrl}/api/employeeroleassign?isAssigned=true`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }),
-        fetch("https://hrmsasp.runasp.net/api/assignedemployee", {
+        fetch(`${baseUrl}/api/assignedemployee`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -73,7 +75,7 @@ const AssignedEmployee = () => {
       setAssignedEmployeeMap(assignedMap);
     } catch (error) {
       console.error("Error fetching assigned employees:", error);
-      setError(error.message || "Failed to fetch assigned employees.");
+      setError("Failed to fetch assigned employees.");
     } finally {
       setLoading(false);
     }
@@ -93,7 +95,7 @@ const AssignedEmployee = () => {
 
     try {
       const response = await fetch(
-        "https://hrmsasp.runasp.net/api/assignedemployee/create",
+        `${baseUrl}/api/assignedemployee/create`,
         {
           method: "POST",
           headers: {
@@ -117,7 +119,7 @@ const AssignedEmployee = () => {
       fetchAssignedEmployees();
     } catch (error) {
       console.error("Error generating offer letter:", error);
-      setError(error.message);
+      setError("Failed to generate offer letter.");
     } finally {
       updateLoadingMap(roleAssignId, false);
     }
@@ -129,7 +131,7 @@ const AssignedEmployee = () => {
 
     try {
       const response = await fetch(
-        `https://hrmsasp.runasp.net/api/assignedemployee/download?id=${assignedEmployeeId}`,
+        `${baseUrl}/api/assignedemployee/download?id=${assignedEmployeeId}`,
         {
           method: "GET",
           headers: {
@@ -152,7 +154,7 @@ const AssignedEmployee = () => {
       setSuccessMessage("Offer letter downloaded successfully!");
     } catch (error) {
       console.error("Error downloading offer letter:", error);
-      setError(error.message || "Failed to download offer letter.");
+      setError("Failed to download offer letter.");
     } finally {
       updateLoadingMap(assignedEmployeeId, false);
     }
@@ -175,7 +177,9 @@ const AssignedEmployee = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4"
+        gutterBottom
+        sx={{ textAlign: "center", fontWeight: "bold" }}>
         Assigned Employees
       </Typography>
 
@@ -188,10 +192,64 @@ const AssignedEmployee = () => {
         sx={{ marginBottom: 2 }}
       />
 
-      {loading && (
+      {loading ? (
         <Box sx={{ textAlign: "center", marginTop: 4 }}>
           <CircularProgress />
         </Box>
+      ) : filteredEmployees.length === 0 ? (
+        <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
+          No assigned employees found.
+        </Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>#</TableCell>
+                <TableCell>Employee Name</TableCell>
+                <TableCell>Client</TableCell>
+                <TableCell>Department</TableCell>
+                <TableCell>Job Role</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredEmployees.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>
+                    {`${item.employee?.firstName || "N/A"} ${item.employee?.lastName || "N/A"}`}
+                  </TableCell>
+                  <TableCell>{item.client?.clientName || "N/A"}</TableCell>
+                  <TableCell>{item.department?.departmentName || "N/A"}</TableCell>
+                  <TableCell>{item.jobRole?.jobTitle || "N/A"}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        disabled={item.hasGeneratedOfferLetter || loadingMap[item.id]}
+                        onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
+                      >
+                        {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudUploadAlt />}
+                        {item.hasGeneratedOfferLetter ? "Generated" : "Generate"}
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        disabled={!assignedEmployeeMap.get(item.id) || loadingMap[item.id]}
+                        onClick={() => handleDownloadOfferLetter(assignedEmployeeMap.get(item.id))}
+                      >
+                        {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudDownloadAlt />}
+                        Download
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       <Snackbar
@@ -205,56 +263,6 @@ const AssignedEmployee = () => {
       <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError("")}>
         <Alert severity="error">{error}</Alert>
       </Snackbar>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>#</TableCell>
-              <TableCell>Employee Name</TableCell>
-              <TableCell>Client</TableCell>
-              <TableCell>Department</TableCell>
-              <TableCell>Job Role</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredEmployees.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>
-                  {`${item.employee?.firstName || "N/A"} ${item.employee?.lastName || "N/A"}`}
-                </TableCell>
-                <TableCell>{item.client?.clientName || "N/A"}</TableCell>
-                <TableCell>{item.department?.departmentName || "N/A"}</TableCell>
-                <TableCell>{item.jobRole?.jobTitle || "N/A"}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: "flex", gap: 2 }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      disabled={item.hasGeneratedOfferLetter || loadingMap[item.id]}
-                      onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
-                    >
-                      {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudUploadAlt />}
-                      {item.hasGeneratedOfferLetter ? "Generated" : "Generate"}
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      disabled={!assignedEmployeeMap.get(item.id) || loadingMap[item.id]}
-                      onClick={() => handleDownloadOfferLetter(assignedEmployeeMap.get(item.id))}
-                    >
-                      {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudDownloadAlt />}
-                      Download
-                    </Button>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
     </Box>
   );
 };

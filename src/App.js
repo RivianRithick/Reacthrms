@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./Components/Login";
 import ForgotPassword from "./Components/ForgotPassword"; // Updated component name
 import AdminResetPassword from "./Components/AdminResetPassword";
-import Register from "./Components/Register";
+// import Register from "./Components/Register";
 import Navbar from "./Components/Navbar";
 import Client from "./Components/Client";
 import Employee from "./Components/Employee";
@@ -21,7 +21,9 @@ const App = () => {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Register />} />
+        {/* <Route path="/" element={<Register />} /> */}
+        {/* Default Route */}
+        <Route path="/" element={<Navigate to="/login" />} />
         <Route
           path="/login"
           element={<Login SetUserName={setUserName} SetEmail={setEmail} />}

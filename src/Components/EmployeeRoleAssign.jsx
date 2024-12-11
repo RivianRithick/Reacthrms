@@ -17,6 +17,8 @@ import {
   Modal,
 } from "@mui/material";
 
+const baseUrl = process.env.REACT_APP_BASE_URL;
+
 const EmployeeRoleAssign = () => {
   const [employees, setEmployees] = useState([]); // All employees data
   const [filteredEmployees, setFilteredEmployees] = useState([]); // Filtered employees
@@ -59,13 +61,13 @@ const EmployeeRoleAssign = () => {
   
       if (assignmentFilter === "all") {
         const [assignedResponse, unassignedResponse] = await Promise.all([
-          fetch("https://hrmsasp.runasp.net/api/employeeroleassign?isAssigned=true", {
+          fetch(`${baseUrl}/api/employeeroleassign?isAssigned=true`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }),
-          fetch("https://hrmsasp.runasp.net/api/employeeroleassign/approved-and-unassigned", {
+          fetch(`${baseUrl}/api/employeeroleassign/approved-and-unassigned`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -82,7 +84,7 @@ const EmployeeRoleAssign = () => {
         ];
       } else if (assignmentFilter === "assigned") {
         const response = await fetch(
-          "https://hrmsasp.runasp.net/api/employeeroleassign?isAssigned=true",
+          `${baseUrl}/api/employeeroleassign?isAssigned=true`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -94,7 +96,7 @@ const EmployeeRoleAssign = () => {
         employeesData = normalizeEmployees(Array.isArray(result) ? result : result?.data || []);
       } else if (assignmentFilter === "notAssigned") {
         const response = await fetch(
-          "https://hrmsasp.runasp.net/api/employeeroleassign/approved-and-unassigned",
+          `${baseUrl}/api/employeeroleassign/approved-and-unassigned`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -137,10 +139,10 @@ const EmployeeRoleAssign = () => {
   // Fetch clients and departments
   const fetchDropdownData = async () => {
     try {
-      const clientResponse = await fetch("https://hrmsasp.runasp.net/api/client-registration", {
+      const clientResponse = await fetch(`${baseUrl}/api/client-registration`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      const departmentResponse = await fetch("https://hrmsasp.runasp.net/api/departments", {
+      const departmentResponse = await fetch(`${baseUrl}/api/departments`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
   
@@ -160,12 +162,10 @@ const EmployeeRoleAssign = () => {
       setDepartments(departmentsData.data || []);
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
-      setError("Failed to fetch dropdown data.");
+      // setError("Failed to fetch dropdown data.");
     }
   };
   
-  
-
   // Filter employees whenever data or search changes
   useEffect(() => {
     filterEmployees();
@@ -191,7 +191,7 @@ const EmployeeRoleAssign = () => {
       return;
     }
 
-    const url = "https://hrmsasp.runasp.net/api/employeeroleassign/unassign";
+    const url = `${baseUrl}/api/employeeroleassign/unassign`;
     const payload = { EmployeeRoleAssignId: employeeId };
 
     console.log("Sending unassign request:", payload); // Log the payload
@@ -256,7 +256,7 @@ const EmployeeRoleAssign = () => {
     };
 
     try {
-      const response = await fetch("https://hrmsasp.runasp.net/api/employeeroleassign/create", {
+      const response = await fetch(`${baseUrl}/api/employeeroleassign/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -293,7 +293,9 @@ const EmployeeRoleAssign = () => {
 
 return (
   <Box sx={{ padding: 2 }}>
-    <Typography variant="h4" gutterBottom>
+    <Typography variant="h4"
+        gutterBottom
+        sx={{ textAlign: "center", fontWeight: "bold" }}>
       Employee Role Assignment
     </Typography>
     {loading && (
@@ -335,33 +337,41 @@ return (
           </TableRow>
         </TableHead>
         <TableBody>
-  {filteredEmployees.map((employee, index) => (
-    <TableRow key={employee.id}>
-      <TableCell>{index + 1}</TableCell>
-      <TableCell>{employee.firstName}</TableCell>
-      <TableCell>{employee.lastName}</TableCell>
-      <TableCell>{employee.email}</TableCell>
-      <TableCell>
-        {employee.isAssigned ? (
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => handleUnassign(employee.id)}
-          >
-            Unassign
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleOpenModal(employee.id)}
-          >
-            Assign
-          </Button>
-        )}
+        {filteredEmployees.length === 0 ? (
+    <TableRow>
+      <TableCell colSpan={5} align="center">
+        Employee is not yet verified
       </TableCell>
     </TableRow>
-  ))}
+  ) : (
+    filteredEmployees.map((employee, index) => (
+      <TableRow key={employee.id}>
+        <TableCell>{index + 1}</TableCell>
+        <TableCell>{employee.firstName}</TableCell>
+        <TableCell>{employee.lastName}</TableCell>
+        <TableCell>{employee.email}</TableCell>
+        <TableCell>
+          {employee.isAssigned ? (
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => handleUnassign(employee.id)}
+            >
+              Unassign
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleOpenModal(employee.id)}
+            >
+              Assign
+            </Button>
+          )}
+        </TableCell>
+      </TableRow>
+    ))
+  )}
 </TableBody>
       </Table>
     </TableContainer>
