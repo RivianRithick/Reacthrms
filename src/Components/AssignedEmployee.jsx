@@ -127,7 +127,10 @@ const AssignedEmployee = () => {
 
   const handleDownloadOfferLetter = async (assignedEmployeeId) => {
     setError("");
-    updateLoadingMap(assignedEmployeeId, true);
+    const roleAssignId = assignedEmployees.find(
+      emp => assignedEmployeeMap.get(emp.id) === assignedEmployeeId
+    )?.id;
+    updateLoadingMap(roleAssignId, true);
 
     try {
       const response = await fetch(
@@ -156,7 +159,7 @@ const AssignedEmployee = () => {
       console.error("Error downloading offer letter:", error);
       setError("Failed to download offer letter.");
     } finally {
-      updateLoadingMap(assignedEmployeeId, false);
+      updateLoadingMap(roleAssignId, false);
     }
   };
 
@@ -177,91 +180,185 @@ const AssignedEmployee = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4"
-        gutterBottom
-        sx={{ textAlign: "center", fontWeight: "bold" }}>
+      <Typography 
+        variant="h4" 
+        gutterBottom 
+        sx={{ 
+          textAlign: "center", 
+          fontWeight: "bold",
+          color: "primary.main",
+          marginBottom: 4
+        }}
+      >
         Assigned Employees
       </Typography>
 
-      <TextField
-        fullWidth
-        label="Search by Employee Name, Client Name, Department Name, or Job Title"
-        variant="outlined"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        sx={{ marginBottom: 2 }}
-      />
+      {/* Search & Filters Section */}
+      <Box sx={{ 
+        backgroundColor: '#fff',
+        borderRadius: 2,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        padding: 3,
+        marginBottom: 3
+      }}>
+        <Typography variant="h6" sx={{ marginBottom: 2 }}>Search & Filters</Typography>
+        <TextField
+          fullWidth
+          label="Search by Employee Name, Client Name, Department Name, or Job Title"
+          variant="outlined"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ 
+            backgroundColor: 'white',
+            '& .MuiOutlinedInput-root': {
+              '&:hover fieldset': {
+                borderColor: 'primary.main',
+              },
+            },
+          }}
+        />
+      </Box>
 
-      {loading ? (
-        <Box sx={{ textAlign: "center", marginTop: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : filteredEmployees.length === 0 ? (
-        <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>
-          No assigned employees found.
+      {/* Employees List Section */}
+      <Box sx={{ 
+        backgroundColor: '#fff',
+        borderRadius: 2,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        padding: 3
+      }}>
+        <Typography variant="h5" sx={{ 
+          fontWeight: "bold", 
+          color: "primary.main",
+          marginBottom: 3 
+        }}>
+          Assigned Employees List
         </Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>#</TableCell>
-                <TableCell>Employee Name</TableCell>
-                <TableCell>Client</TableCell>
-                <TableCell>Department</TableCell>
-                <TableCell>Job Role</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredEmployees.map((item, index) => (
-                <TableRow key={item.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>
-                    {`${item.employee?.firstName || "N/A"} ${item.employee?.lastName || "N/A"}`}
-                  </TableCell>
-                  <TableCell>{item.client?.clientName || "N/A"}</TableCell>
-                  <TableCell>{item.department?.departmentName || "N/A"}</TableCell>
-                  <TableCell>{item.jobRole?.jobTitle || "N/A"}</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        disabled={item.hasGeneratedOfferLetter || loadingMap[item.id]}
-                        onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
-                      >
-                        {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudUploadAlt />}
-                        {item.hasGeneratedOfferLetter ? "Generated" : "Generate"}
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="success"
-                        disabled={!assignedEmployeeMap.get(item.id) || loadingMap[item.id]}
-                        onClick={() => handleDownloadOfferLetter(assignedEmployeeMap.get(item.id))}
-                      >
-                        {loadingMap[item.id] ? <CircularProgress size={20} /> : <FaCloudDownloadAlt />}
-                        Download
-                      </Button>
-                    </Box>
-                  </TableCell>
+
+        {loading ? (
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "center", 
+            alignItems: "center", 
+            minHeight: "200px" 
+          }}>
+            <CircularProgress />
+          </Box>
+        ) : filteredEmployees.length === 0 ? (
+          <Typography variant="h6" align="center" sx={{ 
+            py: 4,
+            color: 'text.secondary',
+            fontSize: '1.1rem'
+          }}>
+            No assigned employees found.
+          </Typography>
+        ) : (
+          <TableContainer 
+            component={Paper} 
+            sx={{ 
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              borderRadius: 2,
+              overflow: 'hidden'
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Employee Name</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Client</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Department</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Job Role</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              </TableHead>
+              <TableBody>
+                {filteredEmployees.map((item, index) => (
+                  <TableRow 
+                    key={item.id}
+                    sx={{
+                      '&:nth-of-type(odd)': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      },
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      },
+                    }}
+                  >
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                      {`${item.employee?.firstName || "N/A"} ${item.employee?.lastName || ""}`}
+                    </TableCell>
+                    <TableCell>{item.client?.clientName || "N/A"}</TableCell>
+                    <TableCell>{item.department?.departmentName || "N/A"}</TableCell>
+                    <TableCell>{item.jobRole?.jobTitle || "N/A"}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          disabled={item.hasGeneratedOfferLetter || loadingMap[item.id]}
+                          onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
+                          sx={{
+                            borderRadius: 1,
+                            textTransform: 'none',
+                            '&:hover': {
+                              transform: 'translateY(-1px)',
+                              transition: 'transform 0.2s'
+                            }
+                          }}
+                        >
+                          {loadingMap[item.id] ? (
+                            <CircularProgress size={20} sx={{ mr: 1 }} />
+                          ) : (
+                            <FaCloudUploadAlt style={{ marginRight: '4px' }} />
+                          )}
+                          {item.hasGeneratedOfferLetter ? "Generated" : "Generate"}
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          disabled={!assignedEmployeeMap.get(item.id) || loadingMap[item.id]}
+                          onClick={() => handleDownloadOfferLetter(assignedEmployeeMap.get(item.id))}
+                          sx={{
+                            borderRadius: 1,
+                            textTransform: 'none',
+                            '&:hover': {
+                              transform: 'translateY(-1px)',
+                              transition: 'transform 0.2s'
+                            }
+                          }}
+                        >
+                          {loadingMap[item.id] ? (
+                            <CircularProgress size={20} sx={{ mr: 1 }} />
+                          ) : (
+                            <FaCloudDownloadAlt style={{ marginRight: '4px' }} />
+                          )}
+                          Download
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
 
       <Snackbar
         open={!!successMessage}
         autoHideDuration={4000}
         onClose={() => setSuccessMessage("")}
       >
-        <Alert severity="success">{successMessage}</Alert>
+        <Alert severity="success" sx={{ width: '100%' }}>{successMessage}</Alert>
       </Snackbar>
 
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError("")}>
-        <Alert severity="error">{error}</Alert>
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={4000} 
+        onClose={() => setError("")}
+      >
+        <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>
       </Snackbar>
     </Box>
   );

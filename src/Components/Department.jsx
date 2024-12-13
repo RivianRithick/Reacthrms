@@ -30,6 +30,7 @@ const Department = () => {
   const [showForm, setShowForm] = useState(false);
   const [department, setDepartment] = useState({
     name: '',
+    departmentCode: '',
   });
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -58,6 +59,12 @@ const Department = () => {
     fetchDepartments();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      toast.dismiss();
+    };
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setDepartment({ ...department, [name]: value });
@@ -66,8 +73,8 @@ const Department = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!department.name) {
-      toast.error("Please fill in the department name.");
+    if (!department.name || !department.departmentCode) {
+      toast.error("Please fill in both department name and code.");
       return;
     }
 
@@ -76,8 +83,17 @@ const Department = () => {
       : `${baseUrl}/api/create-department`;
 
     const payload = selectedDepartment
-      ? { id: selectedDepartment.id, name: department.name }
-      : { name: department.name };
+      ? {
+          id: selectedDepartment.id,
+          name: department.name,
+          departmentCode: department.departmentCode
+        }
+      : {
+          name: department.name,
+          departmentCode: department.departmentCode
+        };
+    
+    console.log('Submitting payload:', payload);
 
     try {
       const response = await fetch(url, {
@@ -90,6 +106,9 @@ const Department = () => {
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('Server response:', responseData);
+        
         toast.success(`Department ${selectedDepartment ? 'updated' : 'created'} successfully!`);
         resetForm();
         fetchDepartments();
@@ -104,14 +123,14 @@ const Department = () => {
   };
 
   const resetForm = () => {
-    setDepartment({ name: "" });
+    setDepartment({ name: "", departmentCode: "" });
     setSelectedDepartment(null);
     setShowForm(false);
   };
 
   const handleEdit = (department) => {
     setSelectedDepartment(department);
-    setDepartment({ name: department.name });
+    setDepartment({ name: department.name, departmentCode: department.departmentCode });
     setShowForm(true);
   };
 
@@ -158,32 +177,98 @@ const Department = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4"
-        gutterBottom
-        sx={{ textAlign: "center", fontWeight: "bold" }}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
+      <Typography 
+        variant="h4" 
+        gutterBottom 
+        sx={{ 
+          textAlign: "center", 
+          fontWeight: "bold",
+          color: "primary.main",
+          marginBottom: 4
+        }}
+      >
         Department Management
       </Typography>
-      <ToastContainer />
 
       {!showForm && (
-        <TextField
-          fullWidth
-          label="Search by Department Name"
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          sx={{ marginBottom: 2 }}
-        />
+        <Box sx={{ 
+          backgroundColor: '#fff',
+          borderRadius: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          padding: 3,
+          marginBottom: 3
+        }}>
+          <Typography variant="h6" sx={{ marginBottom: 2 }}>Search & Filters</Typography>
+          <TextField
+            fullWidth
+            label="Search by Department Name"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{ 
+              backgroundColor: 'white',
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+          />
+        </Box>
       )}
 
       {showForm ? (
-        <Box component="form" onSubmit={handleSubmit} sx={{ marginBottom: 4 }}>
-          <Typography variant="h5">
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            backgroundColor: '#fff',
+            borderRadius: 2,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            padding: 4,
+            maxWidth: 800,
+            margin: '0 auto'
+          }}
+        >
+          <Typography variant="h5" sx={{ 
+            marginBottom: 4, 
+            color: 'primary.main',
+            fontWeight: 'bold',
+            textAlign: 'center'
+          }}>
             {selectedDepartment ? 'Edit Department' : 'Create Department'}
           </Typography>
-          <br />
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+          
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Department Code"
+                name="departmentCode"
+                value={department.departmentCode}
+                onChange={handleChange}
+                required
+                sx={{ 
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                  },
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Department Name"
@@ -191,36 +276,95 @@ const Department = () => {
                 value={department.name}
                 onChange={handleChange}
                 required
+                sx={{ 
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                  },
+                }}
               />
             </Grid>
           </Grid>
-          <Box sx={{ marginTop: 2 }}>
-            <Button type="submit" variant="contained" color="primary">
-              Submit
+
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 2, 
+            marginTop: 4,
+            justifyContent: 'center'
+          }}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              sx={{
+                minWidth: 120,
+                textTransform: 'none',
+                fontWeight: 'bold'
+              }}
+            >
+              {selectedDepartment ? 'Update' : 'Create'}
             </Button>
             <Button
               variant="outlined"
               color="secondary"
-              sx={{ marginLeft: 2 }}
               onClick={resetForm}
+              sx={{
+                minWidth: 120,
+                textTransform: 'none'
+              }}
             >
               Cancel
             </Button>
           </Box>
         </Box>
       ) : (
-        <>
-          <Button variant="contained" color="success" onClick={() => setShowForm(true)} sx={{ marginBottom: 2 }}>
-            <IoIosAddCircle className="me-1" />Add Department
-          </Button>
-          <Typography variant="h5">Departments List</Typography>
-          <TableContainer component={Paper}>
+        <Box sx={{ 
+          backgroundColor: '#fff',
+          borderRadius: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          padding: 3
+        }}>
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center",
+            marginBottom: 3
+          }}>
+            <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
+              Departments List
+            </Typography>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() => setShowForm(true)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 'bold',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  transition: 'transform 0.2s'
+                }
+              }}
+            >
+              <IoIosAddCircle sx={{ marginRight: 1 }} /> Add Department
+            </Button>
+          </Box>
+
+          <TableContainer 
+            component={Paper} 
+            sx={{ 
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              borderRadius: 2,
+              overflow: 'hidden'
+            }}
+          >
             <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell>#</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Actions</TableCell>
+                <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Department Code</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -236,6 +380,7 @@ const Department = () => {
                   filteredDepartments.map((department, index) => (
                     <TableRow key={department.id}>
                       <TableCell>{index + 1}</TableCell>
+                      <TableCell>{department.departmentCode}</TableCell>
                       <TableCell>{department.name}</TableCell>
                       <TableCell>
                         <Box
@@ -269,7 +414,7 @@ const Department = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        </>
+        </Box>
       )}
       <ConfirmationDialog
         open={dialogOpen}

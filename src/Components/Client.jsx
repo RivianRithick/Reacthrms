@@ -24,6 +24,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  CircularProgress,
+  Switch,
 } from "@mui/material";
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
@@ -44,6 +46,7 @@ const ClientCrud = () => {
     address: "",
     website: "",
     isBlocked: false,
+    clientCode: "",
   });
 
   // Fetch clients from the API
@@ -151,6 +154,7 @@ const ClientCrud = () => {
       address: "",
       website: "",
       isBlocked: false,
+      clientCode: "",
     });
     setSelectedClient(null);
     setShowForm(false);
@@ -166,6 +170,7 @@ const ClientCrud = () => {
       address: client.address || "",
       website: client.website || "",
       isBlocked: client.isBlocked || false,
+      clientCode: client.clientCode || "",
     });
     setShowForm(true);
   };
@@ -176,7 +181,6 @@ const ClientCrud = () => {
     setDialogOpen(true);
   };
 
-  // Confirm deletion of a client
   // Confirm deletion of a client
   const confirmDelete = async () => {
     if (!clientToDelete) {
@@ -193,23 +197,27 @@ const ClientCrud = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({ id: clientToDelete }), // Wrap id in an object
+          body: clientToDelete.toString(), // Send the ID as a simple value
         }
       );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(
-          `Error deleting client: ${response.statusText} - ${errorText}`
-        );
+        throw new Error(`Failed to delete client: ${errorText}`);
       }
 
-      toast.success("Client deleted successfully!");
-      fetchClients();
-      setDialogOpen(false);
+      const result = await response.json();
+      
+      if (result.status === "Success") {
+        toast.success(result.message || "Client deleted successfully!");
+        fetchClients();
+        setDialogOpen(false);
+      } else {
+        toast.error(result.message || "Failed to delete client");
+      }
     } catch (error) {
       console.error("Error deleting client:", error);
-      toast.error(`Error deleting client: ${error.message}`);
+      toast.error(error.message || "Failed to delete client");
     }
   };
 
@@ -237,210 +245,311 @@ const ClientCrud = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4"
-        gutterBottom
-        sx={{ textAlign: "center", fontWeight: "bold" }}>
+      <Typography 
+        variant="h4" 
+        gutterBottom 
+        sx={{ 
+          textAlign: "center", 
+          fontWeight: "bold",
+          color: "primary.main",
+          marginBottom: 4
+        }}
+      >
         Client Management
       </Typography>
+
       <ToastContainer />
+
       {loading ? (
-        <Typography variant="h6" align="center">
-          Loading clients...
-        </Typography>
+        <Box sx={{ 
+          display: "flex", 
+          justifyContent: "center", 
+          alignItems: "center", 
+          minHeight: "200px" 
+        }}>
+          <CircularProgress />
+        </Box>
+      ) : showForm ? (
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            backgroundColor: '#fff',
+            borderRadius: 2,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            padding: 4,
+            maxWidth: 800,
+            margin: '0 auto'
+          }}
+        >
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{
+              fontWeight: "bold",
+              color: "primary.main",
+              marginBottom: 3,
+              textAlign: "center"
+            }}
+          >
+            {selectedClient ? "Edit Client" : "Create Client"}
+          </Typography>
+
+          <Grid container spacing={2}>
+            {["clientCode", "name", "email", "contact", "address", "website"].map((field) => (
+              <Grid item xs={12} sm={6} key={field}>
+                {field === "contact" ? (
+                  <TextField
+                    fullWidth
+                    label="Contact"
+                    name={field}
+                    value={client[field]}
+                    onChange={handleChange}
+                    InputProps={{
+                      startAdornment: (
+                        <Typography sx={{ paddingRight: "8px", fontWeight: "bold", color: "rgba(0, 0, 0, 0.6)" }}>
+                          +91
+                        </Typography>
+                      ),
+                    }}
+                    required
+                  />
+                ) : (
+                  <TextField
+                    fullWidth
+                    label={field === "clientCode" ? "Client Code" : field.charAt(0).toUpperCase() + field.slice(1)}
+                    name={field}
+                    value={client[field]}
+                    onChange={handleChange}
+                    required
+                  />
+                )}
+              </Grid>
+            ))}
+            <Grid item xs={12}>
+              <Button
+                variant={client.isBlocked ? "contained" : "outlined"}
+                color="secondary"
+                onClick={() => {
+                  setClient(prev => ({
+                    ...prev,
+                    isBlocked: !prev.isBlocked
+                  }));
+                }}
+              >
+                {client.isBlocked ? "Unblock" : "Block"}
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Box sx={{ display: "flex", gap: 2, marginTop: 2 }}>
+            <Button type="submit" variant="contained" color="primary">
+              Submit
+            </Button>
+            <Button variant="outlined" onClick={resetForm}>
+              Cancel
+            </Button>
+          </Box>
+        </Box>
       ) : (
         <>
-          {!showForm && (
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "center",
-                marginBottom: 2,
-              }}
-            >
-              <TextField
-                fullWidth
-                label="Search by Name or Address"
-                variant="outlined"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <FormControl sx={{ minWidth: 150 }}>
-                <InputLabel>Filter</InputLabel>
-                <Select
-                  value={clientFilter}
-                  onChange={handleFilterChange}
-                  label="Filter"
-                >
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="blocked">Blocked</MenuItem>
-                  <MenuItem value="notBlocked">Not Blocked</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          )}
-          {showForm ? (
-            <Box
-              component="form"
-              onSubmit={handleSubmit}
-              sx={{ marginBottom: 4 }}
-            >
-              <Typography variant="h5">
-                {selectedClient ? "Edit Client" : "Create Client"}
-              </Typography>
-              <Grid container spacing={2}>
-                {["name", "email", "contact", "address", "website"].map(
-                  (field) => (
-                    <Grid item xs={12} sm={6} key={field}>
-                      {field === "contact" ? (
-                        <TextField
-                          fullWidth
-                          label="Contact"
-                          name={field}
-                          value={client[field]} // Directly use the `client.contact` value
-                          onChange={(e) => {
-                            const inputValue = e.target.value.replace(
-                              /^\+91/,
-                              ""
-                            ); // Ensure the value doesn't start with +91
-                            setClient((prev) => ({
-                              ...prev,
-                              contact: inputValue,
-                            }));
-                          }}
-                          InputProps={{
-                            startAdornment: (
-                              <Typography
-                                sx={{
-                                  paddingRight: "8px",
-                                  fontWeight: "bold",
-                                  color: "rgba(0, 0, 0, 0.6)",
-                                }}
-                              >
-                                +91
-                              </Typography>
-                            ),
-                          }}
-                          required
-                        />
-                      ) : (
-                        <TextField
-                          fullWidth
-                          label={field.charAt(0).toUpperCase() + field.slice(1)}
-                          name={field}
-                          value={client[field]}
-                          onChange={handleChange}
-                          required
-                        />
-                      )}
-                    </Grid>
-                  )
-                )}
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        name="isBlocked"
-                        checked={client.isBlocked}
-                        onChange={handleChange}
-                      />
-                    }
-                    label="Is Blocked"
-                  />
-                </Grid>
-              </Grid>
-              <Box sx={{ marginTop: 2 }}>
-                <Button type="submit" variant="contained" color="primary">
-                  Submit
-                </Button>
-                <Button
+          {/* Search and Filters Section */}
+          <Box sx={{ 
+            backgroundColor: '#fff',
+            borderRadius: 2,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            padding: 3,
+            marginBottom: 3
+          }}>
+            <Typography variant="h6" sx={{ marginBottom: 2 }}>Search & Filters</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Search by Name or Address"
                   variant="outlined"
-                  color="secondary"
-                  sx={{ marginLeft: 2 }}
-                  onClick={resetForm}
-                >
-                  Cancel
-                </Button>
-              </Box>
-            </Box>
-          ) : (
-            <>
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  sx={{ 
+                    backgroundColor: 'white',
+                    '& .MuiOutlinedInput-root': {
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ 
+                  backgroundColor: 'white', 
+                  padding: 2, 
+                  borderRadius: 1,
+                  height: '100%'
+                }}>
+                  <InputLabel sx={{ marginBottom: 1, fontWeight: 'bold' }}>Block Filter</InputLabel>
+                  <Select
+                    value={clientFilter}
+                    onChange={handleFilterChange}
+                    displayEmpty
+                    fullWidth
+                    sx={{ 
+                      '& .MuiSelect-select': {
+                        padding: '10px 14px',
+                      }
+                    }}
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="blocked">Blocked</MenuItem>
+                    <MenuItem value="notBlocked">Not Blocked</MenuItem>
+                  </Select>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Clients List Section */}
+          <Box sx={{ 
+            backgroundColor: '#fff',
+            borderRadius: 2,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            padding: 3
+          }}>
+            <Box sx={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center",
+              marginBottom: 3
+            }}>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                Clients List
+              </Typography>
               <Button
                 variant="contained"
                 color="success"
                 onClick={() => setShowForm(true)}
-                sx={{ marginBottom: 2 }}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    transition: 'transform 0.2s'
+                  }
+                }}
               >
-                <IoIosAddCircle className="me-1" />
-                Add Client
+                <IoIosAddCircle sx={{ marginRight: 1 }} /> Add Client
               </Button>
-              <Typography variant="h5">Clients List</Typography>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
+            </Box>
+
+            <TableContainer 
+              component={Paper} 
+              sx={{ 
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                borderRadius: 2,
+                overflow: 'hidden'
+              }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Client Code</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Email</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Contact</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Address</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Website</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredClients.length === 0 ? (
                     <TableRow>
-                      <TableCell>#</TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Email</TableCell>
-                      <TableCell>Contact</TableCell>
-                      <TableCell>Address</TableCell>
-                      <TableCell>Website</TableCell>
-                      <TableCell>Actions</TableCell>
+                      <TableCell 
+                        colSpan={9} 
+                        align="center"
+                        sx={{ 
+                          py: 4,
+                          color: 'text.secondary',
+                          fontSize: '1.1rem'
+                        }}
+                      >
+                        No clients available to display.
+                      </TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredClients.length > 0 ? (
-                      filteredClients.map((client, index) => (
-                        <TableRow key={client.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{client.name}</TableCell>
-                          <TableCell>{client.email}</TableCell>
-                          <TableCell>{client.contact}</TableCell>
-                          <TableCell>{client.address}</TableCell>
-                          <TableCell>{client.website}</TableCell>
-                          <TableCell>
-                            <Box sx={{ display: "flex", gap: 1 }}>
-                              <Button
-                                variant="contained"
-                                color="warning"
-                                size="small"
-                                onClick={() => handleEdit(client)}
-                              >
-                                <FaEdit className="me-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                onClick={() => openDialog(client.id)}
-                                variant="contained"
-                                color="error"
-                                size="small"
-                              >
-                                <MdDelete className="me-1" />
-                                Delete
-                              </Button>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={7} align="center">
-                          No client is available to display.
+                  ) : (
+                    filteredClients.map((client, index) => (
+                      <TableRow 
+                        key={client.id}
+                        sx={{
+                          '&:nth-of-type(odd)': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          },
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                          },
+                        }}
+                      >
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{client.clientCode}</TableCell>
+                        <TableCell>{client.name}</TableCell>
+                        <TableCell>{client.email}</TableCell>
+                        <TableCell>{client.contact}</TableCell>
+                        <TableCell>{client.address}</TableCell>
+                        <TableCell>{client.website}</TableCell>
+                        <TableCell>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              color="warning"
+                              size="small"
+                              onClick={() => handleEdit(client)}
+                              sx={{
+                                borderRadius: 1,
+                                textTransform: 'none',
+                                '&:hover': {
+                                  transform: 'translateY(-1px)',
+                                  transition: 'transform 0.2s'
+                                }
+                              }}
+                            >
+                              <FaEdit sx={{ marginRight: 0.5 }} /> Edit
+                            </Button>
+                            <Button
+                              onClick={() => openDialog(client.id)}
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              sx={{
+                                borderRadius: 1,
+                                textTransform: 'none',
+                                '&:hover': {
+                                  transform: 'translateY(-1px)',
+                                  transition: 'transform 0.2s'
+                                }
+                              }}
+                            >
+                              <MdDelete sx={{ marginRight: 0.5 }} /> Delete
+                            </Button>
+                          </Box>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </>
-          )}
-          <ConfirmationDialog
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)}
-            onConfirm={confirmDelete}
-          />
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </>
       )}
+
+      <ConfirmationDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </Box>
   );
 };

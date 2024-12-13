@@ -38,7 +38,6 @@ const renewToken = async () => {
 
   if (!refreshToken || !token) {
     console.error("No token or refresh token found.");
-    handleLogout();
     return null;
   }
 
@@ -47,20 +46,16 @@ const renewToken = async () => {
       token,
       refreshToken,
     });
-    if (response.status === 200 && response.data?.accessToken) {
-      const { accessToken } = response.data;
-      localStorage.setItem("token", accessToken); // Save the new token
+    
+    if (response.status === 200) {
+      const { accessToken, refreshToken: newRefreshToken } = response.data;
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", newRefreshToken); // Store new refresh token
       return accessToken;
-    } else {
-      console.warn("Failed to renew token. Refresh token may be expired.");
-      toast.error("Session expired. Please log in again.");
-      handleLogout();
-      return null;
     }
+    return null;
   } catch (error) {
     console.error("Token renewal failed:", error.message);
-    toast.error("Unable to refresh session. Please log in again.");
-    handleLogout();
     return null;
   }
 };
@@ -82,32 +77,34 @@ const handleLogout = () => {
 // Axios request interceptor to handle token validation
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const token = localStorage.getItem("token");
+    // Skip token check for these endpoints
+    const skipAuthUrls = [
+      '/api/admin-login',
+      '/api/renew-token',
+      '/api/admin-registration/create'
+    ];
+    
+    if (skipAuthUrls.some(url => config.url.includes(url))) {
+      return config;
+    }
 
-    if (
-      !config.url.includes("/api/admin-login") &&
-      !config.url.includes("/api/renew-token") &&
-      !config.url.includes("/api/admin-registration/create")
-    ) {
-      if (token && isTokenExpired(token)) {
-        console.info("Token expired. Attempting renewal...");
-        const newToken = await renewToken();
-        if (newToken) {
-          config.headers.Authorization = `Bearer ${newToken}`;
-        } else {
-          handleLogout();
-          throw new Error("Token renewal failed. User logged out.");
-        }
-      } else if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    let token = localStorage.getItem("token");
+
+    // If token exists but is expired, try to renew it
+    if (token && isTokenExpired(token)) {
+      const newToken = await renewToken();
+      if (newToken) {
+        token = newToken;
       }
     }
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
-  (error) => {
-    console.error("Request error:", error.message);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Axios response interceptor for retrying failed requests
@@ -117,39 +114,68 @@ const MAX_RETRIES = 3;
 // Helper for exponential backoff
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (!error.response) {
-      // Handle network error (no response from server)
-      toast.error("Network error. Please check your connection.");
+    const originalRequest = error.config;
+
+    // If there's no response or the error isn't 401, reject immediately
+    if (!error.response || error.response.status !== 401) {
       return Promise.reject(error);
     }
 
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry && retryCount < MAX_RETRIES) {
-      retryCount++;
-      originalRequest._retry = true;
-
-      try {
-        const newToken = await renewToken();
-        if (newToken) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          await sleep(retryCount * 1000); // Exponential backoff
-          return axiosInstance(originalRequest); // Retry the request
-        } else {
-          console.warn("Retry failed. Logging out.");
-          handleLogout();
-        }
-      } catch (retryError) {
-        console.warn("Token renewal and retry failed:", retryError.message);
-        handleLogout();
-      }
+    // Don't retry if this is already a retry or a token renewal request
+    if (originalRequest._retry || originalRequest.url.includes('/api/renew-token')) {
+      return Promise.reject(error);
     }
 
-    retryCount = 0; // Reset retry count for other errors
-    return Promise.reject(error);
+    if (isRefreshing) {
+      // Queue the request if we're already refreshing
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return axiosInstance(originalRequest);
+        })
+        .catch(err => Promise.reject(err));
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const newToken = await renewToken();
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        processQueue(null, newToken);
+        return axiosInstance(originalRequest);
+      } else {
+        processQueue(new Error('Failed to refresh token'));
+        handleLogout();
+        return Promise.reject(error);
+      }
+    } catch (refreshError) {
+      processQueue(refreshError);
+      handleLogout();
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
 

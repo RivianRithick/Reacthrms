@@ -24,6 +24,7 @@ import {
 import axiosInstance from "../apiService"; // Use the shared Axios instance
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { IoIosAddCircle } from "react-icons/io";
 
 const JobRole = () => {
   const [jobRoles, setJobRoles] = useState([]);
@@ -33,11 +34,20 @@ const JobRole = () => {
   const [jobRole, setJobRole] = useState({
     title: "",
     departmentId: "",
+    jobRoleCode: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [jobRoleToDelete, setJobRoleToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all toasts when component unmounts
+      toast.dismiss();
+    };
+  }, []);
 
   // Fetch job roles
   const fetchJobRoles = async () => {
@@ -120,7 +130,7 @@ const JobRole = () => {
 
   // Reset form
   const resetForm = () => {
-    setJobRole({ title: "", departmentId: "" });
+    setJobRole({ title: "", departmentId: "", jobRoleCode: "" });
     setSelectedJobRole(null);
     setShowForm(false);
   };
@@ -156,28 +166,63 @@ const JobRole = () => {
   // Handle edit
   const handleEdit = (role) => {
     setSelectedJobRole(role);
-    setJobRole({ title: role.title, departmentId: role.departmentId });
+    setJobRole({ title: role.title, departmentId: role.departmentId, jobRoleCode: role.jobRoleCode });
     setShowForm(true);
   };
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4"
-        gutterBottom
-        sx={{ textAlign: "center", fontWeight: "bold" }}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
+      <Typography 
+        variant="h4" 
+        gutterBottom 
+        sx={{ 
+          textAlign: "center", 
+          fontWeight: "bold",
+          color: "primary.main",
+          marginBottom: 4
+        }}
+      >
         Job Role Management
       </Typography>
-      <ToastContainer />
 
       {!showForm && (
-        <TextField
-          fullWidth
-          label="Search by Job Title or Department Name"
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          sx={{ marginBottom: 2 }}
-        />
+        <Box sx={{ 
+          backgroundColor: '#fff',
+          borderRadius: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          padding: 3,
+          marginBottom: 3
+        }}>
+          <Typography variant="h6" sx={{ marginBottom: 2 }}>Search & Filters</Typography>
+          <TextField
+            fullWidth
+            label="Search by Job Title or Department Name"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{ 
+              backgroundColor: 'white',
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+          />
+        </Box>
       )}
 
       {isLoading ? (
@@ -185,12 +230,44 @@ const JobRole = () => {
           <CircularProgress />
         </Box>
       ) : showForm ? (
-        <Box component="form" onSubmit={handleSubmit} sx={{ marginBottom: 4 }}>
-          <Typography variant="h5">
-            {selectedJobRole ? "Edit Job Role" : "Create Job Role"}
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            backgroundColor: '#fff',
+            borderRadius: 2,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            padding: 4,
+            maxWidth: 800,
+            margin: '0 auto'
+          }}
+        >
+          <Typography variant="h5" sx={{ 
+            marginBottom: 4, 
+            color: 'primary.main',
+            fontWeight: 'bold',
+            textAlign: 'center'
+          }}>
+            {selectedJobRole ? 'Edit Job Role' : 'Create Job Role'}
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Job Role Code"
+                name="jobRoleCode"
+                value={jobRole.jobRoleCode}
+                onChange={handleChange}
+                required
+                sx={{ 
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                  },
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 label="Job Title"
@@ -198,15 +275,45 @@ const JobRole = () => {
                 value={jobRole.title}
                 onChange={handleChange}
                 required
+                sx={{ 
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                  },
+                }}
               />
             </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel>Department</InputLabel>
+            <Grid item xs={12} md={4}>
+              <FormControl 
+                fullWidth 
+                required
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    backgroundColor: 'white',
+                    padding: '0 8px',
+                    marginLeft: '-4px',
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    backgroundColor: 'white',
+                  }
+                }}
+              >
+                <InputLabel 
+                  sx={{ 
+                    color: 'text.secondary',
+                  }}
+                >
+                  Department
+                </InputLabel>
                 <Select
                   name="departmentId"
                   value={jobRole.departmentId}
                   onChange={handleChange}
+                  label="Department"
+                  sx={{
+                    '& .MuiSelect-select': {
+                      padding: '16.5px 14px',
+                    },
+                  }}
                 >
                   <MenuItem value="">
                     <em>Select Department</em>
@@ -220,44 +327,94 @@ const JobRole = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <Box sx={{ marginTop: 2 }}>
-            <Button type="submit" variant="contained" color="primary">
-              Submit
+
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 2, 
+            marginTop: 4,
+            justifyContent: 'center'
+          }}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              sx={{
+                minWidth: 120,
+                textTransform: 'none',
+                fontWeight: 'bold'
+              }}
+            >
+              {selectedJobRole ? 'Update' : 'Create'}
             </Button>
             <Button
               variant="outlined"
               color="secondary"
-              sx={{ marginLeft: 2 }}
               onClick={resetForm}
+              sx={{
+                minWidth: 120,
+                textTransform: 'none'
+              }}
             >
               Cancel
             </Button>
           </Box>
         </Box>
       ) : (
-        <>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={() => setShowForm(true)}
-            sx={{ marginBottom: 2 }}
+        <Box sx={{ 
+          backgroundColor: '#fff',
+          borderRadius: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          padding: 3
+        }}>
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center",
+            marginBottom: 3
+          }}>
+            <Typography variant="h5" sx={{ fontWeight: "bold", color: "primary.main" }}>
+              Job Roles List
+            </Typography>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() => setShowForm(true)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 'bold',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  transition: 'transform 0.2s'
+                }
+              }}
+            >
+              <IoIosAddCircle sx={{ marginRight: 1 }} /> Add Job Role
+            </Button>
+          </Box>
+
+          <TableContainer 
+            component={Paper} 
+            sx={{ 
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              borderRadius: 2,
+              overflow: 'hidden'
+            }}
           >
-            Add Job Role
-          </Button>
-          <TableContainer component={Paper}>
             <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell>#</TableCell>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Department Name</TableCell>
-                  <TableCell>Actions</TableCell>
+                <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Job Role Code</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Title</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Department Name</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredJobRoles.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
+                    <TableCell colSpan={5} align="center">
                       No job roles available.
                     </TableCell>
                   </TableRow>
@@ -265,6 +422,7 @@ const JobRole = () => {
                   filteredJobRoles.map((role, index) => (
                     <TableRow key={role.id}>
                       <TableCell>{index + 1}</TableCell>
+                      <TableCell>{role.jobRoleCode}</TableCell>
                       <TableCell>{role.title}</TableCell>
                       <TableCell>{role.departmentName || "N/A"}</TableCell>
                       <TableCell>
@@ -293,7 +451,7 @@ const JobRole = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        </>
+        </Box>
       )}
 
       <ConfirmationDialog

@@ -15,6 +15,8 @@ import {
   Select,
   MenuItem,
   Modal,
+  Grid,
+  InputLabel,
 } from "@mui/material";
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
@@ -38,16 +40,31 @@ const EmployeeRoleAssign = () => {
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [selectedJobRoleId, setSelectedJobRoleId] = useState("");
 
+  // Add to your existing state declarations
+  const [filterClientId, setFilterClientId] = useState("");
+  const [filterDepartmentId, setFilterDepartmentId] = useState("");
+  const [filterJobRoleId, setFilterJobRoleId] = useState("");
+
   // Fetch all employees based on filter
   const normalizeEmployees = (data) => {
     return data.map((item) => {
-      const employeeData = item.employee || item; // Extract nested data if present
+      // Check if the employee data is nested in the Employee property
+      const employeeData = item.Employee || item.employee || item;
       return {
-        id: item.id,
-        isAssigned: item.isAssigned,
-        firstName: employeeData.firstName || "N/A",
-        lastName: employeeData.lastName || "N/A",
-        email: employeeData.email || "N/A",
+        id: item.Id || item.id,
+        isAssigned: item.IsAssigned || item.isAssigned || false,
+        firstName: employeeData.FirstName || employeeData.firstName || "N/A",
+        lastName: employeeData.LastName || employeeData.lastName || "N/A",
+        email: employeeData.Email || employeeData.email || "N/A",
+        isDeleted: employeeData.IsDeleted || employeeData.isDeleted || false, // Add isDeleted field
+        // Include additional properties from your API response
+        clientName: item.Client?.ClientName || "N/A",
+        clientCode: item.Client?.ClientCode || "N/A",
+        departmentName: item.Department?.DepartmentName || "N/A",
+        departmentCode: item.Department?.DepartmentCode || "N/A",
+        jobTitle: item.JobRole?.JobTitle || "N/A",
+        jobRoleCode: item.JobRole?.JobRoleCode || "N/A",
+        hasGeneratedOfferLetter: item.HasGeneratedOfferLetter || false
       };
     });
   };
@@ -61,13 +78,13 @@ const EmployeeRoleAssign = () => {
   
       if (assignmentFilter === "all") {
         const [assignedResponse, unassignedResponse] = await Promise.all([
-          fetch(`${baseUrl}/api/employeeroleassign?isAssigned=true`, {
+          fetch(`${baseUrl}/api/EmployeeRoleAssign?isAssigned=true`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }),
-          fetch(`${baseUrl}/api/employeeroleassign/approved-and-unassigned`, {
+          fetch(`${baseUrl}/api/EmployeeRoleAssign/approved-and-unassigned`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -79,12 +96,12 @@ const EmployeeRoleAssign = () => {
         const unassignedData = unassignedResponse.ok ? await unassignedResponse.json() : [];
   
         employeesData = [
-          ...normalizeEmployees(Array.isArray(unassignedData) ? unassignedData : unassignedData?.data || []),
-          ...normalizeEmployees(Array.isArray(assignedData) ? assignedData : assignedData?.data || []),
+          ...normalizeEmployees(unassignedData.data || []).filter(emp => !emp.isDeleted),
+          ...normalizeEmployees(assignedData.data || []).filter(emp => !emp.isDeleted)
         ];
       } else if (assignmentFilter === "assigned") {
         const response = await fetch(
-          `${baseUrl}/api/employeeroleassign?isAssigned=true`,
+          `${baseUrl}/api/EmployeeRoleAssign?isAssigned=true`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -92,11 +109,11 @@ const EmployeeRoleAssign = () => {
             },
           }
         );
-        const result = response.ok ? await response.json() : [];
-        employeesData = normalizeEmployees(Array.isArray(result) ? result : result?.data || []);
+        const result = response.ok ? await response.json() : { data: [] };
+        employeesData = normalizeEmployees(result.data || []).filter(emp => !emp.isDeleted);
       } else if (assignmentFilter === "notAssigned") {
         const response = await fetch(
-          `${baseUrl}/api/employeeroleassign/approved-and-unassigned`,
+          `${baseUrl}/api/EmployeeRoleAssign/approved-and-unassigned`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -104,8 +121,8 @@ const EmployeeRoleAssign = () => {
             },
           }
         );
-        const result = response.ok ? await response.json() : [];
-        employeesData = normalizeEmployees(Array.isArray(result) ? result : result?.data || []);
+        const result = response.ok ? await response.json() : { data: [] };
+        employeesData = normalizeEmployees(result.data || []).filter(emp => !emp.isDeleted);
       }
   
       setEmployees(employeesData);
@@ -153,23 +170,25 @@ const EmployeeRoleAssign = () => {
       const clientsData = await clientResponse.json();
       const departmentsData = await departmentResponse.json();
   
-      // Filter out blocked clients based on `isBlocked` field
-      const activeClients = (clientsData.data || []).filter((client) => !client.isBlocked);
+      // Debug logs for departments and job roles
+      console.log('Raw departments data:', departmentsData);
+      console.log('First department job roles:', departmentsData.data?.[0]?.jobRoles);
   
-      console.log("Filtered Active Clients:", activeClients);
+      const activeClients = (clientsData.data || []).filter((client) => !client.isBlocked);
+      const departmentsWithRoles = departmentsData.data || [];
   
       setClients(activeClients);
-      setDepartments(departmentsData.data || []);
+      setDepartments(departmentsWithRoles);
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
-      // setError("Failed to fetch dropdown data.");
+      setError("Failed to load dropdown data");
     }
   };
   
   // Filter employees whenever data or search changes
   useEffect(() => {
     filterEmployees();
-  }, [employees, searchQuery]);
+  }, [employees, searchQuery, assignmentFilter, filterClientId, filterDepartmentId, filterJobRoleId]);
 
   // Fetch employees and dropdowns on filter change
   useEffect(() => {
@@ -184,17 +203,13 @@ const EmployeeRoleAssign = () => {
   };
 
   const handleUnassign = async (employeeId) => {
-    console.log(`Unassign logic for employee with id: ${employeeId}`); // Log the ID
-
     if (!employeeId) {
       setError("Invalid employee ID for unassigning.");
       return;
     }
 
-    const url = `${baseUrl}/api/employeeroleassign/unassign`;
+    const url = `${baseUrl}/api/EmployeeRoleAssign/unassign`;
     const payload = { EmployeeRoleAssignId: employeeId };
-
-    console.log("Sending unassign request:", payload); // Log the payload
 
     try {
       const response = await fetch(url, {
@@ -213,21 +228,11 @@ const EmployeeRoleAssign = () => {
       }
 
       setSuccessMessage("Unassigned successfully!");
+      
+      // Update states and refetch data
+      await fetchEmployeesByFilter();  // Refetch to get updated data
+      handleCloseModal();
 
-      // Update the employee state
-      setEmployees((prevEmployees) =>
-        prevEmployees.map((emp) =>
-          emp.id === employeeId
-            ? {
-              ...emp,
-              isAssigned: false,
-              client: null,
-              department: null,
-              jobRole: null,
-            }
-            : emp
-        )
-      );
     } catch (error) {
       setError(`Error in unassigning: ${error.message}`);
     }
@@ -256,7 +261,7 @@ const EmployeeRoleAssign = () => {
     };
 
     try {
-      const response = await fetch(`${baseUrl}/api/employeeroleassign/create`, {
+      const response = await fetch(`${baseUrl}/api/EmployeeRoleAssign/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -273,8 +278,11 @@ const EmployeeRoleAssign = () => {
       }
 
       setSuccessMessage("Assigned successfully!");
-      fetchEmployeesByFilter(); // Refresh the list
+      
+      // Update states and refetch data
+      await fetchEmployeesByFilter();  // Refetch to get updated data
       handleCloseModal();
+
     } catch (error) {
       setError(`Error in assignment: ${error.message}`);
     }
@@ -284,157 +292,340 @@ const EmployeeRoleAssign = () => {
  // Handle department change
  const handleDepartmentChange = (departmentId) => {
   setSelectedDepartmentId(departmentId);
+  setSelectedJobRoleId(""); // Reset job role selection
 
-  // Filter job roles based on the selected department
   const department = departments.find((dept) => dept.id === departmentId);
-  setJobRoles(department?.jobRoles || []);
-  setSelectedJobRoleId("");
+  console.log('Selected department:', department);
+  console.log('Department job roles:', department?.jobRoles);
+
+  if (department && department.jobRoles) {
+    const mappedJobRoles = department.jobRoles.map(role => {
+      console.log('Processing role:', role); // Log each role being processed
+      return {
+        id: role.id,
+        title: role.title,
+        jobRoleCode: role.jobRoleCode || role.code || 'No Code', // Try both possible property names
+        departmentId: role.departmentId
+      };
+    });
+    console.log('Mapped job roles:', mappedJobRoles);
+    setJobRoles(mappedJobRoles);
+  } else {
+    setJobRoles([]);
+  }
 };
 
 return (
   <Box sx={{ padding: 2 }}>
-    <Typography variant="h4"
-        gutterBottom
-        sx={{ textAlign: "center", fontWeight: "bold" }}>
+    <Typography 
+      variant="h4" 
+      gutterBottom 
+      sx={{ 
+        textAlign: "center", 
+        fontWeight: "bold",
+        color: "primary.main",
+        marginBottom: 4
+      }}
+    >
       Employee Role Assignment
     </Typography>
-    {loading && (
-      <Box sx={{ display: "flex", justifyContent: "center", margin: 2 }}>
-        <CircularProgress />
-      </Box>
-    )}
-    {error && <Typography color="error">{error}</Typography>}
-    {successMessage && <Typography color="success">{successMessage}</Typography>}
 
-    <Box sx={{ display: "flex", gap: 2, alignItems: "center", marginBottom: 2 }}>
-      <TextField
-        fullWidth
-        label="Search by Employee Name"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-      <Select
-        value={assignmentFilter}
-        onChange={(e) => setAssignmentFilter(e.target.value)}
-        displayEmpty
-        sx={{ minWidth: 200 }}
-      >
-        <MenuItem value="all">All</MenuItem>
-        <MenuItem value="assigned">Assigned</MenuItem>
-        <MenuItem value="notAssigned">Not Assigned</MenuItem>
-      </Select>
+    {/* Search and Filters Section */}
+    <Box sx={{ 
+      backgroundColor: '#fff',
+      borderRadius: 2,
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      padding: 3,
+      marginBottom: 3
+    }}>
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>Search & Filters</Typography>
+      <Grid container spacing={2}>
+        {/* Search Field - Full Width */}
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Search by Name or Email"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{ 
+              backgroundColor: 'white',
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+          />
+        </Grid>
+        
+        {/* Assignment Status Filter */}
+        <Grid item xs={12}>
+          <Box sx={{ 
+            backgroundColor: 'white', 
+            padding: 2, 
+            borderRadius: 1,
+            height: '100%'
+          }}>
+            <InputLabel sx={{ marginBottom: 1, fontWeight: 'bold' }}>Assignment Status</InputLabel>
+            <Select
+              value={assignmentFilter}
+              onChange={(e) => setAssignmentFilter(e.target.value)}
+              displayEmpty
+              fullWidth
+              sx={{ 
+                '& .MuiSelect-select': {
+                  padding: '10px 14px',
+                }
+              }}
+            >
+              <MenuItem value="all">All Employees</MenuItem>
+              <MenuItem value="assigned">Assigned</MenuItem>
+              <MenuItem value="notAssigned">Not Assigned</MenuItem>
+            </Select>
+          </Box>
+        </Grid>
+      </Grid>
     </Box>
 
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>#</TableCell>
-            <TableCell>First Name</TableCell>
-            <TableCell>Last Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-        {filteredEmployees.length === 0 ? (
-    <TableRow>
-      <TableCell colSpan={5} align="center">
-        Employee is not yet verified
-      </TableCell>
-    </TableRow>
-  ) : (
-    filteredEmployees.map((employee, index) => (
-      <TableRow key={employee.id}>
-        <TableCell>{index + 1}</TableCell>
-        <TableCell>{employee.firstName}</TableCell>
-        <TableCell>{employee.lastName}</TableCell>
-        <TableCell>{employee.email}</TableCell>
-        <TableCell>
-          {employee.isAssigned ? (
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => handleUnassign(employee.id)}
-            >
-              Unassign
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleOpenModal(employee.id)}
-            >
-              Assign
-            </Button>
-          )}
-        </TableCell>
-      </TableRow>
-    ))
-  )}
-</TableBody>
-      </Table>
-    </TableContainer>
+    {/* Employees List Section */}
+    <Box sx={{ 
+      backgroundColor: '#fff',
+      borderRadius: 2,
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      padding: 3
+    }}>
+      <Typography variant="h5" sx={{ 
+        fontWeight: "bold", 
+        color: "primary.main",
+        marginBottom: 3 
+      }}>
+        Employees List
+      </Typography>
 
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", margin: 2 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            borderRadius: 2,
+            overflow: 'hidden'
+          }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>First Name</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Last Name</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Email</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredEmployees.length === 0 ? (
+                <TableRow>
+                  <TableCell 
+                    colSpan={5} 
+                    align="center"
+                    sx={{ 
+                      py: 4,
+                      color: 'text.secondary',
+                      fontSize: '1.1rem'
+                    }}
+                  >
+                    No employees found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredEmployees.map((employee, index) => (
+                  <TableRow 
+                    key={employee.id}
+                    sx={{
+                      '&:nth-of-type(odd)': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      },
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      },
+                    }}
+                  >
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{employee.firstName}</TableCell>
+                    <TableCell>{employee.lastName}</TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>
+                      {employee.isAssigned ? (
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => handleUnassign(employee.id)}
+                          sx={{
+                            borderRadius: 1,
+                            textTransform: 'none',
+                            '&:hover': {
+                              transform: 'translateY(-1px)',
+                              transition: 'transform 0.2s'
+                            }
+                          }}
+                        >
+                          Unassign
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleOpenModal(employee.id)}
+                          sx={{
+                            borderRadius: 1,
+                            textTransform: 'none',
+                            '&:hover': {
+                              transform: 'translateY(-1px)',
+                              transition: 'transform 0.2s'
+                            }
+                          }}
+                        >
+                          Assign
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
+
+    {/* Assignment Modal */}
     <Modal open={openModal} onClose={handleCloseModal}>
-      <Box sx={{ padding: 3, backgroundColor: "white", margin: "100px auto", width: 400 }}>
-        <Typography variant="h6" gutterBottom>
+      <Box sx={{ 
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 400,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: 24,
+        p: 4,
+      }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
           Assign Role
         </Typography>
-        <Select
-  fullWidth
-  value={selectedClientId}
-  onChange={(e) => setSelectedClientId(e.target.value)}
-  displayEmpty
-  sx={{ marginBottom: 2 }}
->
-  <MenuItem value="" disabled>
-    Select Client
-  </MenuItem>
-  {clients.map((client) => (
-    <MenuItem key={client.id} value={client.id}>
-      {client.name}
-    </MenuItem>
-  ))}
-</Select>
-        <Select
-          fullWidth
-          value={selectedDepartmentId}
-          onChange={(e) => handleDepartmentChange(e.target.value)}
-          displayEmpty
-          sx={{ marginBottom: 2 }}
-        >
-          <MenuItem value="" disabled>
-            Select Department
-          </MenuItem>
-          {departments.map((department) => (
-            <MenuItem key={department.id} value={department.id}>
-              {department.name}
-            </MenuItem>
-          ))}
-        </Select>
-        <Select
-          fullWidth
-          value={selectedJobRoleId}
-          onChange={(e) => setSelectedJobRoleId(e.target.value)}
-          displayEmpty
-          sx={{ marginBottom: 2 }}
-          disabled={!selectedDepartmentId}
-        >
-          <MenuItem value="" disabled>
-            Select Job Role
-          </MenuItem>
-          {jobRoles.map((role) => (
-            <MenuItem key={role.id} value={role.id}>
-              {role.title}
-            </MenuItem>
-          ))}
-        </Select>
-        <Button variant="contained" color="primary" onClick={handleAssignmentAction} fullWidth>
-          Submit
-        </Button>
+        
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Select
+              fullWidth
+              value={selectedClientId}
+              onChange={(e) => setSelectedClientId(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="" disabled>Select Client</MenuItem>
+              {clients.map((client) => (
+                <MenuItem key={client.id} value={client.id}>
+                  {`${client.name} (${client.clientCode || 'No Code'})`}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Select
+              fullWidth
+              value={selectedDepartmentId}
+              onChange={(e) => handleDepartmentChange(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="" disabled>Select Department</MenuItem>
+              {departments.map((department) => (
+                <MenuItem key={department.id} value={department.id}>
+                  {`${department.name} (${department.departmentCode || 'No Code'})`}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Select
+              fullWidth
+              value={selectedJobRoleId}
+              onChange={(e) => setSelectedJobRoleId(e.target.value)}
+              displayEmpty
+              disabled={!selectedDepartmentId}
+            >
+              <MenuItem value="" disabled>Select Job Role</MenuItem>
+              {jobRoles.map((role) => (
+                <MenuItem key={role.id} value={role.id}>
+                  {role.jobRoleCode ? `${role.title} (${role.jobRoleCode})` : role.title}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={handleAssignmentAction}
+              fullWidth
+              sx={{
+                mt: 2,
+                textTransform: 'none',
+                fontWeight: 'bold',
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                  transition: 'transform 0.2s'
+                }
+              }}
+            >
+              Submit
+            </Button>
+          </Grid>
+        </Grid>
       </Box>
     </Modal>
+
+    {/* Error and Success Messages */}
+    {error && (
+      <Typography 
+        color="error" 
+        sx={{ 
+          position: 'fixed', 
+          bottom: 16, 
+          right: 16, 
+          bgcolor: 'error.light',
+          color: 'white',
+          padding: 2,
+          borderRadius: 1,
+          boxShadow: 2
+        }}
+      >
+        {error}
+      </Typography>
+    )}
+    {successMessage && (
+      <Typography 
+        color="success" 
+        sx={{ 
+          position: 'fixed', 
+          bottom: 16, 
+          right: 16, 
+          bgcolor: 'success.light',
+          color: 'white',
+          padding: 2,
+          borderRadius: 1,
+          boxShadow: 2
+        }}
+      >
+        {successMessage}
+      </Typography>
+    )}
   </Box>
 );
 };

@@ -1,10 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUsers, FaBuilding, FaTasks, FaUserTie, FaSignOutAlt } from "react-icons/fa"; // Icons
-import axiosInstance from "../apiService"; 
+import { FaUsers, FaBuilding, FaTasks, FaUserTie, FaSignOutAlt } from "react-icons/fa";
+import axiosInstance from "../apiService";
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  IconButton,
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  useTheme,
+  useMediaQuery,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 
 const NavBar = () => {
   const navigate = useNavigate();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleLogout = async () => {
     try {
@@ -14,13 +39,8 @@ const NavBar = () => {
         return;
       }
 
-      // API call to logout
       await axiosInstance.post("/api/admin-logout", { email });
-
-      // Clear local storage upon successful logout
       localStorage.clear();
-
-      // Redirect to login page
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Logout failed:", error);
@@ -31,62 +51,194 @@ const NavBar = () => {
     }
   };
 
-  return (
-    <nav className="navbar navbar-expand-lg bg-primary navbar-dark">
-      <div className="container-fluid">
-        <Link to="/employees" className="navbar-brand text-white">
-          HRMS
-        </Link>
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNavDropdown"
-          aria-controls="navbarNavDropdown"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
+  const navItems = [
+    { text: "Employees", icon: <FaUsers />, path: "/employees" },
+    { text: "Clients", icon: <FaBuilding />, path: "/clients" },
+    { text: "Employee Role Assign", icon: <FaTasks />, path: "/employee-role-assign" },
+    { text: "Assigned Employee", icon: <FaUserTie />, path: "/assigned-employee" },
+    { text: "Department", icon: <FaBuilding />, path: "/department" },
+    { text: "Job Role", icon: <FaTasks />, path: "/jobRole" },
+  ];
+
+  const renderNavItems = () => (
+    <>
+      {navItems.map((item) => (
+        <Button
+          key={item.path}
+          component={Link}
+          to={item.path}
+          sx={{
+            color: 'white',
+            mx: 1,
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              transform: 'translateY(-2px)',
+              transition: 'all 0.3s'
+            },
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            textTransform: 'none',
+            fontSize: '1rem',
+          }}
         >
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        <div className="collapse navbar-collapse justify-content-between" id="navbarNavDropdown">
-          <ul className="navbar-nav ms-auto">
-            <li className="nav-item">
-              <Link to="/employees" className="nav-link text-white">
-                <FaUsers className="me-1" /> Employees
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/clients" className="nav-link text-white">
-                <FaBuilding className="me-1" /> Clients
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/employee-role-assign" className="nav-link text-white">
-                <FaTasks className="me-1" /> Employee Role Assign
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/assigned-employee" className="nav-link text-white">
-                <FaUserTie className="me-1" /> Assigned Employee
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/department" className="nav-link text-white">
-                <FaBuilding className="me-1" /> Department
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/jobRole" className="nav-link text-white">
-                <FaTasks className="me-1" /> Job Role
-              </Link>
-            </li>
-          </ul>
-          <button className="btn btn-danger btn-logout" onClick={handleLogout}>
-            <FaSignOutAlt className="me-1" /> Logout
-          </button>
-        </div>
-      </div>
-    </nav>
+          {item.icon}
+          {item.text}
+        </Button>
+      ))}
+    </>
+  );
+
+  const renderMobileDrawer = () => (
+    <Drawer
+      anchor="left"
+      open={mobileMenuOpen}
+      onClose={() => setMobileMenuOpen(false)}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: 240,
+          backgroundColor: theme.palette.primary.main,
+          color: 'white'
+        }
+      }}
+    >
+      <Box sx={{ p: 2 }}>
+        <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+          HRMS
+        </Typography>
+      </Box>
+      <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }} />
+      <List>
+        {navItems.map((item) => (
+          <ListItem
+            key={item.path}
+            button
+            component={Link}
+            to={item.path}
+            onClick={() => setMobileMenuOpen(false)}
+            sx={{
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }
+            }}
+          >
+            <ListItemIcon sx={{ color: 'white', minWidth: 40 }}>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItem>
+        ))}
+      </List>
+      <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }} />
+      <Box sx={{ p: 2 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          color="error"
+          onClick={() => setLogoutDialogOpen(true)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            textTransform: 'none'
+          }}
+        >
+          <FaSignOutAlt />
+          Logout
+        </Button>
+      </Box>
+    </Drawer>
+  );
+
+  return (
+    <>
+      <AppBar position="sticky" sx={{ backgroundColor: theme.palette.primary.main }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          {isMobile ? (
+            <>
+              <IconButton
+                color="inherit"
+                onClick={() => setMobileMenuOpen(true)}
+                edge="start"
+              >
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                HRMS
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                HRMS
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {renderNavItems()}
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => setLogoutDialogOpen(true)}
+                  sx={{
+                    ml: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    textTransform: 'none',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      transition: 'all 0.3s'
+                    }
+                  }}
+                >
+                  <FaSignOutAlt />
+                  Logout
+                </Button>
+              </Box>
+            </>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {renderMobileDrawer()}
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={() => setLogoutDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ 
+          backgroundColor: theme.palette.primary.main, 
+          color: 'white',
+          fontWeight: 'bold' 
+        }}>
+          Confirm Logout
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography>
+            Are you sure you want to logout?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setLogoutDialogOpen(false)}
+            variant="outlined"
+            sx={{ textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleLogout}
+            variant="contained"
+            color="error"
+            sx={{ textTransform: 'none' }}
+          >
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
