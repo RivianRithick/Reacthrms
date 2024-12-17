@@ -3,7 +3,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ConfirmationDialog from "./ConfirmationDialog";
 import CircularProgress from "@mui/material/CircularProgress";
-import { MdDelete, MdClear } from "react-icons/md";
+import { MdDelete, MdClear, MdBlock } from "react-icons/md";
 import { IoIosAddCircle } from "react-icons/io";
 import { FaEdit, FaIdCard, FaAddressCard, FaBook } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
@@ -64,19 +64,24 @@ const EmployeeComponent = () => {
     passbookFilePath: "",
     isBlocked: false,
     isApproved: false,
-    isActive: true,
+    status: "Pending",
     blockedRemarks: "",
     blockedBy: "",
+    isDeleted: false,
+    deletedBy: "",
+    deletedOn: null,
+    deleteRemarks: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
     isBlocked: "",
-    isApproved: "",
-    isActive: "",
-    dataStatus: "all", // New filter for complete/incomplete/all
+    status: "",
+    dataStatus: "all",
+    showDeleted: false
   });
   const [showBlockRemarks, setShowBlockRemarks] = useState(false);
+  const [deleteRemarks, setDeleteRemarks] = useState("");
 
   useEffect(() => {
     fetchEmployees();
@@ -97,7 +102,7 @@ const EmployeeComponent = () => {
     setError("");
 
     try {
-      const response = await fetch(`${baseUrl}/api/employee-registration`, {
+      const response = await fetch(`${baseUrl}/api/employee-registration?includeDeleted=true`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -123,10 +128,20 @@ const EmployeeComponent = () => {
       // Fetch verification details for each approved employee
       const employeesWithDetails = await Promise.all(
         data.data.map(async (emp) => {
+          console.log('Raw employee data:', emp);
+          
+          const isDisabled = emp.isDisabled === true || 
+                            emp.isDisabled === 1 || 
+                            emp.disabledBy !== null || 
+                            emp.disabledOn !== null;
+          
           const employeeData = {
             ...emp,
             isActive: typeof emp.isActive === 'boolean' ? emp.isActive : true,
+            isDisabled: isDisabled,
           };
+          
+          console.log('Processed employee data:', employeeData);
           
           if (emp.isApproved) {
             try {
@@ -162,6 +177,7 @@ const EmployeeComponent = () => {
       );
 
       console.log("Processed Employees:", employeesWithDetails);
+      console.log('Fetched employees:', employeesWithDetails);
       setEmployees(employeesWithDetails);
     } catch (error) {
       setError(error.message);
@@ -280,7 +296,7 @@ const EmployeeComponent = () => {
         // Create new employee - Let's modify this part
         const createPayload = {
           contact: formattedContact,
-          isActive: true,
+          status: "Pending",
           // Only include required fields for creation
           firstName: null,
           lastName: null,
@@ -393,7 +409,9 @@ const EmployeeComponent = () => {
           ...currentEmployeeState,
           id: selectedEmployee.id,
           contact: formattedContact,
-          isActive: currentEmployeeState.isActive ?? true,
+          status: currentEmployeeState.status,
+          isActive: currentEmployeeState.status !== "Inactive",
+          isApproved: currentEmployeeState.isApproved,
           dateOfBirth: currentEmployeeState.dateOfBirth || null,
           gender: currentEmployeeState.gender || null,
           maritalStatus: currentEmployeeState.maritalStatus || null,
@@ -491,27 +509,39 @@ const EmployeeComponent = () => {
     setDialogOpen(true);
   };
 
-  const confirmDelete = async () => {
-    if (!employeeToDelete) return;
-
+  const handleDelete = async () => {
     try {
-      const response = await apiService.post(
-        "/api/employee-registration/delete",
-        employeeToDelete
-      );
+      const response = await fetch(`${baseUrl}/api/employee-registration/soft-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          employeeId: employeeToDelete.id,
+          remarks: deleteRemarks,
+        })
+      });
 
-      if (response?.data?.status === "Success") {
-        toast.success("Employee deleted successfully.");
-        fetchEmployees(); // Refresh the employee list
-        setDialogOpen(false); // Close the confirmation dialog
-      } else {
-        throw new Error(
-          response?.data?.message || "Failed to delete employee."
-        );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update employee status");
       }
+
+      const result = await response.json();
+      console.log('Delete/Restore Response:', result);
+
+      toast.success(employeeToDelete.isDeleted ? 
+        "Employee enabled successfully" : 
+        "Employee disabled successfully"
+      );
+      setDialogOpen(false);
+      setDeleteRemarks("");
+      setEmployeeToDelete(null);
+      await fetchEmployees(); // Refresh the list
     } catch (error) {
-      console.error("Error deleting employee:", error);
-      toast.error("Failed to delete employee.");
+      console.error('Delete error:', error);
+      toast.error(error.message || "Failed to update employee status");
     }
   };
 
@@ -641,6 +671,83 @@ const EmployeeComponent = () => {
     const date = new Date(dateString + 'T12:00:00Z');
     return date.toLocaleDateString();
   };
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+        case 'active':
+            return 'success.main';
+        case 'inactive':
+            return 'error.main';
+        case 'pending':
+            return 'warning.main';
+        default:
+            return 'text.secondary';
+    }
+  };
+
+  const getFilteredEmployees = (employees, filters, searchQuery) => {
+    if (!Array.isArray(employees)) return [];
+    
+    return employees.filter(employee => {
+      // Basic search filter
+      const matchesSearchQuery =
+        searchQuery === "" || // If no search query, show all
+        (employee.firstName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (employee.lastName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (employee.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (employee.address?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+
+      // Show deleted or non-deleted based on filter
+      const matchesDeletedFilter = filters.showDeleted === employee.isDeleted;
+
+      // Other filters only apply to non-deleted employees
+      if (!filters.showDeleted) {
+        const matchesBlockedFilter =
+          filters.isBlocked === "" ||
+          employee.isBlocked.toString() === filters.isBlocked;
+
+        const matchesDataStatusFilter = (() => {
+          if (filters.dataStatus === "complete") {
+            return employee.firstName && employee.lastName && employee.email && employee.address;
+          }
+          if (filters.dataStatus === "incomplete") {
+            return !employee.firstName || !employee.lastName || !employee.email || !employee.address;
+          }
+          return true;
+        })();
+
+        const matchesStatusFilter =
+          !filters.status || employee.status === filters.status;
+
+        return (
+          matchesSearchQuery &&
+          matchesDeletedFilter &&
+          matchesBlockedFilter &&
+          matchesDataStatusFilter &&
+          matchesStatusFilter
+        );
+      }
+
+      // For deleted employees, only apply search filter
+      return matchesSearchQuery && matchesDeletedFilter;
+    });
+  };
+
+  const filteredEmployees = getFilteredEmployees(employees, filters, searchQuery);
+
+  // Before returning filtered employees
+  console.log('Filter conditions:', {
+    searchQuery,
+    filters,
+    totalEmployees: employees.length,
+    filteredCount: filteredEmployees.length,
+    sampleEmployee: employees[0]
+  });
+
+  // In the component, before rendering the table
+  console.log('Current filters:', filters);
+  console.log('All employees:', employees);
+  console.log('Filtered employees:', filteredEmployees);
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -926,35 +1033,6 @@ const EmployeeComponent = () => {
                     padding: 2,
                     borderRadius: 1
                   }}>
-                    {/* Active/Inactive Switch */}
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={employee.isActive ?? true} // Add default value
-                          onChange={(e) => setEmployee(prev => ({
-                            ...prev,
-                            isActive: e.target.checked
-                          }))}
-                          color="primary"
-                          disabled={
-                            employee.isBlocked ||    
-                            employee.isApproved ||   
-                            employee.isAssigned      
-                          }
-                        />
-                      }
-                      label={
-                        <Typography 
-                          sx={{ 
-                            color: employee.isActive ? 'success.main' : 'error.main',
-                            fontWeight: 'medium'
-                          }}
-                        >
-                          {employee.isActive ? "Active" : "Inactive"}
-                        </Typography>
-                      }
-                    />
-
                     {/* Block/Unblock Button */}
                     <Button
                       variant="contained"
@@ -972,13 +1050,26 @@ const EmployeeComponent = () => {
                         }
                       }}
                       startIcon={employee.isBlocked ? <MdClear /> : <MdDelete />}
-                      disabled={
-                        !employee.isActive ||   
-                        employee.isApproved ||  
-                        employee.isAssigned     
-                      }
+                      disabled={employee.isAssigned || employee.isApproved || employee.status === "Inactive"}
                     >
                       {employee.isBlocked ? "Unblock" : "Block"}
+                    </Button>
+
+                    {/* Add Set Inactive/Active Button */}
+                    <Button
+                      variant="contained"
+                      color={employee.status === "Inactive" ? "success" : "error"}
+                      onClick={() => {
+                        setEmployee(prev => ({
+                          ...prev,
+                          status: prev.status === "Inactive" ? "Pending" : "Inactive",
+                          isApproved: false
+                        }));
+                      }}
+                      startIcon={employee.status === "Inactive" ? <IoIosAddCircle /> : <MdClear />}
+                      disabled={employee.isBlocked || employee.isApproved || employee.isAssigned}
+                    >
+                      {employee.status === "Inactive" ? "Set Active" : "Set Inactive"}
                     </Button>
 
                     {/* Verify/Unverify Button */}
@@ -989,15 +1080,12 @@ const EmployeeComponent = () => {
                         setTempIsApproved(!employee.isApproved);
                         setEmployee(prev => ({
                           ...prev,
-                          isApproved: !prev.isApproved
+                          isApproved: !prev.isApproved,
+                          status: !prev.isApproved ? "Active" : "Pending"
                         }));
                       }}
                       startIcon={employee.isApproved ? <MdClear /> : <IoIosAddCircle />}
-                      disabled={
-                        !employee.isActive ||   
-                        employee.isBlocked ||   
-                        employee.isAssigned     
-                      }
+                      disabled={employee.isBlocked || employee.isAssigned || employee.status === "Inactive"}
                     >
                       {employee.isApproved ? "Unverify" : "Verify"}
                     </Button>
@@ -1060,7 +1148,7 @@ const EmployeeComponent = () => {
                 />
               </Grid>
               
-              {/* Filters Row */}
+              {/* Status Filter */}
               <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{ 
                   backgroundColor: 'white', 
@@ -1070,24 +1158,20 @@ const EmployeeComponent = () => {
                 }}>
                   <InputLabel sx={{ marginBottom: 1, fontWeight: 'bold' }}>Status Filter</InputLabel>
                   <Select
-                    name="isActive"
-                    value={filters.isActive}
+                    name="status"
+                    value={filters.status}
                     onChange={handleFilterChange}
                     displayEmpty
                     fullWidth
-                    sx={{ 
-                      '& .MuiSelect-select': {
-                        padding: '10px 14px',
-                      }
-                    }}
                   >
-                    <MenuItem value="">All</MenuItem>
-                    <MenuItem value="true">Active</MenuItem>
-                    <MenuItem value="false">Inactive</MenuItem>
+                    <MenuItem value="">All Status</MenuItem>
+                    <MenuItem value="Active">Active</MenuItem>
+                    <MenuItem value="Pending">Pending</MenuItem>
                   </Select>
                 </Box>
               </Grid>
 
+              {/* Block Filter */}
               <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{ 
                   backgroundColor: 'white', 
@@ -1102,11 +1186,6 @@ const EmployeeComponent = () => {
                     onChange={handleFilterChange}
                     displayEmpty
                     fullWidth
-                    sx={{ 
-                      '& .MuiSelect-select': {
-                        padding: '10px 14px',
-                      }
-                    }}
                   >
                     <MenuItem value="">All</MenuItem>
                     <MenuItem value="true">Blocked</MenuItem>
@@ -1115,33 +1194,7 @@ const EmployeeComponent = () => {
                 </Box>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
-                <Box sx={{ 
-                  backgroundColor: 'white', 
-                  padding: 2, 
-                  borderRadius: 1,
-                  height: '100%'
-                }}>
-                  <InputLabel sx={{ marginBottom: 1, fontWeight: 'bold' }}>Verification Filter</InputLabel>
-                  <Select
-                    name="isApproved"
-                    value={filters.isApproved}
-                    onChange={handleFilterChange}
-                    displayEmpty
-                    fullWidth
-                    sx={{ 
-                      '& .MuiSelect-select': {
-                        padding: '10px 14px',
-                      }
-                    }}
-                  >
-                    <MenuItem value="">All</MenuItem>
-                    <MenuItem value="true">Approved</MenuItem>
-                    <MenuItem value="false">Not Approved</MenuItem>
-                  </Select>
-                </Box>
-              </Grid>
-
+              {/* Data Completion Filter */}
               <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{ 
                   backgroundColor: 'white', 
@@ -1156,15 +1209,31 @@ const EmployeeComponent = () => {
                     onChange={handleFilterChange}
                     displayEmpty
                     fullWidth
-                    sx={{ 
-                      '& .MuiSelect-select': {
-                        padding: '10px 14px',
-                      }
-                    }}
                   >
                     <MenuItem value="all">All</MenuItem>
                     <MenuItem value="complete">Complete</MenuItem>
                     <MenuItem value="incomplete">Incomplete</MenuItem>
+                  </Select>
+                </Box>
+              </Grid>
+
+              {/* Show Deleted Filter */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Box sx={{ 
+                  backgroundColor: 'white', 
+                  padding: 2, 
+                  borderRadius: 1,
+                  height: '100%'
+                }}>
+                  <InputLabel sx={{ marginBottom: 1, fontWeight: 'bold' }}>Status</InputLabel>
+                  <Select
+                    name="showDeleted"
+                    value={filters.showDeleted}
+                    onChange={handleFilterChange}
+                    fullWidth
+                  >
+                    <MenuItem value={false}>Active Employees</MenuItem>
+                    <MenuItem value={true}>Disabled Employees</MenuItem>
                   </Select>
                 </Box>
               </Grid>
@@ -1231,7 +1300,7 @@ const EmployeeComponent = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {employees.length === 0 ? (
+                  {filteredEmployees.length === 0 ? (
                     <TableRow>
                       <TableCell 
                         colSpan={8} 
@@ -1242,158 +1311,111 @@ const EmployeeComponent = () => {
                           fontSize: '1.1rem'
                         }}
                       >
-                        No Employee added till now.
+                        No employees found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    employees
-                      .filter((employee) => {
-                        const matchesSearchQuery =
-                          employee.firstName
-                            .toLowerCase()
-                            .includes(searchQuery.toLowerCase()) ||
-                          employee.lastName
-                            .toLowerCase()
-                            .includes(searchQuery.toLowerCase()) ||
-                          employee.email
-                            .toLowerCase()
-                            .includes(searchQuery.toLowerCase()) ||
-                          employee.address
-                            .toLowerCase()
-                            .includes(searchQuery.toLowerCase());
-
-                        const matchesBlockedFilter =
-                          filters.isBlocked === "" ||
-                          employee.isBlocked.toString() === filters.isBlocked;
-
-                        const matchesApprovedFilter =
-                          filters.isApproved === "" ||
-                          employee.isApproved.toString() === filters.isApproved;
-
-                        const matchesDataStatusFilter = (() => {
-                          if (filters.dataStatus === "complete") {
-                            return (
-                              employee.firstName &&
-                              employee.lastName &&
-                              employee.email &&
-                              employee.address
-                            );
-                          }
-                          if (filters.dataStatus === "incomplete") {
-                            return (
-                              !employee.firstName &&
-                              !employee.lastName &&
-                              !employee.email &&
-                              !employee.address
-                            );
-                          }
-                          return true;
-                        })();
-
-                        return (
-                          matchesSearchQuery &&
-                          matchesBlockedFilter &&
-                          matchesApprovedFilter &&
-                          matchesDataStatusFilter &&
-                          (filters.isActive === "" || employee.isActive.toString() === filters.isActive)
-                        );
-                      })
-                      .map((employee, index) => (
-                        <TableRow 
-                          key={employee.id}
-                          sx={{
-                            '&:nth-of-type(odd)': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                            },
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                            },
-                          }}
-                        >
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{employee.firstName || "N/A"}</TableCell>
-                          <TableCell>{employee.lastName || "N/A"}</TableCell>
-                          <TableCell>{employee.contact || "N/A"}</TableCell>
-                          <TableCell>{employee.email || "N/A"}</TableCell>
-                          <TableCell>
-                            {employee.isApproved ? (
-                              <Tooltip 
-                                title={`Verified on: ${
-                                  employee.verifiedOn 
-                                    ? new Date(employee.verifiedOn).toLocaleDateString()
-                                    : 'Date not available'
-                                }`}
-                              >
-                                <Typography 
-                                  variant="body2" 
-                                  sx={{ 
-                                    color: 'success.main',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 0.5
-                                  }}
-                                >
-                                  ✓ Verified by {employee.verifiedBy || "Unknown"}
-                                </Typography>
-                              </Tooltip>
-                            ) : (
+                    filteredEmployees.map((employee, index) => (
+                      <TableRow 
+                        key={employee.id}
+                        sx={{
+                          '&:nth-of-type(odd)': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          },
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                          },
+                        }}
+                      >
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{employee.firstName || "N/A"}</TableCell>
+                        <TableCell>{employee.lastName || "N/A"}</TableCell>
+                        <TableCell>{employee.contact || "N/A"}</TableCell>
+                        <TableCell>{employee.email || "N/A"}</TableCell>
+                        <TableCell>
+                          {employee.isApproved ? (
+                            <Tooltip 
+                              title={`Verified on: ${
+                                employee.verifiedOn 
+                                  ? new Date(employee.verifiedOn).toLocaleDateString()
+                                  : 'Date not available'
+                              }`}
+                            >
                               <Typography 
                                 variant="body2" 
-                                sx={{ color: 'text.secondary' }}
+                                sx={{ 
+                                  color: 'success.main',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.5
+                                }}
                               >
-                                Not Verified
+                                ✓ Verified by {employee.verifiedBy || "Unknown"}
                               </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Typography
-                              variant="body2"
+                            </Tooltip>
+                          ) : (
+                            <Typography 
+                              variant="body2" 
+                              sx={{ color: 'text.secondary' }}
+                            >
+                              Not Verified
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: getStatusColor(employee.status),
+                              fontWeight: 'medium'
+                            }}
+                          >
+                            {employee.status || "Pending"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              color="warning"
+                              size="small"
+                              onClick={() => handleEdit(employee)}
                               sx={{
-                                color: employee.isActive ? 'success.main' : 'error.main',
-                                fontWeight: 'medium'
+                                borderRadius: 1,
+                                textTransform: 'none',
+                                '&:hover': {
+                                  transform: 'translateY(-1px)',
+                                  transition: 'transform 0.2s'
+                                }
                               }}
                             >
-                              {employee.isActive ? "Active" : "Inactive"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: "flex", gap: 1 }}>
-                              <Button
-                                variant="contained"
-                                color="warning"
-                                size="small"
-                                onClick={() => handleEdit(employee)}
-                                sx={{
-                                  borderRadius: 1,
-                                  textTransform: 'none',
-                                  '&:hover': {
-                                    transform: 'translateY(-1px)',
-                                    transition: 'transform 0.2s'
-                                  }
-                                }}
-                              >
-                                <FaEdit sx={{ marginRight: 0.5 }} /> Edit
-                              </Button>
-                              <Button
-                                onClick={() => openDialog(employee.id)}
-                                variant="contained"
-                                color="error"
-                                size="small"
-                                sx={{
-                                  borderRadius: 1,
-                                  textTransform: 'none',
-                                  '&:hover': {
-                                    transform: 'translateY(-1px)',
-                                    transition: 'transform 0.2s'
-                                  }
-                                }}
-                              >
-                                <MdDelete sx={{ marginRight: 0.5 }} /> Delete
-                              </Button>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                              <FaEdit sx={{ marginRight: 0.5 }} /> Edit
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setEmployeeToDelete(employee);
+                                setDialogOpen(true);
+                              }}
+                              variant="contained"
+                              color={employee.isDeleted ? "success" : "error"}
+                              size="small"
+                              disabled={employee.status !== "Inactive"}
+                              sx={{
+                                borderRadius: 1,
+                                textTransform: 'none',
+                                '&:hover': {
+                                  transform: 'translateY(-1px)',
+                                  transition: 'transform 0.2s'
+                                }
+                              }}
+                            >
+                              <MdDelete sx={{ marginRight: 0.5 }} /> 
+                              {employee.isDeleted ? "Enable" : "Disable"}
+                            </Button>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>
@@ -1403,34 +1425,51 @@ const EmployeeComponent = () => {
       )}
 
       {/* Confirmation Dialogs */}
-      <ConfirmationDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onConfirm={confirmDelete}
-      />
       <Dialog
-        open={showBlockRemarks}
-        onClose={() => setShowBlockRemarks(false)}
+        open={dialogOpen}
+        onClose={() => {
+          setDialogOpen(false);
+          setDeleteRemarks("");
+          setEmployeeToDelete(null);
+        }}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Block Remarks</DialogTitle>
+        <DialogTitle>
+          {employeeToDelete?.isDeleted ? "Enable Employee" : "Disable Employee"}
+        </DialogTitle>
         <DialogContent>
-          {employee.blockedRemarks ? (
-            <>
-              <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 2 }}>
-                Blocked By: {employee.blockedBy || "Unknown"}
-              </Typography>
-              <Typography sx={{ mt: 1 }}>
-                {employee.blockedRemarks}
-              </Typography>
-            </>
-          ) : (
-            <Typography sx={{ mt: 2 }}>No remarks available</Typography>
-          )}
+          <Typography sx={{ mb: 2 }}>
+            Are you sure you want to {employeeToDelete?.isDeleted ? "enable" : "disable"} this employee?
+          </Typography>
+          <TextField
+            fullWidth
+            label={`${employeeToDelete?.isDeleted ? "Enable" : "Disable"} Remarks`}
+            multiline
+            rows={4}
+            value={deleteRemarks}
+            onChange={(e) => setDeleteRemarks(e.target.value)}
+            required
+            sx={{ mt: 1 }}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowBlockRemarks(false)}>Close</Button>
+          <Button 
+            onClick={() => {
+              setDialogOpen(false);
+              setDeleteRemarks("");
+              setEmployeeToDelete(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDelete}
+            color={employeeToDelete?.isDeleted ? "success" : "error"}
+            variant="contained"
+          >
+            {employeeToDelete?.isDeleted ? "Enable" : "Disable"}
+          </Button>
         </DialogActions>
       </Dialog>
       <Dialog open={blockDialogOpen} onClose={() => setBlockDialogOpen(false)}>
