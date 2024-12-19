@@ -35,7 +35,13 @@ import {
   DialogTitle,
   Switch,
   FormControl,
+  Tabs,
+  Tab
 } from "@mui/material";
+import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import { styled } from '@mui/material/styles';
+import { BsBank2 } from 'react-icons/bs';
+import { MdWork, MdDocumentScanner } from 'react-icons/md';
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
 const EmployeeComponent = () => {
@@ -50,24 +56,66 @@ const EmployeeComponent = () => {
   const [tempBlockRemarks, setTempBlockRemarks] = useState("");
   const [tempIsApproved, setTempIsApproved] = useState(false);
   const [employee, setEmployee] = useState({
+    // Basic Personal Information
     firstName: "",
     lastName: "",
     dateOfBirth: "",
     gender: "",
+    bloodGroup: "",
     maritalStatus: "",
     email: "",
     contact: "+91",
-    alternateContact: "+91",
-    address: "",
+    alternateContact: "",
+    candidatePhotoPath: "",
+
+    // Family Information
+    fatherName: "",
+    motherName: "",
+    fatherDateOfBirth: "",
+    motherDateOfBirth: "",
+    spouseName: "",
+    spouseDateOfBirth: "",
+    familyPhotoPath: "",
+
+    // Address Information
+    presentAddress: "",
+    presentState: "",
+    presentDistrict: "",
+    permanentAddress: "",
+
+    // Bank Account Details
+    bankAccountName: "",
+    bankName: "",
+    bankAccountNumber: "",
+    ifscCode: "",
+
+    // Previous Employment Details
+    previousUANNumber: "",
+    previousESICNumber: "",
+
+    // Identity Documents
+    aadhaarNumber: "",
+    panNumber: "",
+
+    // Document Paths
     panCardFilePath: "",
     aadhaarCardFilePath: "",
     passbookFilePath: "",
+    voterIdPath: "",
+    tenthCertificatePath: "",
+    twelthCertificatePath: "",
+    degreeCertificatePath: "",
+    offerLetterPath: "",
+    experienceLetterPath: "",
+    payslipPath: "",
+
+    // Status and Tracking
+    status: "Pending",
     isBlocked: false,
     isApproved: false,
-    status: "Pending",
+    isDeleted: false,
     blockedRemarks: "",
     blockedBy: "",
-    isDeleted: false,
     deletedBy: "",
     deletedOn: null,
     deleteRemarks: ""
@@ -82,14 +130,34 @@ const EmployeeComponent = () => {
   });
   const [showBlockRemarks, setShowBlockRemarks] = useState(false);
   const [deleteRemarks, setDeleteRemarks] = useState("");
+  const [activeTab, setActiveTab] = useState(0);
+  const [blockRemarksDialogOpen, setBlockRemarksDialogOpen] = useState(false);
+
+  const bloodGroups = [
+    "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
+  ];
+
+  const bankNames = [
+    "State Bank of India",
+    "HDFC Bank",
+    "ICICI Bank",
+    "Punjab National Bank",
+    "Bank of Baroda",
+    "Axis Bank",
+    "Canara Bank",
+    "Union Bank of India",
+    "Bank of India",
+    "Indian Bank",
+    "Central Bank of India",
+    "IndusInd Bank",
+    "Yes Bank",
+    "Kotak Mahindra Bank",
+    "Federal Bank"
+  ];
 
   useEffect(() => {
     fetchEmployees();
   }, [filters]);
-
-  useEffect(() => {
-    console.log("Employee state:", employee);
-  }, [employee]);
 
   const capitalize = (str) => {
     if (!str) return "";
@@ -119,7 +187,6 @@ const EmployeeComponent = () => {
       }
 
       const data = await response.json();
-      console.log("API Response Data:", data);
 
       if (data?.status !== "Success" || !Array.isArray(data.data)) {
         throw new Error("Invalid response format from server");
@@ -128,8 +195,6 @@ const EmployeeComponent = () => {
       // Fetch verification details for each approved employee
       const employeesWithDetails = await Promise.all(
         data.data.map(async (emp) => {
-          console.log('Raw employee data:', emp);
-          
           const isDisabled = emp.isDisabled === true || 
                             emp.isDisabled === 1 || 
                             emp.disabledBy !== null || 
@@ -140,8 +205,6 @@ const EmployeeComponent = () => {
             isActive: typeof emp.isActive === 'boolean' ? emp.isActive : true,
             isDisabled: isDisabled,
           };
-          
-          console.log('Processed employee data:', employeeData);
           
           if (emp.isApproved) {
             try {
@@ -176,8 +239,6 @@ const EmployeeComponent = () => {
         })
       );
 
-      console.log("Processed Employees:", employeesWithDetails);
-      console.log('Fetched employees:', employeesWithDetails);
       setEmployees(employeesWithDetails);
     } catch (error) {
       setError(error.message);
@@ -193,6 +254,33 @@ const EmployeeComponent = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  const handleContactChange = (e) => {
+    const { name, value } = e.target;
+    
+    // For alternate contact, allow empty or valid format
+    if (name === 'alternateContact') {
+      if (value === '' || value === '+91') {
+        setEmployee(prev => ({ ...prev, [name]: value }));
+        return;
+      }
+      if (value.startsWith('+91') && /^\+91\d*$/.test(value)) {
+        setEmployee(prev => ({ ...prev, [name]: value }));
+      }
+      return;
+    }
+
+    // For primary contact
+    if (name === 'contact') {
+      if (value === '+91') {
+        setEmployee(prev => ({ ...prev, [name]: value }));
+        return;
+      }
+      if (value.startsWith('+91') && /^\+91\d*$/.test(value) && value.length <= 13) {
+        setEmployee(prev => ({ ...prev, [name]: value }));
+      }
+    }
   };
 
   const handleView = async (contact, documentType) => {
@@ -288,143 +376,112 @@ const EmployeeComponent = () => {
     setIsLoading(true);
 
     try {
-      const formattedContact = employee.contact.startsWith('+91') 
-        ? employee.contact 
-        : `+91${employee.contact}`;
-
+      // If creating new employee (no selectedEmployee)
       if (!selectedEmployee) {
-        // Create new employee - Let's modify this part
-        const createPayload = {
-          contact: formattedContact,
-          status: "Pending",
-          // Only include required fields for creation
-          firstName: null,
-          lastName: null,
-          dateOfBirth: null,
-          gender: null,
-          maritalStatus: null,
-          email: null,
-          alternateContact: null,
-          address: null,
-          panCardFilePath: null,
-          aadhaarCardFilePath: null,
-          passbookFilePath: null,
-          isBlocked: false,
-          isApproved: false,
-          blockedRemarks: null
-        };
+        // Validate contact number
+        if (!employee.contact || !/^\+91\d{10}$/.test(employee.contact)) {
+          toast.error("Please enter a valid contact number (+91 followed by 10 digits)");
+          setIsLoading(false);
+          return;
+        }
 
-        console.log('Create Payload:', createPayload); // For debugging
-
-        const createResponse = await fetch(
-          `${baseUrl}/api/employee-registration`,
-          {
+        try {
+          const response = await fetch(`${baseUrl}/api/employee-registration`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-            body: JSON.stringify(createPayload),
-          }
-        );
+            body: JSON.stringify({
+              contact: employee.contact
+            }),
+          });
 
-        if (!createResponse.ok) {
-          const errorText = await createResponse.text();
-          console.error('API Error Response:', errorText); // For debugging
-          let errorMessage;
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.message || "Failed to create employee";
-          } catch (e) {
-            errorMessage = errorText || "Failed to create employee";
+          const data = await response.json();
+
+          if (!response.ok) {
+            if (response.status === 409) {
+              toast.error("This contact number is already registered");
+            } else {
+              throw new Error(data.message || "Failed to create employee");
+            }
+            setIsLoading(false);
+            return;
           }
-          throw new Error(errorMessage);
+
+          toast.success("Employee created successfully!");
+          await fetchEmployees();
+          setShowForm(false);
+        } catch (error) {
+          console.error("Error creating employee:", error);
+          toast.error(error.message || "Failed to create employee. Please try again.");
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // Handle existing employee update (keep the existing update logic)
+        const errors = validateForm();
+        if (Object.keys(errors).length > 0) {
+          Object.values(errors).forEach(error => toast.error(error));
+          setIsLoading(false);
+          return;
         }
 
-        const responseData = await createResponse.json();
-        console.log('Create Response:', responseData); // For debugging
+        // Format dates properly
+        const formatDate = (dateString) => {
+          if (!dateString || dateString === "") return null;
+          return new Date(dateString).toISOString().split('T')[0];
+        };
 
-        toast.success("Employee created successfully!");
-      } else {
-        // Initialize updatedBlockData
-        let updatedBlockData = null;
+        // Prepare the payload with properly formatted dates and status
+        const payload = {
+          ...employee,
+          id: selectedEmployee.id,
+          dateOfBirth: formatDate(employee.dateOfBirth),
+          fatherDateOfBirth: formatDate(employee.fatherDateOfBirth),
+          motherDateOfBirth: formatDate(employee.motherDateOfBirth),
+          spouseDateOfBirth: formatDate(employee.spouseDateOfBirth),
+          // Handle other fields that should be null when empty
+          alternateContact: employee.alternateContact === '+91' ? null : employee.alternateContact,
+          spouseName: employee.spouseName || null,
+          previousUANNumber: employee.previousUANNumber || null,
+          previousESICNumber: employee.previousESICNumber || null,
+          blockedBy: employee.blockedBy || null,
+          blockedOn: null,
+          blockedRemarks: employee.blockedRemarks || null,
+          deletedBy: employee.deletedBy || null,
+          deletedOn: null,
+          deleteRemarks: employee.deleteRemarks || null,
+          // Explicitly include status-related fields
+          status: employee.status,
+          isApproved: employee.status === "Active",
+          verifiedBy: employee.status === "Active" ? employee.verifiedBy : null,
+          verifiedOn: employee.status === "Active" ? employee.verifiedOn : null
+        };
 
-        // First handle block status if changed
-        if (employee.isBlocked !== selectedEmployee.isBlocked) {
-          const token = localStorage.getItem("token");
-          let adminName = "Unknown Admin";
-          
-          if (token) {
-            try {
-              const decodedToken = decodeToken(token);
-              // Use the specific claim for the admin's name
-              adminName = decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Unknown Admin";
-            } catch (error) {
-              console.error("Error decoding token:", error);
-            }
-          }
-
-          const blockPayload = {
-            EmployeeId: selectedEmployee.id,
-            IsBlocked: employee.isBlocked,
-            Remarks: employee.isBlocked ? tempBlockRemarks : "",
-            BlockedBy: adminName
-          };
-
-          console.log('Block Payload:', blockPayload);
-
-          const blockResponse = await fetch(
-            `${baseUrl}/api/employee-registration/update-is-blocked`,
+        // If status is being changed to Active, update approval status first
+        if (employee.status === "Active" && selectedEmployee.status !== "Active") {
+          const approvalResponse = await fetch(
+            `${baseUrl}/api/employee-registration/update-is-approved`,
             {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
-              body: JSON.stringify(blockPayload),
+              body: JSON.stringify({
+                employeeId: selectedEmployee.id,
+                isApproved: true
+              }),
             }
           );
 
-          if (!blockResponse.ok) {
-            const errorData = await blockResponse.json();
-            throw new Error(errorData.message || "Failed to update block status");
+          if (!approvalResponse.ok) {
+            throw new Error("Failed to update approval status");
           }
-
-          const blockResult = await blockResponse.json();
-          console.log('Block Response:', blockResult);
-          updatedBlockData = blockResult.data;
         }
 
-        // Get the latest employee state with block data
-        const currentEmployeeState = {
-          ...employee,
-          isBlocked: updatedBlockData?.isBlocked ?? employee.isBlocked,
-          blockedRemarks: updatedBlockData?.blockedRemarks ?? tempBlockRemarks,
-          blockedBy: updatedBlockData?.blockedBy ?? employee.blockedBy,
-          blockedOn: updatedBlockData?.blockedOn ?? employee.blockedOn
-        };
-
-        // Prepare the update payload
-        const updatePayload = {
-          ...currentEmployeeState,
-          id: selectedEmployee.id,
-          contact: formattedContact,
-          status: currentEmployeeState.status,
-          isActive: currentEmployeeState.status !== "Inactive",
-          isApproved: currentEmployeeState.isApproved,
-          dateOfBirth: currentEmployeeState.dateOfBirth || null,
-          gender: currentEmployeeState.gender || null,
-          maritalStatus: currentEmployeeState.maritalStatus || null,
-          email: currentEmployeeState.email || null,
-          address: currentEmployeeState.address || null,
-          panCardFilePath: currentEmployeeState.panCardFilePath || null,
-          aadhaarCardFilePath: currentEmployeeState.aadhaarCardFilePath || null,
-          passbookFilePath: currentEmployeeState.passbookFilePath || null,
-          BlockedRemarks: currentEmployeeState.blockedRemarks,
-        };
-
-        console.log('Update Payload:', updatePayload);
-
+        // Then proceed with the main update
         const updateResponse = await fetch(
           `${baseUrl}/api/employee-registration/update-by-contact`,
           {
@@ -433,7 +490,7 @@ const EmployeeComponent = () => {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-            body: JSON.stringify(updatePayload),
+            body: JSON.stringify(payload),
           }
         );
 
@@ -442,18 +499,17 @@ const EmployeeComponent = () => {
           throw new Error(errorData.message || "Failed to update employee");
         }
 
-        const updateResult = await updateResponse.json();
-        console.log('Update Response:', updateResult);
-
         toast.success("Employee updated successfully!");
+        await fetchEmployees();
+        setShowForm(false);
       }
-
-      await fetchEmployees();
-      resetForm();
-      setShowForm(false);
     } catch (error) {
-      console.error("Error handling employee:", error);
-      toast.error(error.message || "Failed to handle employee operation");
+      console.error("Error processing employee:", error);
+      toast.error(
+        error.response?.status === 405
+          ? "Invalid API endpoint. Please contact support."
+          : error.message || "Failed to process employee"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -469,11 +525,60 @@ const EmployeeComponent = () => {
       maritalStatus: "",
       email: "",
       contact: "+91",
-      alternateContact: "+91",
-      address: "",
+      alternateContact: "",
+      candidatePhotoPath: "",
+
+      // Family Information
+      fatherName: "",
+      motherName: "",
+      fatherDateOfBirth: "",
+      motherDateOfBirth: "",
+      spouseName: "",
+      spouseDateOfBirth: "",
+      familyPhotoPath: "",
+
+      // Address Information
+      presentAddress: "",
+      presentState: "",
+      presentDistrict: "",
+      permanentAddress: "",
+
+      // Bank Account Details
+      bankAccountName: "",
+      bankName: "",
+      bankAccountNumber: "",
+      ifscCode: "",
+
+      // Previous Employment Details
+      previousUANNumber: "",
+      previousESICNumber: "",
+
+      // Identity Documents
+      aadhaarNumber: "",
+      panNumber: "",
+
+      // Document Paths
       panCardFilePath: "",
       aadhaarCardFilePath: "",
       passbookFilePath: "",
+      voterIdPath: "",
+      tenthCertificatePath: "",
+      twelthCertificatePath: "",
+      degreeCertificatePath: "",
+      offerLetterPath: "",
+      experienceLetterPath: "",
+      payslipPath: "",
+
+      // Status and Tracking
+      status: "Pending",
+      isBlocked: false,
+      isApproved: false,
+      isDeleted: false,
+      blockedRemarks: "",
+      blockedBy: "",
+      deletedBy: "",
+      deletedOn: null,
+      deleteRemarks: ""
     }));
 
     setTempIsBlocked(false);
@@ -483,12 +588,21 @@ const EmployeeComponent = () => {
   };
 
   const handleEdit = (employee) => {
+    // Helper function to format dates
+    const formatDate = (dateString) => {
+      if (!dateString) return "";
+      // Remove time part and just keep the date
+      return dateString.split('T')[0];
+    };
+
     setSelectedEmployee(employee);
     setEmployee({
       ...employee,
-      dateOfBirth: employee.dateOfBirth
-        ? new Date(employee.dateOfBirth).toISOString().split('T')[0]
-        : "",
+      // Format all date fields
+      dateOfBirth: formatDate(employee.dateOfBirth),
+      fatherDateOfBirth: formatDate(employee.fatherDateOfBirth),
+      motherDateOfBirth: formatDate(employee.motherDateOfBirth),
+      spouseDateOfBirth: formatDate(employee.spouseDateOfBirth),
       gender: employee.gender ? capitalize(employee.gender) : "",
       maritalStatus: employee.maritalStatus
         ? capitalize(employee.maritalStatus)
@@ -518,8 +632,7 @@ const EmployeeComponent = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          employeeId: employeeToDelete.id,
-          remarks: deleteRemarks,
+          employeeId: employeeToDelete.id
         })
       });
 
@@ -536,7 +649,6 @@ const EmployeeComponent = () => {
         "Employee disabled successfully"
       );
       setDialogOpen(false);
-      setDeleteRemarks("");
       setEmployeeToDelete(null);
       await fetchEmployees(); // Refresh the list
     } catch (error) {
@@ -551,108 +663,174 @@ const EmployeeComponent = () => {
     </Tooltip>
   );
 
-  const renderDocumentField = (label, filePath, documentType, contact) => (
-    <Grid item xs={12} sm={4}>
-      <Box 
-        sx={{ 
-          padding: 3,
-          backgroundColor: 'background.paper',
-          borderRadius: 2,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          transition: 'transform 0.2s, box-shadow 0.2s',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+  const documentTypes = {
+    PHOTOS: [
+      { label: "Candidate Photo", key: "candidate", path: "candidatePhotoPath" },
+      { label: "Family Photo", key: "family", path: "familyPhotoPath", 
+        description: employee.maritalStatus === 'Married' ? 
+          "(Employee, Spouse & Children)" : 
+          "(Employee, Father & Mother)" 
+      }
+    ],
+    EDUCATIONAL: [
+      { label: "10th Certificate", key: "tenth", path: "tenthCertificatePath" },
+      { label: "12th Certificate", key: "twelth", path: "twelthCertificatePath" },
+      { label: "Degree Certificate", key: "degree", path: "degreeCertificatePath" }
+    ],
+    EXPERIENCE: [
+      { label: "Offer Letter", key: "offer", path: "offerLetterPath" },
+      { label: "Experience/Relieving Letter", key: "experience", path: "experienceLetterPath" },
+      { label: "Payslip", key: "payslip", path: "payslipPath" }
+    ],
+    IDENTITY: [
+      { label: "PAN Card", key: "pan", path: "panCardFilePath" },
+      { label: "Aadhaar Card", key: "aadhar", path: "aadhaarCardFilePath" },
+      { label: "Passbook", key: "passbook", path: "passbookFilePath" },
+      { label: "Voter ID", key: "voterid", path: "voterIdPath" }
+    ]
+  };
+
+  const renderDocumentField = (label, filePath, documentType, contact) => {
+    const handleFileUpload = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please upload a valid file (JPG, PNG, or PDF)');
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size should be less than 5MB');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch(
+          `${baseUrl}/api/employee-registration/upload-document/${contact}?documentType=${documentType}`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: formData,
           }
-        }}
-      >
-        {/* Document Icon and Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {documentType === "PAN" && <FaIdCard size={24} color="#1976d2" />}
-          {documentType === "Aadhaar" && <FaAddressCard size={24} color="#1976d2" />}
-          {documentType === "Passbook" && <FaBook size={24} color="#1976d2" />}
-          <Typography variant="subtitle1" fontWeight="bold" color="primary">
-            {label}
-          </Typography>
-        </Box>
+        );
 
-        {/* Status Indicator */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 1,
-            backgroundColor: filePath ? 'success.soft' : 'warning.soft',
-            padding: 1,
-            borderRadius: 1,
-          }}
-        >
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: filePath ? 'success.main' : 'warning.main'
-            }}
-          />
-          <Typography 
-            variant="body2" 
-            color={filePath ? 'success.main' : 'warning.main'}
-          >
-            {filePath ? 'Document Uploaded' : 'Not Uploaded'}
-          </Typography>
-        </Box>
+        if (!response.ok) throw new Error('Upload failed');
 
-        {/* Action Buttons */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            gap: 1,
-            marginTop: 'auto'
-          }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Visibility />}
-            onClick={() => handleView(contact, documentType)}
-            disabled={!filePath}
-            fullWidth
-            sx={{
-              textTransform: 'none',
-              '&.Mui-disabled': {
-                backgroundColor: 'action.disabledBackground',
-                color: 'action.disabled'
-              }
-            }}
-          >
-            View
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<Download />}
-            onClick={() => handleDownload(contact, documentType)}
-            disabled={!filePath}
-            fullWidth
-            sx={{
-              textTransform: 'none',
-              '&.Mui-disabled': {
-                borderColor: 'action.disabledBackground',
-                color: 'action.disabled'
-              }
-            }}
-          >
-            Download
-          </Button>
+        const data = await response.json();
+        setEmployee(prev => ({
+          ...prev,
+          [documentType + 'FilePath']: data.data.FilePath
+        }));
+
+        toast.success(`${label} uploaded successfully`);
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error(`Failed to upload ${label}`);
+      }
+    };
+
+    return (
+      <Box sx={{ 
+        border: '1px solid #e0e0e0', 
+        borderRadius: 1, 
+        p: 2,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <Typography variant="body2" gutterBottom>{label}</Typography>
+        
+        <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+          {!filePath ? (
+            <Button
+              component="label"
+              variant="outlined"
+              size="small"
+              startIcon={<IoIosAddCircle />}
+              sx={{
+                width: '100%',
+                borderStyle: 'dashed'
+              }}
+            >
+              Upload File
+              <input
+                type="file"
+                hidden
+                accept=".jpg,.jpeg,.png,.pdf"
+                onChange={handleFileUpload}
+              />
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                startIcon={<IoIosAddCircle />}
+                component="label"
+                sx={{ flexGrow: 1 }}
+              >
+                Change File
+                <input
+                  type="file"
+                  hidden
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={handleFileUpload}
+                />
+              </Button>
+              <Tooltip title="View Document">
+                <IconButton 
+                  size="small"
+                  onClick={() => handleView(contact, documentType)}
+                  color="primary"
+                >
+                  <Visibility />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Download Document">
+                <IconButton
+                  size="small"
+                  onClick={() => handleDownload(contact, documentType)}
+                  color="primary"
+                >
+                  <Download />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
         </Box>
+        
+        {filePath && (
+          <Box sx={{ 
+            mt: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            color: 'success.main',
+            fontSize: '0.75rem'
+          }}>
+            <Box sx={{ 
+              width: 6, 
+              height: 6, 
+              borderRadius: '50%', 
+              backgroundColor: 'success.main',
+              animation: 'pulse 2s infinite'
+            }} />
+            File Uploaded Successfully
+          </Box>
+        )}
       </Box>
-    </Grid>
-  );
+    );
+  };
 
   const decodeToken = (token) => {
     try {
@@ -735,19 +913,936 @@ const EmployeeComponent = () => {
 
   const filteredEmployees = getFilteredEmployees(employees, filters, searchQuery);
 
-  // Before returning filtered employees
-  console.log('Filter conditions:', {
-    searchQuery,
-    filters,
-    totalEmployees: employees.length,
-    filteredCount: filteredEmployees.length,
-    sampleEmployee: employees[0]
-  });
+  const validateForm = () => {
+    const errors = {};
+    
+    // Required fields validation
+    if (!employee.contact) errors.contact = "Contact is required";
+    if (employee.contact) {
+      const contactWithoutPrefix = employee.contact.replace("+91", "");
+      if (!/^\d{10}$/.test(contactWithoutPrefix)) {
+        errors.contact = "Contact must be 10 digits after +91 prefix";
+      }
+    }
 
-  // In the component, before rendering the table
-  console.log('Current filters:', filters);
-  console.log('All employees:', employees);
-  console.log('Filtered employees:', filteredEmployees);
+    // Email validation
+    if (employee.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email)) {
+      errors.email = "Invalid email format";
+    }
+
+    // Aadhaar validation
+    if (employee.aadhaarNumber && !/^\d{12}$/.test(employee.aadhaarNumber)) {
+      errors.aadhaarNumber = "Aadhaar number must be 12 digits";
+    }
+
+    // PAN validation
+    if (employee.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(employee.panNumber)) {
+      errors.panNumber = "Invalid PAN format";
+    }
+
+    // IFSC validation
+    if (employee.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(employee.ifscCode)) {
+      errors.ifscCode = "Invalid IFSC code format";
+    }
+
+    // Bank account number validation
+    if (employee.bankAccountNumber && !/^\d{9,18}$/.test(employee.bankAccountNumber)) {
+      errors.bankAccountNumber = "Bank account number must be 9-18 digits";
+    }
+
+    return errors;
+  };
+
+  const copyPresentToPermanent = () => {
+    setEmployee(prev => ({
+      ...prev,
+      permanentAddress: prev.presentAddress,
+    }));
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const handleNextTab = () => {
+    setActiveTab((prev) => Math.min(prev + 1, 5)); // 5 is the last tab index
+  };
+
+  const handlePreviousTab = () => {
+    setActiveTab((prev) => Math.max(prev - 1, 0)); // 0 is the first tab index
+  };
+
+  const StyledTab = styled(Tab)(({ theme }) => ({
+    minHeight: 60,
+    minWidth: 160,
+    width: 160,
+    padding: '8px 16px',
+    borderRadius: '12px',
+    transition: 'all 0.3s ease',
+    fontWeight: 600,
+    color: theme.palette.text.secondary,
+    
+    '&.Mui-selected': {
+      color: '#fff',
+      background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+      boxShadow: '0 2px 10px rgba(33, 150, 243, 0.3)',
+    },
+
+    '&:hover': {
+      backgroundColor: 'rgba(33, 150, 243, 0.08)',
+      transform: 'translateY(-2px)',
+    },
+
+    '& .MuiTab-iconWrapper': {
+      marginRight: '8px',
+    },
+  }));
+
+  const GradientTypography = styled(Typography)(({ theme }) => ({
+    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    fontWeight: 700,
+    textAlign: 'center',
+    fontSize: '2.5rem',
+    marginBottom: '0.5rem',
+    animation: 'fadeIn 0.5s ease-in',
+    '@keyframes fadeIn': {
+      '0%': {
+        opacity: 0,
+        transform: 'translateY(-10px)',
+      },
+      '100%': {
+        opacity: 1,
+        transform: 'translateY(0)',
+      },
+    },
+  }));
+
+  const formStyles = {
+    formContainer: {
+      backgroundColor: '#fff',
+      borderRadius: '24px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+      padding: { xs: 2, sm: 4 },
+      maxWidth: 1200,
+      margin: '0 auto',
+      position: 'relative',
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '8px',
+        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+      },
+    },
+    tabPanel: {
+      backgroundColor: '#fff',
+      borderRadius: '16px',
+      padding: 3,
+      mt: 2,
+      animation: 'fadeIn 0.3s ease-in',
+      '@keyframes fadeIn': {
+        '0%': {
+          opacity: 0,
+          transform: 'translateY(10px)',
+        },
+        '100%': {
+          opacity: 1,
+          transform: 'translateY(0)',
+        },
+      },
+    },
+    formField: {
+      '& .MuiOutlinedInput-root': {
+        borderRadius: '12px',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        },
+        '&.Mui-focused': {
+          boxShadow: '0 4px 12px rgba(33, 150, 243, 0.2)',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: 'text.secondary',
+        '&.Mui-focused': {
+          color: '#2196F3',
+        },
+      },
+    },
+    documentCard: {
+      backgroundColor: '#f8f9fa',
+      borderRadius: '16px',
+      p: 3,
+      height: '100%',
+      transition: 'all 0.3s ease',
+      border: '1px solid #eee',
+      '&:hover': {
+        transform: 'translateY(-4px)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+        borderColor: '#2196F3',
+      },
+    },
+    sectionTitle: {
+      color: '#2196F3',
+      fontWeight: 600,
+      mb: 3,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 1,
+      '&::after': {
+        content: '""',
+        flex: 1,
+        height: '2px',
+        background: 'linear-gradient(to right, #2196F3 0%, transparent 100%)',
+        marginLeft: '8px',
+      },
+    },
+  };
+
+  const renderForm = () => {
+    if (!selectedEmployee) {
+      return (
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            backgroundColor: '#fff',
+            borderRadius: '16px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            padding: { xs: 2, sm: 4 },
+            maxWidth: 600,
+            margin: '0 auto',
+          }}
+        >
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              fontWeight: 600,
+              color: 'primary.main',
+              textAlign: "center",
+              mb: 4
+            }}
+          >
+            Create New Employee
+          </Typography>
+
+          <TextField
+            fullWidth
+            label="Contact Number"
+            name="contact"
+            value={employee.contact}
+            onChange={handleContactChange}
+            required
+            sx={{ mb: 3 }}
+            helperText="Format: +91 followed by 10 digits"
+          />
+
+          <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              disabled={isLoading}
+              sx={{
+                borderRadius: '8px',
+                textTransform: 'none',
+                fontWeight: 500,
+                px: 4,
+                py: 1.5
+              }}
+            >
+              {isLoading ? "Creating..." : "Create Employee"}
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={resetForm}
+              sx={{
+                borderRadius: '8px',
+                textTransform: 'none',
+                fontWeight: 500,
+                px: 4,
+                py: 1.5
+              }}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </Box>
+      );
+    }
+
+    return (
+      <Box 
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(e);
+        }}
+        sx={formStyles.formContainer}
+      >
+        <Box sx={{ 
+          borderBottom: '1px solid #eee', 
+          pb: 3, 
+          mb: 4,
+          textAlign: 'center'
+        }}>
+          <GradientTypography>
+            Edit Employee Profile
+          </GradientTypography>
+          <Typography variant="body1" color="text.secondary">
+            Update employee information and documents
+          </Typography>
+        </Box>
+
+        <Box sx={{ 
+          borderBottom: '1px solid #eee',
+          mb: 4,
+          position: 'relative'
+        }}>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              mb: 0,
+              '& .MuiTabs-indicator': {
+                display: 'none',
+              },
+              '& .MuiTabs-flexContainer': {
+                gap: 1,
+              },
+              '& .MuiTab-root': {
+                minWidth: 160,
+                width: 160,
+              }
+            }}
+          >
+            <StyledTab 
+              label="Basic Info" 
+              icon={<FaIdCard size={20} />} 
+              iconPosition="start"
+            />
+            <StyledTab 
+              label="Family Info" 
+              icon={<FaAddressCard size={20} />} 
+              iconPosition="start"
+            />
+            <StyledTab 
+              label="Address" 
+              icon={<FaBook size={20} />} 
+              iconPosition="start"
+            />
+            <StyledTab 
+              label="Bank Details" 
+              icon={<BsBank2 size={20} />} 
+              iconPosition="start"
+            />
+            <StyledTab 
+              label="Employment" 
+              icon={<MdWork size={20} />} 
+              iconPosition="start"
+            />
+            <StyledTab 
+              label="Documents" 
+              icon={<MdDocumentScanner size={20} />} 
+              iconPosition="start"
+            />
+          </Tabs>
+        </Box>
+
+        <Box sx={formStyles.tabPanel}>
+          {activeTab === 0 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="First Name"
+                  name="firstName"
+                  value={employee.firstName || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Last Name"
+                  name="lastName"
+                  value={employee.lastName || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  name="email"
+                  value={employee.email || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Blood Group</InputLabel>
+                  <Select
+                    name="bloodGroup"
+                    value={employee.bloodGroup || ""}
+                    onChange={handleChange}
+                    label="Blood Group"
+                    sx={formStyles.formField}
+                  >
+                    <MenuItem value="">Select Blood Group</MenuItem>
+                    {bloodGroups.map((group) => (
+                      <MenuItem key={group} value={group}>
+                        {group}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Date of Birth"
+                  type="date"
+                  name="dateOfBirth"
+                  value={employee.dateOfBirth || ""}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Gender</InputLabel>
+                  <Select
+                    name="gender"
+                    value={employee.gender || ""}
+                    onChange={handleChange}
+                    sx={formStyles.formField}
+                  >
+                    <MenuItem value="">Select Gender</MenuItem>
+                    <MenuItem value="Male">Male</MenuItem>
+                    <MenuItem value="Female">Female</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Marital Status</InputLabel>
+                  <Select
+                    name="maritalStatus"
+                    value={employee.maritalStatus || ""}
+                    onChange={handleChange}
+                    sx={formStyles.formField}
+                  >
+                    <MenuItem value="">Select Status</MenuItem>
+                    <MenuItem value="Single">Single</MenuItem>
+                    <MenuItem value="Married">Married</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          )}
+
+          {activeTab === 1 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Father's Name"
+                  name="fatherName"
+                  value={employee.fatherName || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Mother's Name"
+                  name="motherName"
+                  value={employee.motherName || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Father's Date of Birth"
+                  type="date"
+                  name="fatherDateOfBirth"
+                  value={employee.fatherDateOfBirth || ""}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Mother's Date of Birth"
+                  type="date"
+                  name="motherDateOfBirth"
+                  value={employee.motherDateOfBirth || ""}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Spouse Name"
+                  name="spouseName"
+                  value={employee.spouseName || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Spouse Date of Birth"
+                  type="date"
+                  name="spouseDateOfBirth"
+                  value={employee.spouseDateOfBirth || ""}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+            </Grid>
+          )}
+
+          {activeTab === 2 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Present Address"
+                  name="presentAddress"
+                  value={employee.presentAddress || ""}
+                  onChange={handleChange}
+                  multiline
+                  rows={2}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Present State"
+                  name="presentState"
+                  value={employee.presentState || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Present District"
+                  name="presentDistrict"
+                  value={employee.presentDistrict || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Permanent Address"
+                  name="permanentAddress"
+                  value={employee.permanentAddress || ""}
+                  onChange={handleChange}
+                  multiline
+                  rows={2}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={copyPresentToPermanent}
+                  sx={{ 
+                    mt: 1,
+                    ...formStyles.formField 
+                  }}
+                >
+                  Copy Present Address to Permanent Address
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+
+          {activeTab === 3 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Bank Name</InputLabel>
+                  <Select
+                    name="bankName"
+                    value={employee.bankName || ""}
+                    onChange={handleChange}
+                    label="Bank Name"
+                    sx={formStyles.formField}
+                  >
+                    <MenuItem value="">Select Bank</MenuItem>
+                    {bankNames.map((bank) => (
+                      <MenuItem key={bank} value={bank}>
+                        {bank}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Account Number"
+                  name="bankAccountNumber"
+                  value={employee.bankAccountNumber || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="IFSC Code"
+                  name="ifscCode"
+                  value={employee.ifscCode || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+            </Grid>
+          )}
+
+          {activeTab === 4 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="UAN Number"
+                  name="previousUANNumber"
+                  value={employee.previousUANNumber || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="ESIC Number"
+                  name="previousESICNumber"
+                  value={employee.previousESICNumber || ""}
+                  onChange={handleChange}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+            </Grid>
+          )}
+
+          {activeTab === 5 && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {Object.entries(documentTypes).map(([section, docs]) => (
+                <Box key={section}>
+                  <Typography variant="h6" sx={formStyles.sectionTitle}>
+                    {section.replace(/_/g, ' ')}
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {docs.map((doc) => (
+                      <Grid item xs={12} sm={6} md={section === 'IDENTITY' ? 3 : 4} key={doc.key}>
+                        <Box sx={formStyles.documentCard}>
+                          {renderDocumentField(
+                            <>
+                              {doc.label}
+                              {doc.description && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  {doc.description}
+                                </Typography>
+                              )}
+                            </>,
+                            employee[doc.path],
+                            doc.key,
+                            employee.contact
+                          )}
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              ))}
+
+              <Box sx={{ 
+                mt: 4, 
+                pt: 4, 
+                borderTop: '1px solid #eee',
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 3
+              }}>
+                <Button
+                  variant="contained"
+                  color={employee.isApproved ? "error" : "success"}
+                  onClick={() => {
+                    setEmployee(prev => ({
+                      ...prev,
+                      isApproved: !prev.isApproved,
+                      status: !prev.isApproved ? "Active" : "Pending"
+                    }));
+                  }}
+                  disabled={employee.isBlocked}
+                  sx={{
+                    borderRadius: '50px',
+                    px: 4,
+                    py: 1.5,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    background: employee.isApproved ? 
+                      'linear-gradient(45deg, #ff1744 30%, #ff4569 90%)' : 
+                      'linear-gradient(45deg, #00c853 30%, #69f0ae 90%)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
+                    },
+                    '&:disabled': {
+                      background: '#e0e0e0',
+                      color: '#9e9e9e'
+                    }
+                  }}
+                >
+                  {employee.isApproved ? (
+                    <>
+                      <MdBlock size={20} />
+                      Unverify Employee
+                    </>
+                  ) : (
+                    <>
+                      <FaIdCard size={20} />
+                      Verify Employee
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant="contained"
+                  color={employee.isBlocked ? "success" : "error"}
+                  onClick={() => {
+                    setBlockDialogOpen(true);
+                    setTempIsBlocked(!employee.isBlocked);
+                  }}
+                  disabled={employee.isApproved}
+                  sx={{
+                    borderRadius: '50px',
+                    px: 4,
+                    py: 1.5,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    background: employee.isBlocked ? 
+                      'linear-gradient(45deg, #00c853 30%, #69f0ae 90%)' : 
+                      'linear-gradient(45deg, #ff1744 30%, #ff4569 90%)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
+                    },
+                    '&:disabled': {
+                      background: '#e0e0e0',
+                      color: '#9e9e9e'
+                    }
+                  }}
+                >
+                  {employee.isBlocked ? (
+                    <>
+                      <MdClear size={20} />
+                      Unblock Employee
+                    </>
+                  ) : (
+                    <>
+                      <MdBlock size={20} />
+                      Block Employee
+                    </>
+                  )}
+                </Button>
+              </Box>
+
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: 4,
+                mt: 2 
+              }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  color: employee.isApproved ? 'success.main' : 'text.secondary'
+                }}>
+                  <Box sx={{ 
+                    width: 8, 
+                    height: 8, 
+                    borderRadius: '50%', 
+                    bgcolor: employee.isApproved ? 'success.main' : 'text.secondary',
+                    animation: employee.isApproved ? 'pulse 2s infinite' : 'none',
+                    '@keyframes pulse': {
+                      '0%': { boxShadow: '0 0 0 0 rgba(76, 175, 80, 0.4)' },
+                      '70%': { boxShadow: '0 0 0 10px rgba(76, 175, 80, 0)' },
+                      '100%': { boxShadow: '0 0 0 0 rgba(76, 175, 80, 0)' },
+                    }
+                  }} />
+                  <Typography variant="body2">
+                    {employee.isApproved ? 'Verified' : 'Not Verified'}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  color: employee.isBlocked ? 'error.main' : 'text.secondary'
+                }}>
+                  <Box sx={{ 
+                    width: 8, 
+                    height: 8, 
+                    borderRadius: '50%', 
+                    bgcolor: employee.isBlocked ? 'error.main' : 'text.secondary'
+                  }} />
+                  <Typography variant="body2">
+                    {employee.isBlocked ? 'Blocked' : 'Not Blocked'}
+                  </Typography>
+                  {employee.isBlocked && (
+                    <Tooltip title="View Block Remarks">
+                      <IconButton
+                        size="small"
+                        onClick={() => setBlockRemarksDialogOpen(true)}
+                        sx={{ 
+                          ml: 1,
+                          color: 'error.main',
+                          '&:hover': {
+                            backgroundColor: 'error.lighter',
+                          }
+                        }}
+                      >
+                        <Visibility fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </Box>
+
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          mt: 4,
+          pt: 3,
+          borderTop: '1px solid #eee'
+        }}>
+          {activeTab > 0 && (
+            <Button
+              onClick={handlePreviousTab}
+              variant="outlined"
+              startIcon={<ArrowBack />}
+              sx={{
+                borderRadius: '50px',
+                textTransform: 'none',
+                fontWeight: 500,
+                px: 4,
+                py: 1.5
+              }}
+            >
+              Previous
+            </Button>
+          )}
+          {activeTab < 5 ? (
+            <Button
+              onClick={handleNextTab}
+              variant="contained"
+              endIcon={<ArrowForward />}
+              sx={{
+                borderRadius: '50px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 4,
+                py: 1.5,
+                ml: 'auto',
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                boxShadow: '0 4px 15px rgba(33, 203, 243, .3)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(33, 203, 243, .4)',
+                },
+              }}
+            >
+              Next
+            </Button>
+          ) : (
+            <Box sx={{ display: 'flex', gap: 2, ml: 'auto' }}>
+              <Button 
+                onClick={handleSubmit} 
+                variant="contained" 
+                sx={{
+                  borderRadius: '50px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 4,
+                  py: 1.5,
+                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                  boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                }}
+              >
+                {isLoading ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} color="inherit" />
+                    Saving...
+                  </Box>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+              <Button 
+                variant="outlined" 
+                onClick={resetForm}
+                sx={{
+                  borderRadius: '50px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 4,
+                  py: 1.5
+                }}
+              >
+                Cancel
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Box>
+    );
+  };
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -786,337 +1881,7 @@ const EmployeeComponent = () => {
           <CircularProgress />
         </Box>
       ) : showForm ? (
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{
-            backgroundColor: '#fff',
-            borderRadius: 2,
-            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-            padding: 4,
-            maxWidth: 800,
-            margin: '0 auto'
-          }}
-        >
-          <Typography
-            variant="h5"
-            gutterBottom
-            sx={{
-              fontWeight: "bold",
-              color: "primary.main",
-              marginBottom: 3,
-              textAlign: "center"
-            }}
-          >
-            {selectedEmployee ? "Edit Employee" : "Create Employee"}
-          </Typography>
-
-          {/* Contact Field - Create Mode */}
-          {!selectedEmployee && (
-            <Grid container spacing={2} sx={{ marginBottom: 3 }}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Contact"
-                  type="text"
-                  name="contact"
-                  value={employee.contact}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === '+91' || (value.startsWith('+91') && /^\+91\d*$/.test(value))) {
-                      setEmployee(prev => ({
-                        ...prev,
-                        contact: value
-                      }));
-                    }
-                  }}
-                  required
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setEmployee(prev => ({ ...prev, contact: '+91' }))}
-                          title="Clear Contact"
-                        >
-                          <MdClear />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-            </Grid>
-          )}
-
-          {/* Edit Mode Fields */}
-          {selectedEmployee && (
-            <>
-              {/* Contact and Alternate Contact fields */}
-              <Grid container spacing={2} sx={{ marginBottom: 3 }}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Contact"
-                    type="text"
-                    name="contact"
-                    value={employee.contact}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === '+91' || (value.startsWith('+91') && /^\+91\d*$/.test(value))) {
-                        setEmployee(prev => ({
-                          ...prev,
-                          contact: value
-                        }));
-                      }
-                    }}
-                    required
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setEmployee(prev => ({ ...prev, contact: '+91' }))}
-                            title="Clear Contact"
-                          >
-                            <MdClear />
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Alternate Contact"
-                    type="text"
-                    name="alternateContact"
-                    value={employee.alternateContact}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === '+91' || (value.startsWith('+91') && /^\+91\d*$/.test(value))) {
-                        setEmployee(prev => ({
-                          ...prev,
-                          alternateContact: value
-                        }));
-                      }
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setEmployee(prev => ({ ...prev, alternateContact: '+91' }))}
-                            title="Clear Alternate Contact"
-                          >
-                            <MdClear />
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-              </Grid>
-
-              {/* Personal Information Fields */}
-              <Grid container spacing={2}>
-                {["firstName", "lastName", "email", "address"].map((field) => (
-                  <Grid item xs={12} sm={6} key={field}>
-                    <TextField
-                      fullWidth
-                      label={field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
-                      type={field === "email" ? "email" : "text"}
-                      name={field}
-                      value={employee[field] || ""}
-                      onChange={handleChange}
-                      required={field !== "address"}
-                    />
-                  </Grid>
-                ))}
-
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Date of Birth"
-                    type="date"
-                    name="dateOfBirth"
-                    value={employee.dateOfBirth || ""}
-                    onChange={handleChange}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Gender</InputLabel>
-                    <Select
-                      name="gender"
-                      value={employee.gender || ""}
-                      onChange={handleChange}
-                      label="Gender"
-                    >
-                      <MenuItem value="" disabled>Select Gender</MenuItem>
-                      <MenuItem value="Male">Male</MenuItem>
-                      <MenuItem value="Female">Female</MenuItem>
-                      <MenuItem value="Other">Other</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Marital Status</InputLabel>
-                    <Select
-                      name="maritalStatus"
-                      value={employee.maritalStatus || ""}
-                      onChange={handleChange}
-                      label="Marital Status"
-                    >
-                      <MenuItem value="" disabled>Select Marital Status</MenuItem>
-                      <MenuItem value="Single">Single</MenuItem>
-                      <MenuItem value="Married">Married</MenuItem>
-                      <MenuItem value="Other">Other</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-
-              {/* Document Management Section */}
-              <Grid container spacing={2} sx={{ marginTop: 3 }}>
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                    Document Management
-                  </Typography>
-                </Grid>
-                
-                {/* PAN Card */}
-                {renderDocumentField(
-                  "PAN Card",
-                  employee.panCardFilePath,
-                  "PAN",
-                  employee.contact
-                )}
-
-                {/* Aadhaar Card */}
-                {renderDocumentField(
-                  "Aadhaar Card",
-                  employee.aadhaarCardFilePath,
-                  "Aadhaar",
-                  employee.contact
-                )}
-
-                {/* Passbook */}
-                {renderDocumentField(
-                  "Passbook",
-                  employee.passbookFilePath,
-                  "Passbook",
-                  employee.contact
-                )}
-              </Grid>
-
-              {/* Status Controls at the Bottom */}
-              <Grid container spacing={2} sx={{ marginTop: 3 }}>
-                <Grid item xs={12}>
-                  {/* Debug logs */}
-                  {console.log("Employee Data:", {
-                    id: employee.id,
-                    firstName: employee.firstName,
-                    isActive: employee.isActive,
-                    isBlocked: employee.isBlocked,
-                    isApproved: employee.isApproved,
-                    isAssigned: employee.isAssigned
-                  })}
-
-                  <Box sx={{ 
-                    display: 'flex', 
-                    gap: 2, 
-                    alignItems: 'center',
-                    backgroundColor: '#f5f5f5',
-                    padding: 2,
-                    borderRadius: 1
-                  }}>
-                    {/* Block/Unblock Button */}
-                    <Button
-                      variant="contained"
-                      color={employee.isBlocked ? "error" : "warning"}
-                      onClick={() => {
-                        setTempIsBlocked(!employee.isBlocked);
-                        if (!employee.isBlocked) {
-                          setBlockDialogOpen(true);
-                        } else {
-                          setEmployee(prev => ({
-                            ...prev,
-                            isBlocked: false,
-                            blockedRemarks: ""
-                          }));
-                        }
-                      }}
-                      startIcon={employee.isBlocked ? <MdClear /> : <MdDelete />}
-                      disabled={employee.isAssigned || employee.isApproved || employee.status === "Inactive"}
-                    >
-                      {employee.isBlocked ? "Unblock" : "Block"}
-                    </Button>
-
-                    {/* Add Set Inactive/Active Button */}
-                    <Button
-                      variant="contained"
-                      color={employee.status === "Inactive" ? "success" : "error"}
-                      onClick={() => {
-                        setEmployee(prev => ({
-                          ...prev,
-                          status: prev.status === "Inactive" ? "Pending" : "Inactive",
-                          isApproved: false
-                        }));
-                      }}
-                      startIcon={employee.status === "Inactive" ? <IoIosAddCircle /> : <MdClear />}
-                      disabled={employee.isBlocked || employee.isApproved || employee.isAssigned}
-                    >
-                      {employee.status === "Inactive" ? "Set Active" : "Set Inactive"}
-                    </Button>
-
-                    {/* Verify/Unverify Button */}
-                    <Button
-                      variant="contained"
-                      color={employee.isApproved ? "success" : "primary"}
-                      onClick={() => {
-                        setTempIsApproved(!employee.isApproved);
-                        setEmployee(prev => ({
-                          ...prev,
-                          isApproved: !prev.isApproved,
-                          status: !prev.isApproved ? "Active" : "Pending"
-                        }));
-                      }}
-                      startIcon={employee.isApproved ? <MdClear /> : <IoIosAddCircle />}
-                      disabled={employee.isBlocked || employee.isAssigned || employee.status === "Inactive"}
-                    >
-                      {employee.isApproved ? "Unverify" : "Verify"}
-                    </Button>
-
-                    {/* View Block Remarks Button - Only show if blocked */}
-                    {employee.isBlocked && (
-                      <Button
-                        variant="outlined"
-                        color="info"
-                        onClick={() => setShowBlockRemarks(true)}
-                        startIcon={<MdClear />}
-                      >
-                        View Block Remarks
-                      </Button>
-                    )}
-                  </Box>
-                </Grid>
-              </Grid>
-            </>
-          )}
-
-          {/* Submit and Cancel Buttons */}
-          <Box sx={{ display: "flex", gap: 2, marginTop: 3 }}>
-            <Button type="submit" variant="contained" color="primary">
-              Submit
-            </Button>
-            <Button variant="outlined" onClick={resetForm}>
-              Cancel
-            </Button>
-          </Box>
-        </Box>
+        renderForm()
       ) : (
         <>
           {/* Search and Filters Section */}
@@ -1399,7 +2164,7 @@ const EmployeeComponent = () => {
                               variant="contained"
                               color={employee.isDeleted ? "success" : "error"}
                               size="small"
-                              disabled={employee.status !== "Inactive"}
+                              disabled={employee.isBlocked || employee.isApproved}
                               sx={{
                                 borderRadius: 1,
                                 textTransform: 'none',
@@ -1429,54 +2194,74 @@ const EmployeeComponent = () => {
         open={dialogOpen}
         onClose={() => {
           setDialogOpen(false);
-          setDeleteRemarks("");
           setEmployeeToDelete(null);
         }}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>
+        <DialogTitle sx={{ 
+          color: employeeToDelete?.isDeleted ? 'success.main' : 'error.main',
+          fontWeight: 600,
+          pb: 1
+        }}>
           {employeeToDelete?.isDeleted ? "Enable Employee" : "Disable Employee"}
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
             Are you sure you want to {employeeToDelete?.isDeleted ? "enable" : "disable"} this employee?
           </Typography>
-          <TextField
-            fullWidth
-            label={`${employeeToDelete?.isDeleted ? "Enable" : "Disable"} Remarks`}
-            multiline
-            rows={4}
-            value={deleteRemarks}
-            onChange={(e) => setDeleteRemarks(e.target.value)}
-            required
-            sx={{ mt: 1 }}
-          />
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button 
             onClick={() => {
               setDialogOpen(false);
-              setDeleteRemarks("");
               setEmployeeToDelete(null);
+            }}
+            variant="outlined"
+            sx={{ 
+              borderRadius: '50px',
+              px: 3
             }}
           >
             Cancel
           </Button>
           <Button 
             onClick={handleDelete}
-            color={employeeToDelete?.isDeleted ? "success" : "error"}
             variant="contained"
+            sx={{ 
+              borderRadius: '50px',
+              px: 3,
+              background: employeeToDelete?.isDeleted 
+                ? 'linear-gradient(45deg, #00c853 30%, #69f0ae 90%)'
+                : 'linear-gradient(45deg, #ff1744 30%, #ff4569 90%)'
+            }}
           >
             {employeeToDelete?.isDeleted ? "Enable" : "Disable"}
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={blockDialogOpen} onClose={() => setBlockDialogOpen(false)}>
-        <DialogTitle>
+      <Dialog 
+        open={blockDialogOpen} 
+        onClose={() => {
+          setBlockDialogOpen(false);
+          setTempBlockRemarks("");
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ 
+          pb: 1,
+          color: tempIsBlocked ? 'error.main' : 'success.main',
+          fontWeight: 600 
+        }}>
           {tempIsBlocked ? "Block Employee" : "Unblock Employee"}
         </DialogTitle>
         <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            {tempIsBlocked 
+              ? "Please provide a reason for blocking this employee." 
+              : "Are you sure you want to unblock this employee?"}
+          </Typography>
           {tempIsBlocked && (
             <TextField
               fullWidth
@@ -1486,31 +2271,89 @@ const EmployeeComponent = () => {
               value={tempBlockRemarks}
               onChange={(e) => setTempBlockRemarks(e.target.value)}
               required
-              sx={{ mt: 2 }}
+              error={tempIsBlocked && !tempBlockRemarks}
+              helperText={tempIsBlocked && !tempBlockRemarks ? "Remarks are required for blocking" : ""}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                }
+              }}
             />
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            setBlockDialogOpen(false);
-            setTempIsBlocked(employee.isBlocked);
-            setTempBlockRemarks(employee.blockedRemarks || "");
-          }}>
-            Cancel
-          </Button>
-          <Button
+        <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
+          <Button 
             onClick={() => {
-              setEmployee(prev => ({
-                ...prev,
-                isBlocked: tempIsBlocked,
-                blockedRemarks: tempIsBlocked ? tempBlockRemarks : ""
-              }));
               setBlockDialogOpen(false);
+              setTempBlockRemarks("");
             }}
-            color="primary"
             variant="contained"
+            sx={{ 
+              borderRadius: '50px',
+              px: 3,
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+            }}
           >
-            Confirm
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog 
+        open={blockRemarksDialogOpen} 
+        onClose={() => setBlockRemarksDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ 
+          color: 'error.main',
+          fontWeight: 600,
+          borderBottom: '1px solid #eee',
+          pb: 2
+        }}>
+          Block Remarks
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Box sx={{ 
+            backgroundColor: '#f8f9fa',
+            borderRadius: '12px',
+            p: 3,
+            border: '1px solid #eee'
+          }}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              {employee.blockedRemarks || "No remarks available"}
+            </Typography>
+            {employee.blockedBy && (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 0.5,
+                mt: 2,
+                pt: 2,
+                borderTop: '1px solid #eee'
+              }}>
+                <Typography variant="body2" color="text.secondary">
+                  Blocked by: {employee.blockedBy}
+                </Typography>
+                {employee.blockedOn && (
+                  <Typography variant="body2" color="text.secondary">
+                    Blocked on: {new Date(employee.blockedOn).toLocaleString()}
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
+          <Button 
+            onClick={() => setBlockRemarksDialogOpen(false)}
+            variant="contained"
+            sx={{ 
+              borderRadius: '50px',
+              px: 3,
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+            }}
+          >
+            Close
           </Button>
         </DialogActions>
       </Dialog>
