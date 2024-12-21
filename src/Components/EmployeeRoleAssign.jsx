@@ -17,6 +17,7 @@ import {
   Modal,
   Grid,
   InputLabel,
+  FormHelperText,
 } from "@mui/material";
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
@@ -47,6 +48,10 @@ const EmployeeRoleAssign = () => {
   const [filterClientId, setFilterClientId] = useState("");
   const [filterDepartmentId, setFilterDepartmentId] = useState("");
   const [filterJobRoleId, setFilterJobRoleId] = useState("");
+
+  // Add this to your existing state declarations
+  const [salaries, setSalaries] = useState([]);
+  const [selectedSalaryId, setSelectedSalaryId] = useState("");
 
   // Fetch all employees based on filter
   const normalizeEmployees = (data) => {
@@ -161,7 +166,7 @@ const EmployeeRoleAssign = () => {
   // Fetch clients and departments
   const fetchDropdownData = async () => {
     try {
-      const [clientResponse, departmentResponse, locationResponse] = await Promise.all([
+      const [clientResponse, departmentResponse, locationResponse, salaryResponse] = await Promise.all([
         fetch(`${baseUrl}/api/client-registration`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }),
@@ -170,10 +175,13 @@ const EmployeeRoleAssign = () => {
         }),
         fetch(`${baseUrl}/api/employeejoblocation`, {  // Updated endpoint
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
+        fetch(`${baseUrl}/api/employeesalary`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         })
       ]);
 
-      if (!clientResponse.ok || !departmentResponse.ok || !locationResponse.ok) {
+      if (!clientResponse.ok || !departmentResponse.ok || !locationResponse.ok || !salaryResponse.ok) {
         throw new Error("Failed to fetch dropdown data");
       }
 
@@ -194,6 +202,12 @@ const EmployeeRoleAssign = () => {
         console.error("Failed to fetch locations:", locationsData.message);
         setError(locationsData.message || "Failed to load locations");
       }
+
+      const salaryData = await salaryResponse.json();
+      if (salaryData.status === "Success") {
+        setSalaries(salaryData.data || []);
+      }
+
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
       setError("Failed to load dropdown data");
@@ -218,6 +232,7 @@ const EmployeeRoleAssign = () => {
     setSelectedDepartmentId("");
     setSelectedJobRoleId("");
     setSelectedLocationId("");
+    setSelectedSalaryId("");
     setDateOfJoining("");
     setOpenModal(true);
   };
@@ -228,23 +243,34 @@ const EmployeeRoleAssign = () => {
       return;
     }
 
-    const url = `${baseUrl}/api/EmployeeRoleAssign/unassign`;
-    const payload = { EmployeeRoleAssignId: employeeId };
-
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`${baseUrl}/api/EmployeeRoleAssign/unassign`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ EmployeeRoleAssignId: employeeId }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         setError(`Failed to unassign employee: ${errorText}`);
         return;
+      }
+
+      // After successful unassignment, also delete the assigned employee record
+      const deleteResponse = await fetch(`${baseUrl}/api/assignedemployee/delete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(employeeId),
+      });
+
+      if (!deleteResponse.ok) {
+        console.warn("Failed to delete assigned employee record");
       }
 
       setSuccessMessage("Unassigned successfully!");
@@ -284,13 +310,14 @@ const EmployeeRoleAssign = () => {
     setSelectedDepartmentId("");
     setSelectedJobRoleId("");
     setSelectedLocationId("");
+    setSelectedSalaryId("");
     setDateOfJoining("");
     setOpenModal(false);
   };
 
   const handleAssignmentAction = async () => {
     if (!selectedEmployeeId || !selectedClientId || !selectedDepartmentId || 
-        !selectedJobRoleId || !selectedLocationId || !dateOfJoining) {
+        !selectedJobRoleId || !selectedLocationId || !dateOfJoining || !selectedSalaryId) {
       setError("All fields are required for assignment.");
       return;
     }
@@ -303,6 +330,7 @@ const EmployeeRoleAssign = () => {
       DepartmentId: parseInt(selectedDepartmentId),
       JobRoleId: parseInt(selectedJobRoleId),
       JobLocationId: parseInt(selectedLocationId),
+      SalaryId: parseInt(selectedSalaryId),
       DateOfJoining: formattedDate
     };
 
@@ -409,6 +437,9 @@ useEffect(() => {
     }
   };
 }, [error]);
+
+// Add this after fetching salary data
+console.log('Salary data:', salaries);
 
 return (
   <Box sx={{ padding: 2 }}>
@@ -679,6 +710,73 @@ return (
                 </MenuItem>
               ))}
             </Select>
+          </Grid>
+
+          <Grid item xs={12}>
+            <InputLabel>Salary Structure</InputLabel>
+            <Select
+              fullWidth
+              value={selectedSalaryId}
+              onChange={(e) => setSelectedSalaryId(e.target.value)}
+              displayEmpty
+              sx={{ mt: 1 }}
+            >
+              <MenuItem value="" disabled>Select Salary Structure</MenuItem>
+              {salaries.map((salary) => (
+                <MenuItem 
+                  key={salary.id} 
+                  value={salary.id}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    padding: '10px'
+                  }}
+                >
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                      {`${salary.currency} ${salary.gross?.toLocaleString() || '0'} (${salary.paymentFrequency || 'Monthly'})`}
+                    </Typography>
+                    <Grid container spacing={2} sx={{ mt: 1 }}>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          Basic: {salary.currency} {salary.basic?.toLocaleString() || '0'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          HRA: {salary.currency} {salary.hra?.toLocaleString() || '0'}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          Gross: {salary.currency} {salary.gross?.toLocaleString() || '0'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          Net Pay: {salary.currency} {salary.netPay?.toLocaleString() || '0'}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                    <Typography variant="caption" sx={{ 
+                      display: 'block', 
+                      mt: 1,
+                      color: 'info.main',
+                      fontSize: '0.75rem'
+                    }}>
+                      Effective from: {new Date(salary.effectiveDate).toLocaleDateString()}
+                      {salary.endDate && ` to ${new Date(salary.endDate).toLocaleDateString()}`}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+            <FormHelperText>
+              Select the salary structure for the employee
+            </FormHelperText>
           </Grid>
 
           <Grid item xs={12}>

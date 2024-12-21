@@ -12,7 +12,8 @@ import {
     Alert,
     Snackbar
 } from '@mui/material';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const EmployeeSalaryForm = () => {
     const { id } = useParams();
@@ -38,7 +39,8 @@ const EmployeeSalaryForm = () => {
         netPay: 0,
         paymentFrequency: 'Monthly',
         currency: 'INR',
-        effectiveDate: new Date().toISOString().split('T')[0]
+        effectiveDate: new Date().toISOString().split('T')[0],
+        endDate: ''
     });
 
     useEffect(() => {
@@ -51,7 +53,12 @@ const EmployeeSalaryForm = () => {
         try {
             const response = await axiosInstance.get(`/api/employeesalary?id=${id}`);
             if (response.data.status === "Success") {
-                setFormData(response.data.data);
+                const salaryData = response.data.data;
+                setFormData({
+                    ...salaryData,
+                    effectiveDate: salaryData.effectiveDate ? new Date(salaryData.effectiveDate).toISOString().split('T')[0] : '',
+                    endDate: salaryData.endDate ? new Date(salaryData.endDate).toISOString().split('T')[0] : ''
+                });
             } else {
                 setError(response.data.message);
             }
@@ -77,9 +84,22 @@ const EmployeeSalaryForm = () => {
         return true;
     };
 
+    const validateDates = () => {
+        if (formData.endDate && formData.effectiveDate) {
+            const startDate = new Date(formData.effectiveDate);
+            const endDate = new Date(formData.endDate);
+            if (endDate < startDate) {
+                toast.error('End date cannot be earlier than effective date');
+                return false;
+            }
+        }
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
+        if (!validateDates()) return;
         
         try {
             const endpoint = id ? '/api/employeesalary/update' : '/api/employeesalary/create';
@@ -103,7 +123,8 @@ const EmployeeSalaryForm = () => {
                 pt: parseFloat(formData.pt),
                 totalDeduction: parseFloat(formData.totalDeduction),
                 netPay: parseFloat(formData.netPay),
-                effectiveDate: new Date(formData.effectiveDate).toISOString(),
+                effectiveDate: formData.effectiveDate ? new Date(formData.effectiveDate).toISOString() : null,
+                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
                 id: id ? parseInt(id) : undefined
             };
             
@@ -111,10 +132,12 @@ const EmployeeSalaryForm = () => {
             const response = await axiosInstance.post(endpoint, dataToSubmit);
             
             if (response.data.status === "Success") {
-                toast.success(`Salary record ${id ? 'updated' : 'created'} successfully`);
-                setTimeout(() => {
-                    navigate('/salaries');
-                }, 1500);
+                toast.success(`Salary record ${id ? 'updated' : 'created'} successfully`, {
+                    autoClose: 2000,
+                    onClose: () => {
+                        navigate('/salaries');
+                    }
+                });
             } else {
                 toast.error(response.data.message || 'Operation failed');
             }
@@ -160,6 +183,18 @@ const EmployeeSalaryForm = () => {
 
     return (
         <Box p={3}>
+            <ToastContainer
+                position="top-right"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
             <Paper sx={{ p: 3 }}>
                 <Typography variant="h5" component="h1" gutterBottom>
                     {id ? 'Edit Salary Record' : 'Create New Salary Record'}
@@ -349,6 +384,18 @@ const EmployeeSalaryForm = () => {
                                 onChange={handleChange}
                                 required
                                 InputLabelProps={{ shrink: true }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                type="date"
+                                label="End Date"
+                                name="endDate"
+                                value={formData.endDate}
+                                onChange={handleChange}
+                                InputLabelProps={{ shrink: true }}
+                                helperText="Optional: Leave blank for indefinite period"
                             />
                         </Grid>
                     </Grid>

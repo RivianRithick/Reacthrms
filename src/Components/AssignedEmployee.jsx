@@ -29,8 +29,21 @@ const AssignedEmployee = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    // Initial fetch
     fetchAssignedEmployees();
-  }, []);
+
+    // Set up polling with a longer interval (e.g., 30 seconds instead of 5)
+    const pollInterval = setInterval(() => {
+      fetchAssignedEmployees();
+    }, 30000); // Poll every 30 seconds instead of 5 seconds
+
+    // Cleanup function
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, []); // Empty dependency array
 
   const fetchAssignedEmployees = async () => {
     setLoading(true);
@@ -67,12 +80,22 @@ const AssignedEmployee = () => {
         ? assignedEmployeeData.data
         : [];
 
+      setAssignedEmployeeMap(new Map());
+
       const assignedMap = new Map(
-        assignedEmployees.map((item) => [item.roleAssignId, item.id])
+        assignedEmployees.map((item) => [
+          item.roleAssignId,
+          {
+            id: item.id,
+            hasGeneratedOfferLetter: item.hasGeneratedOfferLetter || false
+          }
+        ])
       );
 
       setAssignedEmployees(roleAssignEmployees);
       setAssignedEmployeeMap(assignedMap);
+
+      console.log('Updated AssignedEmployeeMap:', assignedMap);
     } catch (error) {
       console.error("Error fetching assigned employees:", error);
       setError("Failed to fetch assigned employees.");
@@ -177,6 +200,14 @@ const AssignedEmployee = () => {
       jobTitle.includes(searchLower)
     );
   });
+
+  const clearAssignedEmployeeMap = (roleAssignId) => {
+    setAssignedEmployeeMap(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(roleAssignId);
+      return newMap;
+    });
+  };
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -296,7 +327,7 @@ const AssignedEmployee = () => {
                         <Button
                           variant="contained"
                           color="primary"
-                          disabled={item.hasGeneratedOfferLetter || loadingMap[item.id]}
+                          disabled={!!assignedEmployeeMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
                           onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
                           sx={{
                             borderRadius: 1,
@@ -312,7 +343,7 @@ const AssignedEmployee = () => {
                           ) : (
                             <FaCloudUploadAlt style={{ marginRight: '4px' }} />
                           )}
-                          {item.hasGeneratedOfferLetter ? "Generated" : "Generate"}
+                          {assignedEmployeeMap.get(item.id)?.hasGeneratedOfferLetter ? "Generated" : "Generate"}
                         </Button>
                         <Button
                           variant="contained"
