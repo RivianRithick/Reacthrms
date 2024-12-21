@@ -112,7 +112,7 @@ const JobRole = () => {
 
     const url = selectedJobRole
       ? `/api/jobroles/update`
-      : `/api/jobroles/create`;
+      : `/api/jobroles/create-jobrole`;
     const payload = selectedJobRole
       ? { id: selectedJobRole.id, ...jobRole }
       : jobRole;

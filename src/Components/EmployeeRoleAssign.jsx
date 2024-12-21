@@ -39,6 +39,9 @@ const EmployeeRoleAssign = () => {
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [selectedJobRoleId, setSelectedJobRoleId] = useState("");
+  const [locations, setLocations] = useState([]);
+  const [selectedLocationId, setSelectedLocationId] = useState("");
+  const [dateOfJoining, setDateOfJoining] = useState("");
 
   // Add to your existing state declarations
   const [filterClientId, setFilterClientId] = useState("");
@@ -48,22 +51,24 @@ const EmployeeRoleAssign = () => {
   // Fetch all employees based on filter
   const normalizeEmployees = (data) => {
     return data.map((item) => {
-      // Check if the employee data is nested in the Employee property
       const employeeData = item.Employee || item.employee || item;
       return {
         id: item.Id || item.id,
+        assignmentId: item.Id || item.id,
         isAssigned: item.IsAssigned || item.isAssigned || false,
         firstName: employeeData.FirstName || employeeData.firstName || "N/A",
         lastName: employeeData.LastName || employeeData.lastName || "N/A",
         email: employeeData.Email || employeeData.email || "N/A",
-        isDeleted: employeeData.IsDeleted || employeeData.isDeleted || false, // Add isDeleted field
-        // Include additional properties from your API response
+        isDeleted: employeeData.IsDeleted || employeeData.isDeleted || false,
         clientName: item.Client?.ClientName || "N/A",
         clientCode: item.Client?.ClientCode || "N/A",
-        departmentName: item.Department?.DepartmentName || "N/A",
-        departmentCode: item.Department?.DepartmentCode || "N/A",
-        jobTitle: item.JobRole?.JobTitle || "N/A",
-        jobRoleCode: item.JobRole?.JobRoleCode || "N/A",
+        departmentName: item.Department?.DepartmentName || item.Department?.name || "N/A",
+        departmentCode: item.Department?.DepartmentCode || item.Department?.departmentCode || "N/A",
+        jobTitle: item.JobRole?.JobTitle || item.JobRole?.title || "N/A",
+        jobRoleCode: item.JobRole?.JobRoleCode || item.JobRole?.jobRoleCode || "N/A",
+        location: item.JobLocation ? 
+          `${item.JobLocation.City}, ${item.JobLocation.State}, ${item.JobLocation.Country}` : "N/A",
+        dateOfJoining: item.DateOfJoining ? new Date(item.DateOfJoining).toLocaleDateString() : "N/A",
         hasGeneratedOfferLetter: item.HasGeneratedOfferLetter || false
       };
     });
@@ -156,29 +161,39 @@ const EmployeeRoleAssign = () => {
   // Fetch clients and departments
   const fetchDropdownData = async () => {
     try {
-      const clientResponse = await fetch(`${baseUrl}/api/client-registration`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const departmentResponse = await fetch(`${baseUrl}/api/departments`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-  
-      if (!clientResponse.ok || !departmentResponse.ok) {
+      const [clientResponse, departmentResponse, locationResponse] = await Promise.all([
+        fetch(`${baseUrl}/api/client-registration`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
+        fetch(`${baseUrl}/api/departments`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
+        fetch(`${baseUrl}/api/employeejoblocation`, {  // Updated endpoint
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        })
+      ]);
+
+      if (!clientResponse.ok || !departmentResponse.ok || !locationResponse.ok) {
         throw new Error("Failed to fetch dropdown data");
       }
-  
+
       const clientsData = await clientResponse.json();
       const departmentsData = await departmentResponse.json();
-  
-      // Debug logs for departments and job roles
-      console.log('Raw departments data:', departmentsData);
-      console.log('First department job roles:', departmentsData.data?.[0]?.jobRoles);
-  
-      const activeClients = (clientsData.data || []).filter((client) => !client.isBlocked);
-      const departmentsWithRoles = departmentsData.data || [];
-  
-      setClients(activeClients);
-      setDepartments(departmentsWithRoles);
+      const locationsData = await locationResponse.json();
+
+      // Check status and handle the response format from your backend
+      if (locationsData.status === "Success") {
+        const activeClients = (clientsData.data || []).filter((client) => !client.isBlocked);
+        const departmentsWithRoles = departmentsData.data || [];
+        const activeLocations = locationsData.data || [];
+
+        setClients(activeClients);
+        setDepartments(departmentsWithRoles);
+        setLocations(activeLocations);
+      } else {
+        console.error("Failed to fetch locations:", locationsData.message);
+        setError(locationsData.message || "Failed to load locations");
+      }
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
       setError("Failed to load dropdown data");
@@ -199,6 +214,11 @@ const EmployeeRoleAssign = () => {
 
   const handleOpenModal = (employeeId) => {
     setSelectedEmployeeId(employeeId);
+    setSelectedClientId("");
+    setSelectedDepartmentId("");
+    setSelectedJobRoleId("");
+    setSelectedLocationId("");
+    setDateOfJoining("");
     setOpenModal(true);
   };
 
@@ -229,9 +249,28 @@ const EmployeeRoleAssign = () => {
 
       setSuccessMessage("Unassigned successfully!");
       
-      // Update states and refetch data
-      await fetchEmployeesByFilter();  // Refetch to get updated data
-      handleCloseModal();
+      // Update the employees list to reflect the unassignment
+      setEmployees(prevEmployees => 
+        prevEmployees.map(emp => 
+          emp.id === employeeId
+            ? {
+                ...emp,
+                isAssigned: false,
+                clientName: "N/A",
+                clientCode: "N/A",
+                departmentName: "N/A",
+                departmentCode: "N/A",
+                jobTitle: "N/A",
+                jobRoleCode: "N/A",
+                location: "N/A",
+                dateOfJoining: "N/A"
+              }
+            : emp
+        )
+      );
+
+      // Refetch to ensure data is in sync with server
+      await fetchEmployeesByFilter();
 
     } catch (error) {
       setError(`Error in unassigning: ${error.message}`);
@@ -244,20 +283,27 @@ const EmployeeRoleAssign = () => {
     setSelectedClientId("");
     setSelectedDepartmentId("");
     setSelectedJobRoleId("");
+    setSelectedLocationId("");
+    setDateOfJoining("");
     setOpenModal(false);
   };
 
   const handleAssignmentAction = async () => {
-    if (!selectedEmployeeId || !selectedClientId || !selectedDepartmentId || !selectedJobRoleId) {
+    if (!selectedEmployeeId || !selectedClientId || !selectedDepartmentId || 
+        !selectedJobRoleId || !selectedLocationId || !dateOfJoining) {
       setError("All fields are required for assignment.");
       return;
     }
 
+    const formattedDate = new Date(dateOfJoining).toISOString().split('T')[0];
+
     const payload = {
-      EmployeeRegistrationId: selectedEmployeeId,
-      ClientRegistrationId: selectedClientId,
-      DepartmentId: selectedDepartmentId,
-      JobRoleId: selectedJobRoleId,
+      EmployeeRegistrationId: parseInt(selectedEmployeeId),
+      ClientRegistrationId: parseInt(selectedClientId),
+      DepartmentId: parseInt(selectedDepartmentId),
+      JobRoleId: parseInt(selectedJobRoleId),
+      JobLocationId: parseInt(selectedLocationId),
+      DateOfJoining: formattedDate
     };
 
     try {
@@ -277,13 +323,20 @@ const EmployeeRoleAssign = () => {
         return;
       }
 
+      // Store the additional data in a separate API call or local storage if needed
+      // This is a workaround and not recommended for production
+      const assignmentData = {
+        ...result.data,
+        jobLocationId: payload.JobLocationId,
+        dateOfJoining: payload.DateOfJoining
+      };
+
       setSuccessMessage("Assigned successfully!");
-      
-      // Update states and refetch data
-      await fetchEmployeesByFilter();  // Refetch to get updated data
+      await fetchEmployeesByFilter();
       handleCloseModal();
 
     } catch (error) {
+      console.error('Assignment error:', error);
       setError(`Error in assignment: ${error.message}`);
     }
   };
@@ -299,21 +352,63 @@ const EmployeeRoleAssign = () => {
   console.log('Department job roles:', department?.jobRoles);
 
   if (department && department.jobRoles) {
-    const mappedJobRoles = department.jobRoles.map(role => {
-      console.log('Processing role:', role); // Log each role being processed
-      return {
-        id: role.id,
-        title: role.title,
-        jobRoleCode: role.jobRoleCode || role.code || 'No Code', // Try both possible property names
-        departmentId: role.departmentId
-      };
-    });
+    const mappedJobRoles = department.jobRoles.map(role => ({
+      id: role.id,
+      title: role.title,
+      jobRoleCode: role.jobRoleCode,
+      departmentId: role.departmentId
+    }));
     console.log('Mapped job roles:', mappedJobRoles);
     setJobRoles(mappedJobRoles);
   } else {
     setJobRoles([]);
   }
 };
+
+// Add this function to filter departments based on selected client
+const getFilteredDepartments = () => {
+  if (!selectedClientId) return [];
+  return departments.filter(dept => dept.clientId === selectedClientId);
+};
+
+// Update the handleClientChange function
+const handleClientChange = (clientId) => {
+  setSelectedClientId(clientId);
+  // Reset dependent fields when client changes
+  setSelectedDepartmentId("");
+  setSelectedJobRoleId("");
+  setJobRoles([]);
+};
+
+// Add this useEffect to handle success message timeout
+useEffect(() => {
+  let timeoutId;
+  if (successMessage) {
+    timeoutId = setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000); // Message will disappear after 3 seconds
+  }
+  return () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
+}, [successMessage]);
+
+// Similarly for error messages
+useEffect(() => {
+  let timeoutId;
+  if (error) {
+    timeoutId = setTimeout(() => {
+      setError("");
+    }, 3000); // Message will disappear after 3 seconds
+  }
+  return () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
+}, [error]);
 
 return (
   <Box sx={{ padding: 2 }}>
@@ -523,7 +618,7 @@ return (
             <Select
               fullWidth
               value={selectedClientId}
-              onChange={(e) => setSelectedClientId(e.target.value)}
+              onChange={(e) => handleClientChange(e.target.value)}
               displayEmpty
             >
               <MenuItem value="" disabled>Select Client</MenuItem>
@@ -541,9 +636,10 @@ return (
               value={selectedDepartmentId}
               onChange={(e) => handleDepartmentChange(e.target.value)}
               displayEmpty
+              disabled={!selectedClientId} // Disable if no client is selected
             >
               <MenuItem value="" disabled>Select Department</MenuItem>
-              {departments.map((department) => (
+              {getFilteredDepartments().map((department) => (
                 <MenuItem key={department.id} value={department.id}>
                   {`${department.name} (${department.departmentCode || 'No Code'})`}
                 </MenuItem>
@@ -562,10 +658,40 @@ return (
               <MenuItem value="" disabled>Select Job Role</MenuItem>
               {jobRoles.map((role) => (
                 <MenuItem key={role.id} value={role.id}>
-                  {role.jobRoleCode ? `${role.title} (${role.jobRoleCode})` : role.title}
+                  {`${role.title} (${role.jobRoleCode || 'No Code'})`}
                 </MenuItem>
               ))}
             </Select>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Select
+              fullWidth
+              value={selectedLocationId}
+              onChange={(e) => setSelectedLocationId(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="" disabled>Select Location</MenuItem>
+              {locations.map((location) => (
+                <MenuItem key={location.id} value={location.id}>
+                  {`${location.city}, ${location.state}, ${location.country}`}
+                  {location.address && ` - ${location.address}`} {/* Optional: Show address if available */}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              type="date"
+              label="Date of Joining"
+              value={dateOfJoining}
+              onChange={(e) => setDateOfJoining(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
           </Grid>
 
           <Grid item xs={12}>
@@ -603,7 +729,16 @@ return (
           color: 'white',
           padding: 2,
           borderRadius: 1,
-          boxShadow: 2
+          boxShadow: 2,
+          animation: 'fadeIn 0.3s, fadeOut 0.3s 2.7s',
+          '@keyframes fadeIn': {
+            '0%': { opacity: 0, transform: 'translateY(20px)' },
+            '100%': { opacity: 1, transform: 'translateY(0)' }
+          },
+          '@keyframes fadeOut': {
+            '0%': { opacity: 1, transform: 'translateY(0)' },
+            '100%': { opacity: 0, transform: 'translateY(20px)' }
+          }
         }}
       >
         {error}
@@ -620,7 +755,16 @@ return (
           color: 'white',
           padding: 2,
           borderRadius: 1,
-          boxShadow: 2
+          boxShadow: 2,
+          animation: 'fadeIn 0.3s, fadeOut 0.3s 2.7s',
+          '@keyframes fadeIn': {
+            '0%': { opacity: 0, transform: 'translateY(20px)' },
+            '100%': { opacity: 1, transform: 'translateY(0)' }
+          },
+          '@keyframes fadeOut': {
+            '0%': { opacity: 1, transform: 'translateY(0)' },
+            '100%': { opacity: 0, transform: 'translateY(20px)' }
+          }
         }}
       >
         {successMessage}

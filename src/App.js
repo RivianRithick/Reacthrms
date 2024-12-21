@@ -12,6 +12,11 @@ import JobRole from "./Components/JobRole";
 import ClientAssign from "./Components/EmployeeRoleAssign";
 import AssignedEmployee from "./Components/AssignedEmployee";
 import PrivateRoute from "./Components/PrivateRoute";
+import EmployeeJobLocation from "./Components/EmployeeJobLocation";
+import EmployeeSalary from "./Components/EmployeeSalary";
+import EmployeeSalaryForm from "./Components/EmployeeSalaryForm";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   const [userName, setUserName] = useState("");
@@ -19,6 +24,7 @@ const App = () => {
 
   return (
     <Router>
+      <ToastContainer />
       <Routes>
         {/* Public Routes */}
         {/* <Route path="/" element={<Register />} /> */}
@@ -93,6 +99,42 @@ const App = () => {
               <>
                 <Navbar />
                 <AssignedEmployee />
+              </>
+            }
+          />
+          <Route
+            path="/employee-job-locations"
+            element={
+              <>
+                <Navbar />
+                <EmployeeJobLocation />
+              </>
+            }
+          />
+          <Route
+            path="/salaries"
+            element={
+              <>
+                <Navbar />
+                <EmployeeSalary />
+              </>
+            }
+          />
+          <Route
+            path="/salary/create"
+            element={
+              <>
+                <Navbar />
+                <EmployeeSalaryForm />
+              </>
+            }
+          />
+          <Route
+            path="/salary/edit/:id"
+            element={
+              <>
+                <Navbar />
+                <EmployeeSalaryForm />
               </>
             }
           />

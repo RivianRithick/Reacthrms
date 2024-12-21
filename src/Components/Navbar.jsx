@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUsers, FaBuilding, FaTasks, FaUserTie, FaSignOutAlt } from "react-icons/fa";
+import { FaUsers, FaBuilding, FaTasks, FaUserTie, FaSignOutAlt, FaMoneyBillWave } from "react-icons/fa";
 import axiosInstance from "../apiService";
 import {
   AppBar,
@@ -58,6 +58,8 @@ const NavBar = () => {
     { text: "Assigned Employee", icon: <FaUserTie />, path: "/assigned-employee" },
     { text: "Department", icon: <FaBuilding />, path: "/department" },
     { text: "Job Role", icon: <FaTasks />, path: "/jobRole" },
+    { text: "Job Locations", icon: <FaBuilding />, path: "/employee-job-locations" },
+    { text: "Employee Salary", icon: <FaMoneyBillWave />, path: "/salaries" },
   ];
 
   const renderNavItems = () => (

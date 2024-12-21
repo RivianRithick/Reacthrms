@@ -3,14 +3,51 @@ import {jwtDecode} from "jwt-decode"; // Fixed import for jwt-decode
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const baseUrl = process.env.REACT_APP_BASE_URL;
+const baseUrl = process.env.REACT_APP_BASE_URL || 'https://hrmsasp.runasp.net';
 
 const axiosInstance = axios.create({
   baseURL: baseUrl,
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000, // Add timeout
 });
+
+// Add request interceptor for debugging
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log('Request:', {
+      url: config.url,
+      method: config.method,
+      data: config.data,
+      headers: config.headers
+    });
+    return config;
+  },
+  (error) => {
+    console.error('Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+axiosInstance.interceptors.response.use(
+  (response) => {
+    console.log('Response:', {
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
+  (error) => {
+    console.error('Response Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
+);
 
 // Helper to check if the token is expired
 const isTokenExpired = (token) => {

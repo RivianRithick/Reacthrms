@@ -132,6 +132,7 @@ const EmployeeComponent = () => {
   const [deleteRemarks, setDeleteRemarks] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [blockRemarksDialogOpen, setBlockRemarksDialogOpen] = useState(false);
+  const [assignedEmployees, setAssignedEmployees] = useState([]);
 
   const bloodGroups = [
     "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
@@ -157,6 +158,7 @@ const EmployeeComponent = () => {
 
   useEffect(() => {
     fetchEmployees();
+    fetchAssignedEmployees();
   }, [filters]);
 
   const capitalize = (str) => {
@@ -245,6 +247,38 @@ const EmployeeComponent = () => {
       toast.error(error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAssignedEmployees = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/api/EmployeeRoleAssign?isAssigned=true`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Assigned employees response:', result);
+        
+        // Extract employee IDs from the response
+        const assignedIds = result.data.map(assignment => {
+          const empId = assignment.employeeRegistrationId || 
+                       assignment.EmployeeRegistrationId || 
+                       assignment.Employee?.Id || 
+                       assignment.employee?.id;
+          console.log('Processing assignment:', assignment);
+          console.log('Extracted ID:', empId);
+          return empId;
+        }).filter(id => id !== undefined && id !== null);
+        
+        console.log('All assigned IDs:', assignedIds);
+        setAssignedEmployees(assignedIds);
+      }
+    } catch (error) {
+      console.error("Error fetching assigned employees:", error);
     }
   };
 
@@ -1603,13 +1637,16 @@ const EmployeeComponent = () => {
                   variant="contained"
                   color={employee.isApproved ? "error" : "success"}
                   onClick={() => {
+                    console.log('Button click - Current employee:', employee);
+                    console.log('Button click - Assigned IDs:', assignedEmployees);
+                    console.log('Button click - Is assigned?', assignedEmployees.some(id => id === employee.id));
                     setEmployee(prev => ({
                       ...prev,
                       isApproved: !prev.isApproved,
                       status: !prev.isApproved ? "Active" : "Pending"
                     }));
                   }}
-                  disabled={employee.isBlocked}
+                  disabled={employee.isBlocked || assignedEmployees.some(id => id === employee.id)}
                   sx={{
                     borderRadius: '50px',
                     px: 4,
@@ -1634,12 +1671,18 @@ const EmployeeComponent = () => {
                   {employee.isApproved ? (
                     <>
                       <MdBlock size={20} />
-                      Unverify Employee
+                      {assignedEmployees.some(id => id === employee.id) ? 
+                        'Cannot Unverify (Assigned)' : 
+                        'Unverify Employee'
+                      }
                     </>
                   ) : (
                     <>
                       <FaIdCard size={20} />
-                      Verify Employee
+                      {assignedEmployees.some(id => id === employee.id) ? 
+                        'Cannot Verify (Assigned)' : 
+                        'Verify Employee'
+                      }
                     </>
                   )}
                 </Button>

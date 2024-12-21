@@ -16,6 +16,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  MenuItem,
 } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -31,8 +32,11 @@ const Department = () => {
   const [department, setDepartment] = useState({
     name: '',
     departmentCode: '',
+    clientRegistrationId: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [clients, setClients] = useState([]);
+  const [selectedClientId, setSelectedClientId] = useState('');
 
   const fetchDepartments = async () => {
     try {
@@ -55,8 +59,28 @@ const Department = () => {
     }
   };
 
+  const fetchClients = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/api/client-registration`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch clients");
+      
+      const result = await response.json();
+      const activeClients = (result.data || []).filter(client => !client.isBlocked);
+      setClients(activeClients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      toast.error("Failed to load clients");
+    }
+  };
+
   useEffect(() => {
     fetchDepartments();
+    fetchClients();
   }, []);
 
   useEffect(() => {
@@ -67,14 +91,17 @@ const Department = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'clientRegistrationId') {
+      setSelectedClientId(value);
+    }
     setDepartment({ ...department, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!department.name || !department.departmentCode) {
-      toast.error("Please fill in both department name and code.");
+    if (!department.clientRegistrationId || !department.name || !department.departmentCode) {
+      toast.error("Please fill in all required fields including client selection.");
       return;
     }
 
@@ -86,11 +113,13 @@ const Department = () => {
       ? {
           id: selectedDepartment.id,
           name: department.name,
-          departmentCode: department.departmentCode
+          departmentCode: department.departmentCode,
+          clientRegistrationId: department.clientRegistrationId
         }
       : {
           name: department.name,
-          departmentCode: department.departmentCode
+          departmentCode: department.departmentCode,
+          clientRegistrationId: department.clientRegistrationId
         };
     
     console.log('Submitting payload:', payload);
@@ -123,7 +152,12 @@ const Department = () => {
   };
 
   const resetForm = () => {
-    setDepartment({ name: "", departmentCode: "" });
+    setDepartment({ 
+      name: "", 
+      departmentCode: "",
+      clientRegistrationId: "" 
+    });
+    setSelectedClientId("");
     setSelectedDepartment(null);
     setShowForm(false);
   };
@@ -174,6 +208,112 @@ const Department = () => {
         department.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
+
+  const renderForm = () => (
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        backgroundColor: '#fff',
+        borderRadius: 2,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        padding: 4,
+        maxWidth: 800,
+        margin: '0 auto'
+      }}
+    >
+      <Typography variant="h5" sx={{ 
+        marginBottom: 4, 
+        color: 'primary.main',
+        fontWeight: 'bold',
+        textAlign: 'center'
+      }}>
+        {selectedDepartment ? 'Edit Department' : 'Create Department'}
+      </Typography>
+      
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <TextField
+            select
+            fullWidth
+            label="Client *"
+            name="clientRegistrationId"
+            value={department.clientRegistrationId}
+            onChange={handleChange}
+            required
+            error={!department.clientRegistrationId}
+            helperText={!department.clientRegistrationId ? "Client is required" : ""}
+          >
+            <MenuItem value="" disabled>
+              Select Client
+            </MenuItem>
+            {clients.map((client) => (
+              <MenuItem key={client.id} value={client.id}>
+                {client.name} ({client.clientCode || 'No Code'})
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Department Code *"
+            name="departmentCode"
+            value={department.departmentCode}
+            onChange={handleChange}
+            required
+            error={!department.departmentCode}
+            helperText={!department.departmentCode ? "Department code is required" : ""}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Department Name *"
+            name="name"
+            value={department.name}
+            onChange={handleChange}
+            required
+            error={!department.name}
+            helperText={!department.name ? "Department name is required" : ""}
+          />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 2, 
+        marginTop: 4,
+        justifyContent: 'center'
+      }}>
+        <Button 
+          type="submit" 
+          variant="contained" 
+          color="primary"
+          disabled={!department.clientRegistrationId || !department.name || !department.departmentCode}
+          sx={{
+            minWidth: 120,
+            textTransform: 'none',
+            fontWeight: 'bold'
+          }}
+        >
+          {selectedDepartment ? 'Update' : 'Create'}
+        </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={resetForm}
+          sx={{
+            minWidth: 120,
+            textTransform: 'none'
+          }}
+        >
+          Cancel
+        </Button>
+      </Box>
+    </Box>
+  );
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -230,93 +370,7 @@ const Department = () => {
         </Box>
       )}
 
-      {showForm ? (
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{
-            backgroundColor: '#fff',
-            borderRadius: 2,
-            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-            padding: 4,
-            maxWidth: 800,
-            margin: '0 auto'
-          }}
-        >
-          <Typography variant="h5" sx={{ 
-            marginBottom: 4, 
-            color: 'primary.main',
-            fontWeight: 'bold',
-            textAlign: 'center'
-          }}>
-            {selectedDepartment ? 'Edit Department' : 'Create Department'}
-          </Typography>
-          
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Department Code"
-                name="departmentCode"
-                value={department.departmentCode}
-                onChange={handleChange}
-                required
-                sx={{ 
-                  '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Department Name"
-                name="name"
-                value={department.name}
-                onChange={handleChange}
-                required
-                sx={{ 
-                  '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                  },
-                }}
-              />
-            </Grid>
-          </Grid>
-
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 2, 
-            marginTop: 4,
-            justifyContent: 'center'
-          }}>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary"
-              sx={{
-                minWidth: 120,
-                textTransform: 'none',
-                fontWeight: 'bold'
-              }}
-            >
-              {selectedDepartment ? 'Update' : 'Create'}
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={resetForm}
-              sx={{
-                minWidth: 120,
-                textTransform: 'none'
-              }}
-            >
-              Cancel
-            </Button>
-          </Box>
-        </Box>
-      ) : (
+      {showForm ? renderForm() : (
         <Box sx={{ 
           backgroundColor: '#fff',
           borderRadius: 2,
