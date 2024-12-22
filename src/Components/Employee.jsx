@@ -2,13 +2,122 @@ import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CircularProgress from "@mui/material/CircularProgress";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Container, Fade } from "@mui/material";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { motion } from "framer-motion";
 import SearchFilters from "./Employee/SearchFilters";
 import EmployeeList from "./Employee/EmployeeList";
 import EmployeeForm from "./Employee/EmployeeForm";
 import EmployeeDialogs from "./Employee/EmployeeDialogs";
 import { initialEmployeeState } from "./Employee/constants";
 import { validateForm, getFilteredEmployees } from "./Employee/utils";
+
+// Create a modern theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#3D52A0', // Modern deep blue from the image
+      light: '#7091E6',
+      dark: '#8697C4',
+    },
+    secondary: {
+      main: '#ADBBDA',
+      light: '#EDE8F5',
+      dark: '#5F739C',
+    },
+    background: {
+      default: '#F5F7FF',
+      paper: '#FFFFFF',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    h4: {
+      fontWeight: 800,
+      letterSpacing: '-0.02em',
+      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
+    h5: {
+      fontWeight: 700,
+      letterSpacing: '-0.01em',
+    },
+    h6: {
+      fontWeight: 600,
+      letterSpacing: '-0.01em',
+    },
+  },
+  components: {
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          background: 'linear-gradient(135deg, #F5F7FF 0%, #E8ECFF 100%)',
+          minHeight: '100vh',
+          paddingTop: '2rem',
+          paddingBottom: '2rem',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 8px 32px rgba(61, 82, 160, 0.08)',
+          backdropFilter: 'blur(8px)',
+          background: 'rgba(255, 255, 255, 0.95)',
+          border: '1px solid rgba(61, 82, 160, 0.08)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          textTransform: 'none',
+          fontWeight: 600,
+          padding: '10px 24px',
+          boxShadow: 'none',
+          background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+          color: '#FFFFFF',
+          '&:hover': {
+            background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+            '&:hover fieldset': {
+              borderColor: '#7091E6',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#3D52A0',
+              borderWidth: '2px',
+            },
+          },
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontWeight: 500,
+          '&.MuiChip-filled': {
+            background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+            color: '#FFFFFF',
+          },
+        },
+      },
+    },
+  },
+});
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
 
@@ -399,96 +508,133 @@ const EmployeeComponent = () => {
   const filteredEmployees = getFilteredEmployees(employees, filters, searchQuery);
 
   return (
-    <Box sx={{ padding: 2 }}>
-      <Typography 
-        variant="h4" 
-        gutterBottom 
-        sx={{ 
-          textAlign: "center", 
-          fontWeight: "bold",
-          color: "primary.main",
-          marginBottom: 4
-        }}
-      >
-        Employee Management
-      </Typography>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-
-      {isLoading ? (
+    <ThemeProvider theme={theme}>
+      <Container maxWidth="xl">
         <Box sx={{ 
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center", 
-          minHeight: "200px" 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 4,
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: '5%',
+            width: '90%',
+            height: '100%',
+            background: 'radial-gradient(circle at 50% 0%, rgba(112, 145, 230, 0.1) 0%, rgba(61, 82, 160, 0) 70%)',
+            pointerEvents: 'none',
+          }
         }}>
-          <CircularProgress />
+          <Typography variant="h4" component="h1" sx={{ 
+            fontSize: { xs: '2rem', md: '2.5rem' },
+            textAlign: 'center',
+            mb: 4,
+          }}>
+            Employee Management System
+          </Typography>
+
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+
+          {isLoading ? (
+            <Box sx={{ 
+              display: "flex", 
+              justifyContent: "center", 
+              alignItems: "center", 
+              minHeight: "400px",
+              flexDirection: 'column',
+              gap: 2
+            }}>
+              <CircularProgress size={48} thickness={4} />
+              <Typography variant="body1" color="text.secondary">
+                Loading employee data...
+              </Typography>
+            </Box>
+          ) : (
+            <Fade in={true} timeout={500}>
+              <Box>
+                {showForm ? (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <EmployeeForm
+                      employee={employee}
+                      handleChange={handleChange}
+                      handleContactChange={handleContactChange}
+                      handleSubmit={handleSubmit}
+                      isLoading={isLoading}
+                      selectedEmployee={selectedEmployee}
+                      resetForm={resetForm}
+                      assignedEmployees={assignedEmployees}
+                      setEmployee={setEmployee}
+                      setBlockDialogOpen={setBlockDialogOpen}
+                      setTempIsBlocked={setTempIsBlocked}
+                      setBlockRemarksDialogOpen={setBlockRemarksDialogOpen}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <SearchFilters
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      filters={filters}
+                      handleFilterChange={handleFilterChange}
+                    />
+
+                    <EmployeeList
+                      employees={filteredEmployees}
+                      handleEdit={handleEdit}
+                      handleDelete={(employee) => {
+                        setEmployeeToDelete(employee);
+                        setDialogOpen(true);
+                      }}
+                      setShowForm={setShowForm}
+                      resetForm={resetForm}
+                      setSelectedEmployee={setSelectedEmployee}
+                      assignedEmployees={assignedEmployees}
+                    />
+                  </motion.div>
+                )}
+              </Box>
+            </Fade>
+          )}
+
+          <EmployeeDialogs
+            dialogOpen={dialogOpen}
+            blockDialogOpen={blockDialogOpen}
+            blockRemarksDialogOpen={blockRemarksDialogOpen}
+            employeeToDelete={employeeToDelete}
+            tempIsBlocked={tempIsBlocked}
+            tempBlockRemarks={tempBlockRemarks}
+            employee={employee}
+            setDialogOpen={setDialogOpen}
+            setBlockDialogOpen={setBlockDialogOpen}
+            setBlockRemarksDialogOpen={setBlockRemarksDialogOpen}
+            setEmployeeToDelete={setEmployeeToDelete}
+            setTempBlockRemarks={setTempBlockRemarks}
+            handleDelete={handleDelete}
+          />
         </Box>
-      ) : showForm ? (
-        <EmployeeForm
-          employee={employee}
-          handleChange={handleChange}
-          handleContactChange={handleContactChange}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-          selectedEmployee={selectedEmployee}
-          resetForm={resetForm}
-          assignedEmployees={assignedEmployees}
-          setEmployee={setEmployee}
-          setBlockDialogOpen={setBlockDialogOpen}
-          setTempIsBlocked={setTempIsBlocked}
-          setBlockRemarksDialogOpen={setBlockRemarksDialogOpen}
-        />
-      ) : (
-        <>
-          <SearchFilters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            filters={filters}
-            handleFilterChange={handleFilterChange}
-          />
-
-          <EmployeeList
-            employees={filteredEmployees}
-            handleEdit={handleEdit}
-            handleDelete={(employee) => {
-                                setEmployeeToDelete(employee);
-                                setDialogOpen(true);
-                              }}
-            setShowForm={setShowForm}
-            resetForm={resetForm}
-            setSelectedEmployee={setSelectedEmployee}
-            assignedEmployees={assignedEmployees}
-          />
-        </>
-      )}
-
-      <EmployeeDialogs
-        dialogOpen={dialogOpen}
-        blockDialogOpen={blockDialogOpen}
-        blockRemarksDialogOpen={blockRemarksDialogOpen}
-        employeeToDelete={employeeToDelete}
-        tempIsBlocked={tempIsBlocked}
-        tempBlockRemarks={tempBlockRemarks}
-        employee={employee}
-        setDialogOpen={setDialogOpen}
-        setBlockDialogOpen={setBlockDialogOpen}
-        setBlockRemarksDialogOpen={setBlockRemarksDialogOpen}
-        setEmployeeToDelete={setEmployeeToDelete}
-        setTempBlockRemarks={setTempBlockRemarks}
-        handleDelete={handleDelete}
-      />
-    </Box>
+      </Container>
+    </ThemeProvider>
   );
 };
 

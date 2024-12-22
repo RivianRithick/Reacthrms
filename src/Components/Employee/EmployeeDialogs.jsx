@@ -36,20 +36,34 @@ const EmployeeDialogs = ({
         }}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(61, 82, 160, 0.08)',
+            backdropFilter: 'blur(8px)',
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(61, 82, 160, 0.08)',
+          }
+        }}
       >
         <DialogTitle sx={{ 
-          color: employeeToDelete?.isDeleted ? 'success.main' : 'error.main',
+          background: employeeToDelete?.isDeleted 
+            ? 'linear-gradient(45deg, #059669, #34d399)'
+            : 'linear-gradient(45deg, #dc2626, #ef4444)',
+          color: 'white',
           fontWeight: 600,
-          pb: 1
+          borderTopLeftRadius: '16px',
+          borderTopRightRadius: '16px',
+          py: 2.5,
         }}>
           {employeeToDelete?.isDeleted ? "Enable Employee" : "Disable Employee"}
         </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
+          <Typography variant="body1" color="text.secondary">
             Are you sure you want to {employeeToDelete?.isDeleted ? "enable" : "disable"} this employee?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 2 }}>
           <Button 
             onClick={() => {
               setDialogOpen(false);
@@ -57,8 +71,18 @@ const EmployeeDialogs = ({
             }}
             variant="outlined"
             sx={{ 
-              borderRadius: '50px',
-              px: 3
+              borderColor: '#3D52A0',
+              color: '#3D52A0',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              padding: '10px 24px',
+              '&:hover': {
+                borderColor: '#2A3B7D',
+                backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                transform: 'translateY(-1px)',
+              },
+              transition: 'all 0.2s ease-in-out',
             }}
           >
             Cancel
@@ -67,11 +91,24 @@ const EmployeeDialogs = ({
             onClick={handleDelete}
             variant="contained"
             sx={{ 
-              borderRadius: '50px',
-              px: 3,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              padding: '10px 24px',
               background: employeeToDelete?.isDeleted 
-                ? 'linear-gradient(45deg, #00c853 30%, #69f0ae 90%)'
-                : 'linear-gradient(45deg, #ff1744 30%, #ff4569 90%)'
+                ? 'linear-gradient(45deg, #059669, #34d399)'
+                : 'linear-gradient(45deg, #dc2626, #ef4444)',
+              boxShadow: 'none',
+              '&:hover': {
+                background: employeeToDelete?.isDeleted 
+                  ? 'linear-gradient(45deg, #047857, #10b981)'
+                  : 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                transform: 'translateY(-1px)',
+                boxShadow: employeeToDelete?.isDeleted 
+                  ? '0 4px 12px rgba(5, 150, 105, 0.2)'
+                  : '0 4px 12px rgba(220, 38, 38, 0.2)',
+              },
+              transition: 'all 0.2s ease-in-out',
             }}
           >
             {employeeToDelete?.isDeleted ? "Enable" : "Disable"}
@@ -88,16 +125,30 @@ const EmployeeDialogs = ({
         }}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(61, 82, 160, 0.08)',
+            backdropFilter: 'blur(8px)',
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(61, 82, 160, 0.08)',
+          }
+        }}
       >
         <DialogTitle sx={{ 
-          pb: 1,
-          color: tempIsBlocked ? 'error.main' : 'success.main',
-          fontWeight: 600 
+          background: tempIsBlocked 
+            ? 'linear-gradient(45deg, #dc2626, #ef4444)'
+            : 'linear-gradient(45deg, #059669, #34d399)',
+          color: 'white',
+          fontWeight: 600,
+          borderTopLeftRadius: '16px',
+          borderTopRightRadius: '16px',
+          py: 2.5,
         }}>
           {tempIsBlocked ? "Block Employee" : "Unblock Employee"}
         </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: tempIsBlocked ? 3 : 0 }}>
             {tempIsBlocked 
               ? "Please provide a reason for blocking this employee." 
               : "Are you sure you want to unblock this employee?"}
@@ -114,14 +165,22 @@ const EmployeeDialogs = ({
               error={tempIsBlocked && !tempBlockRemarks}
               helperText={tempIsBlocked && !tempBlockRemarks ? "Remarks are required for blocking" : ""}
               sx={{
+                mt: 2,
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '12px',
-                }
+                  '&:hover fieldset': {
+                    borderColor: '#7091E6',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3D52A0',
+                    borderWidth: '2px',
+                  },
+                },
               }}
             />
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
+        <DialogActions sx={{ p: 3, borderTop: '1px solid rgba(61, 82, 160, 0.1)' }}>
           <Button 
             onClick={() => {
               setBlockDialogOpen(false);
@@ -129,9 +188,18 @@ const EmployeeDialogs = ({
             }}
             variant="contained"
             sx={{ 
-              borderRadius: '50px',
-              px: 3,
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              padding: '10px 24px',
+              background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+              boxShadow: 'none',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+              },
+              transition: 'all 0.2s ease-in-out',
             }}
           >
             Close
@@ -145,33 +213,44 @@ const EmployeeDialogs = ({
         onClose={() => setBlockRemarksDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(61, 82, 160, 0.08)',
+            backdropFilter: 'blur(8px)',
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(61, 82, 160, 0.08)',
+          }
+        }}
       >
         <DialogTitle sx={{ 
-          color: 'error.main',
+          background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+          color: 'white',
           fontWeight: 600,
-          borderBottom: '1px solid #eee',
-          pb: 2
+          borderTopLeftRadius: '16px',
+          borderTopRightRadius: '16px',
+          py: 2.5,
         }}>
           Block Remarks
         </DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
           <Box sx={{ 
-            backgroundColor: '#f8f9fa',
+            backgroundColor: 'rgba(61, 82, 160, 0.04)',
             borderRadius: '12px',
             p: 3,
-            border: '1px solid #eee'
+            border: '1px solid rgba(61, 82, 160, 0.1)'
           }}>
-            <Typography variant="body1" sx={{ mb: 2 }}>
+            <Typography variant="body1" sx={{ mb: 2, color: 'text.primary' }}>
               {employee.blockedRemarks || "No remarks available"}
             </Typography>
             {employee.blockedBy && (
               <Box sx={{ 
                 display: 'flex', 
                 flexDirection: 'column', 
-                gap: 0.5,
-                mt: 2,
-                pt: 2,
-                borderTop: '1px solid #eee'
+                gap: 1,
+                mt: 3,
+                pt: 3,
+                borderTop: '1px solid rgba(61, 82, 160, 0.1)'
               }}>
                 <Typography variant="body2" color="text.secondary">
                   Blocked by: {employee.blockedBy}
@@ -185,14 +264,23 @@ const EmployeeDialogs = ({
             )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
+        <DialogActions sx={{ p: 3, borderTop: '1px solid rgba(61, 82, 160, 0.1)' }}>
           <Button 
             onClick={() => setBlockRemarksDialogOpen(false)}
             variant="contained"
             sx={{ 
-              borderRadius: '50px',
-              px: 3,
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              padding: '10px 24px',
+              background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+              boxShadow: 'none',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+              },
+              transition: 'all 0.2s ease-in-out',
             }}
           >
             Close

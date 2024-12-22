@@ -64,7 +64,6 @@ const Sidebar = ({ onToggle }) => {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
     { text: 'Role Assignment', icon: <AssignmentIcon />, path: '/employee-role-assign' },
     { text: 'Assigned Employees', icon: <GroupIcon />, path: '/assigned-employee' },

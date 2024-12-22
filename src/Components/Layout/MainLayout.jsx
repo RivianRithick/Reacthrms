@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, CssBaseline } from '@mui/material';
-import Sidebar from './Sidebar';
+import Sidebar from '../Layout/Sidebar';
 
 const drawerWidth = 240;
 const collapsedWidth = 65;

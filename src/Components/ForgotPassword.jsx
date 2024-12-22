@@ -18,8 +18,98 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import LockResetOutlinedIcon from '@mui/icons-material/LockResetOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from "react-router-dom";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { motion } from 'framer-motion';
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#3D52A0',
+      light: '#7091E6',
+      dark: '#8697C4',
+    },
+    secondary: {
+      main: '#ADBBDA',
+      light: '#EDE8F5',
+      dark: '#5F739C',
+    },
+    background: {
+      default: '#F5F7FF',
+      paper: '#FFFFFF',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    h4: {
+      fontWeight: 800,
+      letterSpacing: '-0.02em',
+      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          textTransform: 'none',
+          fontWeight: 600,
+          padding: '12px 24px',
+          boxShadow: 'none',
+          background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+          color: '#FFFFFF',
+          '&:hover': {
+            background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+          },
+          transition: 'all 0.2s ease-in-out',
+          '&.MuiButton-outlined': {
+            background: 'transparent',
+            borderColor: '#3D52A0',
+            color: '#3D52A0',
+            '&:hover': {
+              background: 'rgba(61, 82, 160, 0.04)',
+              borderColor: '#2A3B7D',
+            },
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(8px)',
+            '&:hover fieldset': {
+              borderColor: '#7091E6',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#3D52A0',
+              borderWidth: '2px',
+            },
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 24,
+          boxShadow: '0 8px 32px rgba(61, 82, 160, 0.08)',
+          backdropFilter: 'blur(8px)',
+          background: 'rgba(255, 255, 255, 0.95)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+        },
+      },
+    },
+  },
+});
 
 const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,148 +144,173 @@ const ForgotPassword = () => {
   });
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
+    <ThemeProvider theme={theme}>
+      <Container 
+        component="main" 
+        maxWidth={false}
         sx={{
           minHeight: '100vh',
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          background: 'linear-gradient(135deg, #F5F7FF 0%, #E8ECFF 100%)',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            background: 'radial-gradient(circle at 50% 0%, rgba(112, 145, 230, 0.1) 0%, rgba(61, 82, 160, 0) 70%)',
+            pointerEvents: 'none',
+          }
         }}
       >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            borderRadius: 2,
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            width: '100%',
-          }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{ width: '100%', maxWidth: '400px' }}
         >
-          <Box
+          <Paper
+            elevation={0}
             sx={{
-              width: 70,
-              height: 70,
-              borderRadius: '50%',
-              backgroundColor: 'primary.main',
+              p: 4,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
             }}
           >
-            <LockResetOutlinedIcon sx={{ color: 'white', fontSize: 35 }} />
-          </Box>
-
-          <Typography 
-            component="h1" 
-            variant="h4" 
-            sx={{ 
-              mb: 1,
-              fontWeight: 'bold',
-              color: 'primary.main',
-              textAlign: 'center'
-            }}
-          >
-            Forgot Password?
-          </Typography>
-
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              mb: 3, 
-              color: 'text.secondary',
-              textAlign: 'center'
-            }}
-          >
-            Enter your email address and we'll send you a link to reset your password.
-          </Typography>
-
-          <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
-            <TextField
-              fullWidth
-              label="Email Address"
-              margin="normal"
-              variant="outlined"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailOutlinedIcon color="primary" />
-                  </InputAdornment>
-                ),
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                delay: 0.2
               }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
-            />
+            >
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 3,
+                  boxShadow: '0 8px 32px rgba(61, 82, 160, 0.2)',
+                }}
+              >
+                <LockResetOutlinedIcon sx={{ color: 'white', fontSize: 40 }} />
+              </Box>
+            </motion.div>
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={isLoading}
-              sx={{
-                mt: 3,
+            <Typography 
+              component="h1" 
+              variant="h4" 
+              sx={{ 
                 mb: 2,
-                py: 1.5,
-                fontSize: '1rem',
                 fontWeight: 'bold',
-                textTransform: 'none',
-                borderRadius: 2,
-                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
-                '&:hover': {
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 6px 15px rgba(0, 0, 0, 0.2)',
-                },
+                textAlign: 'center',
               }}
             >
-              {isLoading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Send Reset Link"
-              )}
-            </Button>
+              Forgot Password?
+            </Typography>
 
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => navigate("/login")}
-              startIcon={<ArrowBackIcon />}
-              sx={{
-                py: 1.5,
-                fontSize: '1rem',
-                textTransform: 'none',
-                borderRadius: 2,
-                '&:hover': {
-                  transform: 'translateY(-1px)',
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                },
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                mb: 4, 
+                color: 'text.secondary',
+                textAlign: 'center',
+                maxWidth: '320px'
               }}
             >
-              Back to Login
-            </Button>
-          </form>
-        </Paper>
-      </Box>
+              Enter your email address and we'll send you a link to reset your password.
+            </Typography>
+
+            <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
+              <TextField
+                fullWidth
+                label="Email Address"
+                margin="normal"
+                variant="outlined"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.email && Boolean(formik.errors.email)}
+                helperText={formik.touched.email && formik.errors.email}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailOutlinedIcon sx={{ color: 'primary.main' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={isLoading}
+                sx={{
+                  mt: 4,
+                  mb: 2,
+                  py: 1.5,
+                  fontSize: '1rem',
+                  position: 'relative',
+                  '&:disabled': {
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    opacity: 0.7,
+                  },
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <CircularProgress
+                      size={24}
+                      sx={{
+                        color: 'white',
+                        position: 'absolute',
+                        left: '50%',
+                        marginLeft: '-12px',
+                      }}
+                    />
+                    <span style={{ opacity: 0 }}>Send Reset Link</span>
+                  </>
+                ) : (
+                  "Send Reset Link"
+                )}
+              </Button>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/login")}
+                startIcon={<ArrowBackIcon />}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1rem',
+                }}
+              >
+                Back to Login
+              </Button>
+            </form>
+          </Paper>
+        </motion.div>
+      </Container>
       <ToastContainer 
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop
         closeOnClick
@@ -203,8 +318,9 @@ const ForgotPassword = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        theme="colored"
       />
-    </Container>
+    </ThemeProvider>
   );
 };
 
