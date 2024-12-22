@@ -164,7 +164,12 @@ const Department = () => {
 
   const handleEdit = (department) => {
     setSelectedDepartment(department);
-    setDepartment({ name: department.name, departmentCode: department.departmentCode });
+    setDepartment({
+      name: department.name,
+      departmentCode: department.departmentCode,
+      clientRegistrationId: department.clientRegistrationId || department.clientId
+    });
+    setSelectedClientId(department.clientRegistrationId || department.clientId);
     setShowForm(true);
   };
 

@@ -414,7 +414,9 @@ const ClientCrud = () => {
             backgroundColor: '#fff',
             borderRadius: 2,
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-            padding: 3
+            padding: 3,
+            width: '100%',
+            overflow: 'hidden'
           }}>
             <Box sx={{ 
               display: "flex", 
@@ -448,7 +450,11 @@ const ClientCrud = () => {
               sx={{ 
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 borderRadius: 2,
-                overflow: 'hidden'
+                maxWidth: '100%',
+                overflowX: 'auto',
+                '& .MuiTable-root': {
+                  minWidth: 1200,
+                }
               }}
             >
               <Table>

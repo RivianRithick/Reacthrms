@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./Components/Login";
-import ForgotPassword from "./Components/ForgotPassword"; // Updated component name
+import ForgotPassword from "./Components/ForgotPassword";
 import AdminResetPassword from "./Components/AdminResetPassword";
-// import Register from "./Components/Register";
-import Navbar from "./Components/Navbar";
 import Client from "./Components/Client";
 import Employee from "./Components/Employee";
 import Department from "./Components/Department";
@@ -15,8 +13,10 @@ import PrivateRoute from "./Components/PrivateRoute";
 import EmployeeJobLocation from "./Components/EmployeeJobLocation";
 import EmployeeSalary from "./Components/EmployeeSalary";
 import EmployeeSalaryForm from "./Components/EmployeeSalaryForm";
+import MainLayout from "./Components/Layout/MainLayout";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Dashboard from "./Components/Dashboard";
 
 const App = () => {
   const [userName, setUserName] = useState("");
@@ -27,8 +27,6 @@ const App = () => {
       <ToastContainer />
       <Routes>
         {/* Public Routes */}
-        {/* <Route path="/" element={<Register />} /> */}
-        {/* Default Route */}
         <Route path="/" element={<Navigate to="/login" />} />
         <Route
           path="/login"
@@ -39,103 +37,92 @@ const App = () => {
 
         {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
-          {/* <Route
+          <Route
             path="/dashboard"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <Dashboard />
-              </>
+              </MainLayout>
             }
-          /> */}
+          />
           <Route
             path="/clients"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <Client />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/employees"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <Employee />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/department"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <Department />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/jobRole"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <JobRole />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/employee-role-assign"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <ClientAssign />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/assigned-employee"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <AssignedEmployee />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/employee-job-locations"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <EmployeeJobLocation />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/salaries"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <EmployeeSalary />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/salary/create"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <EmployeeSalaryForm />
-              </>
+              </MainLayout>
             }
           />
           <Route
             path="/salary/edit/:id"
             element={
-              <>
-                <Navbar />
+              <MainLayout>
                 <EmployeeSalaryForm />
-              </>
+              </MainLayout>
             }
           />
         </Route>
