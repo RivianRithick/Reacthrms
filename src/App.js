@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { QueryClient, QueryClientProvider } from 'react-query';
 import MainLayout from "./Components/Layout/MainLayout";
 import { ToastContainer } from 'react-toastify';
+import { SnackbarProvider } from 'notistack';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Create a client
@@ -30,6 +31,8 @@ const EmployeeJobLocation = lazy(() => import("./Components/EmployeeJobLocation"
 const EmployeeSalary = lazy(() => import("./Components/EmployeeSalary"));
 const EmployeeSalaryForm = lazy(() => import("./Components/EmployeeSalaryForm"));
 const Dashboard = lazy(() => import("./Components/Dashboard"));
+const OnboardingManager = lazy(() => import("./Components/OnboardingManager"));
+const Recruiter = lazy(() => import("./Components/Recruiter"));
 
 // Loading component
 const LoadingFallback = () => (
@@ -50,113 +53,131 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <ToastContainer />
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Navigate to="/login" />} />
-            <Route
-              path="/login"
-              element={<Login SetUserName={setUserName} SetEmail={setEmail} />}
-            />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<AdminResetPassword />} />
+      <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+        <Router>
+          <ToastContainer />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Navigate to="/login" />} />
+              <Route
+                path="/login"
+                element={<Login SetUserName={setUserName} SetEmail={setEmail} />}
+              />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<AdminResetPassword />} />
 
-            {/* Protected Routes */}
-            <Route element={<PrivateRoute />}>
-              <Route
-                path="/dashboard"
-                element={
-                  <MainLayout>
-                    <Dashboard />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/clients"
-                element={
-                  <MainLayout>
-                    <Client />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/employees"
-                element={
-                  <MainLayout>
-                    <Employee />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/department"
-                element={
-                  <MainLayout>
-                    <Department />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/jobRole"
-                element={
-                  <MainLayout>
-                    <JobRole />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/employee-role-assign"
-                element={
-                  <MainLayout>
-                    <ClientAssign />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/assigned-employee"
-                element={
-                  <MainLayout>
-                    <AssignedEmployee />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/employee-job-locations"
-                element={
-                  <MainLayout>
-                    <EmployeeJobLocation />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/salaries"
-                element={
-                  <MainLayout>
-                    <EmployeeSalary />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/salary/create"
-                element={
-                  <MainLayout>
-                    <EmployeeSalaryForm />
-                  </MainLayout>
-                }
-              />
-              <Route
-                path="/salary/edit/:id"
-                element={
-                  <MainLayout>
-                    <EmployeeSalaryForm />
-                  </MainLayout>
-                }
-              />
-            </Route>
-          </Routes>
-        </Suspense>
-      </Router>
+              {/* Protected Routes */}
+              <Route element={<PrivateRoute />}>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <MainLayout>
+                      <Dashboard />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/recruiters"
+                  element={
+                    <MainLayout>
+                      <Recruiter />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/onboarding-managers"
+                  element={
+                    <MainLayout>
+                      <OnboardingManager />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/clients"
+                  element={
+                    <MainLayout>
+                      <Client />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/employees"
+                  element={
+                    <MainLayout>
+                      <Employee />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/department"
+                  element={
+                    <MainLayout>
+                      <Department />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/jobRole"
+                  element={
+                    <MainLayout>
+                      <JobRole />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/employee-role-assign"
+                  element={
+                    <MainLayout>
+                      <ClientAssign />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/assigned-employee"
+                  element={
+                    <MainLayout>
+                      <AssignedEmployee />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/employee-job-locations"
+                  element={
+                    <MainLayout>
+                      <EmployeeJobLocation />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/salaries"
+                  element={
+                    <MainLayout>
+                      <EmployeeSalary />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/salary/create"
+                  element={
+                    <MainLayout>
+                      <EmployeeSalaryForm />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/salary/edit/:id"
+                  element={
+                    <MainLayout>
+                      <EmployeeSalaryForm />
+                    </MainLayout>
+                  }
+                />
+              </Route>
+            </Routes>
+          </Suspense>
+        </Router>
+      </SnackbarProvider>
     </QueryClientProvider>
   );
 }

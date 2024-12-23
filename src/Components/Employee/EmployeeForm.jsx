@@ -19,6 +19,9 @@ import { MdBlock } from "react-icons/md";
 import { FaIdCard } from "react-icons/fa";
 import DocumentUpload from './DocumentUpload';
 import { bloodGroups, documentTypes } from '../../constants';
+import useOnboardingManagerData from '../../hooks/useOnboardingManagerData';
+import useRecruiterData from '../../hooks/useRecruiterData';
+import { toast } from 'react-toastify';
 
 // Styled Components
 const StyledStepper = styled(Stepper)(({ theme }) => ({
@@ -96,6 +99,7 @@ const steps = [
   'Bank Details',
   'Previous Employment',
   'Documents',
+  'Assignments',
 ];
 
 const EmployeeForm = ({
@@ -110,16 +114,20 @@ const EmployeeForm = ({
   setEmployee,
   setBlockDialogOpen,
   setTempIsBlocked,
-  setBlockRemarksDialogOpen
+  setBlockRemarksDialogOpen,
+  handleVerifyEmployee,
+  handleBlockEmployee,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
+  const { managers = [], isLoading: managersLoading } = useOnboardingManagerData();
+  const { recruiters = [], isLoading: recruitersLoading } = useRecruiterData();
 
   const handleTabChange = (newValue) => {
     setActiveTab(newValue);
   };
 
   const handleNextTab = () => {
-    setActiveTab((prev) => Math.min(prev + 1, 5));
+    setActiveTab((prev) => Math.min(prev + 1, 6));
   };
 
   const handlePreviousTab = () => {
@@ -131,6 +139,32 @@ const EmployeeForm = ({
       ...prev,
       permanentAddress: prev.presentAddress,
     }));
+  };
+
+  const handleAssignOnboardingManager = async (managerId) => {
+    try {
+      handleChange({
+        target: {
+          name: 'onboardingManagerId',
+          value: managerId || ""
+        }
+      });
+    } catch (error) {
+      toast.error(error.message || 'Failed to update onboarding manager');
+    }
+  };
+
+  const handleAssignRecruiter = async (recruiterId) => {
+    try {
+      handleChange({
+        target: {
+          name: 'recruiterId',
+          value: recruiterId || ""
+        }
+      });
+    } catch (error) {
+      toast.error(error.message || 'Failed to update recruiter');
+    }
   };
 
   if (!selectedEmployee) {
@@ -237,7 +271,7 @@ const EmployeeForm = ({
   return (
     <Box 
       component="form"
-      onSubmit={handleSubmit}
+      onSubmit={(e) => e.preventDefault()}
       sx={{
         maxWidth: 1200,
         margin: '0 auto',
@@ -837,6 +871,95 @@ const EmployeeForm = ({
               </Box>
             </Box>
           )}
+
+          {/* New Assignments Tab */}
+          {activeTab === 6 && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <Typography variant="h6" sx={formStyles.sectionTitle}>
+                Employee Assignments
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Onboarding Manager</InputLabel>
+                    <Select
+                      name="onboardingManagerId"
+                      value={employee.onboardingManagerId || ""}
+                      onChange={(e) => handleAssignOnboardingManager(e.target.value)}
+                      label="Onboarding Manager"
+                      disabled={managersLoading}
+                      sx={formStyles.formField}
+                    >
+                      <MenuItem value="">Select Onboarding Manager</MenuItem>
+                      {managers.filter(m => m.isActive).map((manager) => (
+                        <MenuItem key={manager.onboardingManagerId} value={manager.onboardingManagerId}>
+                          {`${manager.firstName} ${manager.lastName}`}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Recruiter</InputLabel>
+                    <Select
+                      name="recruiterId"
+                      value={employee.recruiterId || ""}
+                      onChange={(e) => handleAssignRecruiter(e.target.value)}
+                      label="Recruiter"
+                      disabled={recruitersLoading}
+                      sx={formStyles.formField}
+                    >
+                      <MenuItem value="">Select Recruiter</MenuItem>
+                      {recruiters.filter(r => r.isActive).map((recruiter) => (
+                        <MenuItem key={recruiter.recruiterId} value={recruiter.recruiterId}>
+                          {`${recruiter.firstName} ${recruiter.lastName}`}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Display current assignments info */}
+                <Grid item xs={12}>
+                  <Box sx={{ 
+                    mt: 4, 
+                    p: 3, 
+                    bgcolor: 'rgba(61, 82, 160, 0.04)', 
+                    borderRadius: 2,
+                    border: '1px solid rgba(61, 82, 160, 0.1)'
+                  }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, color: 'text.primary', fontWeight: 600 }}>
+                      Current Assignments
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          Onboarding Manager:
+                        </Typography>
+                        <Typography variant="body1">
+                          {managers.find(m => m.onboardingManagerId === employee.onboardingManagerId)
+                            ? `${managers.find(m => m.onboardingManagerId === employee.onboardingManagerId).firstName} ${managers.find(m => m.onboardingManagerId === employee.onboardingManagerId).lastName}`
+                            : 'Not Assigned'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          Recruiter:
+                        </Typography>
+                        <Typography variant="body1">
+                          {recruiters.find(r => r.recruiterId === employee.recruiterId)
+                            ? `${recruiters.find(r => r.recruiterId === employee.recruiterId).firstName} ${recruiters.find(r => r.recruiterId === employee.recruiterId).lastName}`
+                            : 'Not Assigned'}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
         </StyledCard>
 
         <Box sx={{ 
@@ -881,8 +1004,14 @@ const EmployeeForm = ({
             </Button>
             {activeTab === steps.length - 1 ? (
               <Button 
-                onClick={handleSubmit}
+                onClick={() => {
+                  console.log('Save button clicked');
+                  console.log('Current employee data:', employee);
+                  console.log('Selected employee:', selectedEmployee);
+                  handleSubmit(employee);
+                }}
                 variant="contained"
+                disabled={isLoading}
                 sx={{
                   background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                   color: '#FFFFFF',

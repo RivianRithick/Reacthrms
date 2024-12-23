@@ -31,6 +31,8 @@ import {
   Person as PersonIcon,
   Group as GroupIcon,
   Logout as LogoutIcon,
+  SupervisorAccount as SupervisorIcon,
+  PersonSearch as RecruiterIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 280;
@@ -65,6 +67,8 @@ const Sidebar = ({ onToggle }) => {
 
   const menuItems = [
     { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
+    { text: 'Onboarding Managers', icon: <SupervisorIcon />, path: '/onboarding-managers' },
+    { text: 'Recruiters', icon: <RecruiterIcon />, path: '/recruiters' },
     { text: 'Role Assignment', icon: <AssignmentIcon />, path: '/employee-role-assign' },
     { text: 'Assigned Employees', icon: <GroupIcon />, path: '/assigned-employee' },
     { text: 'Clients', icon: <PersonIcon />, path: '/clients' },
