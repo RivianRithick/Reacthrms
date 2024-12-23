@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ConfirmationDialog from "./ConfirmationDialog";
 import {
   Box,
   Button,
@@ -256,6 +257,8 @@ const EmployeeJobLocation = React.memo(() => {
   const [showForm, setShowForm] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [locationToDelete, setLocationToDelete] = useState(null);
 
   // Use debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -312,16 +315,22 @@ const EmployeeJobLocation = React.memo(() => {
     }
   }, [formData, selectedLocation, createLocation, updateLocation]);
 
-  const handleDelete = useCallback(async (id) => {
-    if (!window.confirm('Are you sure you want to delete this job location?')) return;
+  const handleDelete = useCallback((location) => {
+    setLocationToDelete(location);
+    setDialogOpen(true);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!locationToDelete) return;
     try {
-      await deleteLocation.mutateAsync(id);
+      await deleteLocation.mutateAsync(locationToDelete.id);
       toast.success('Job location deleted successfully');
+      setDialogOpen(false);
     } catch (err) {
       console.error('Error:', err);
       toast.error(err.message || 'Failed to delete job location');
     }
-  }, [deleteLocation]);
+  }, [locationToDelete, deleteLocation]);
 
   const handleEdit = useCallback((location) => {
     setSelectedLocation(location);
@@ -815,7 +824,7 @@ const EmployeeJobLocation = React.memo(() => {
                                     </IconButton>
                                     <IconButton
                                       color="error"
-                                      onClick={() => handleDelete(location.id)}
+                                      onClick={() => handleDelete(location)}
                                       size="small"
                                       sx={{
                                         backgroundColor: 'error.light',
@@ -842,6 +851,12 @@ const EmployeeJobLocation = React.memo(() => {
             </motion.div>
           )}
         </motion.div>
+
+        <ConfirmationDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onConfirm={confirmDelete}
+        />
       </Container>
     </ThemeProvider>
   );

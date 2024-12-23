@@ -567,16 +567,28 @@ const EmployeeForm = ({
                     sx={formStyles.formField}
                   >
                     <MenuItem value="">Select Bank</MenuItem>
-                    <MenuItem value="SBI">State Bank of India</MenuItem>
-                    <MenuItem value="HDFC">HDFC Bank</MenuItem>
-                    <MenuItem value="ICICI">ICICI Bank</MenuItem>
-                    <MenuItem value="AXIS">Axis Bank</MenuItem>
-                    <MenuItem value="PNB">Punjab National Bank</MenuItem>
-                    <MenuItem value="BOB">Bank of Baroda</MenuItem>
-                    <MenuItem value="CANARA">Canara Bank</MenuItem>
-                    <MenuItem value="UNION">Union Bank of India</MenuItem>
-                    <MenuItem value="KOTAK">Kotak Mahindra Bank</MenuItem>
-                    <MenuItem value="YES">Yes Bank</MenuItem>
+                    <MenuItem value="State Bank of India">State Bank of India</MenuItem>
+                    <MenuItem value="Punjab National Bank">Punjab National Bank</MenuItem>
+                    <MenuItem value="Bank of Baroda">Bank of Baroda</MenuItem>
+                    <MenuItem value="Bank of India">Bank of India</MenuItem>
+                    <MenuItem value="Canara Bank">Canara Bank</MenuItem>
+                    <MenuItem value="Union Bank of India">Union Bank of India</MenuItem>
+                    <MenuItem value="HDFC Bank">HDFC Bank</MenuItem>
+                    <MenuItem value="ICICI Bank">ICICI Bank</MenuItem>
+                    <MenuItem value="Axis Bank">Axis Bank</MenuItem>
+                    <MenuItem value="Kotak Mahindra Bank">Kotak Mahindra Bank</MenuItem>
+                    <MenuItem value="IndusInd Bank">IndusInd Bank</MenuItem>
+                    <MenuItem value="Yes Bank">Yes Bank</MenuItem>
+                    <MenuItem value="IDBI Bank">IDBI Bank</MenuItem>
+                    <MenuItem value="Federal Bank">Federal Bank</MenuItem>
+                    <MenuItem value="South Indian Bank">South Indian Bank</MenuItem>
+                    <MenuItem value="Karnataka Bank">Karnataka Bank</MenuItem>
+                    <MenuItem value="Indian Bank">Indian Bank</MenuItem>
+                    <MenuItem value="Indian Overseas Bank">Indian Overseas Bank</MenuItem>
+                    <MenuItem value="UCO Bank">UCO Bank</MenuItem>
+                    <MenuItem value="Bank of Maharashtra">Bank of Maharashtra</MenuItem>
+                    <MenuItem value="Central Bank of India">Central Bank of India</MenuItem>
+                    <MenuItem value="Punjab & Sind Bank">Punjab & Sind Bank</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

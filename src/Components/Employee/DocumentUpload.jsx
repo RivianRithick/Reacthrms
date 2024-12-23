@@ -25,6 +25,24 @@ const DocumentUpload = ({
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [documentUrl, setDocumentUrl] = useState(filePath || null);
 
+  const getBackendDocumentType = (documentType) => {
+    const documentTypeMap = {
+      'CANDIDATE_PHOTO': 'candidate',
+      'PAN_CARD': 'pan',
+      'AADHAAR_CARD': 'aadhar',
+      'VOTER_ID': 'voterid',
+      'TENTH_CERTIFICATE': 'tenth',
+      'TWELFTH_CERTIFICATE': 'twelth',
+      'DEGREE_CERTIFICATE': 'degree',
+      'OFFER_LETTER': 'offer',
+      'EXPERIENCE_LETTER': 'experience',
+      'PAYSLIP': 'payslip',
+      'FAMILY_PHOTO': 'family',
+      'PASSBOOK': 'passbook'
+    };
+    return documentTypeMap[documentType] || documentType.toLowerCase();
+  };
+
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -32,7 +50,7 @@ const DocumentUpload = ({
       try {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('documentType', documentType);
+        formData.append('documentType', documentType.toUpperCase());
         formData.append('contact', contact);
 
         const response = await fetch(`${baseUrl}/api/employee-registration/upload-document`, {
@@ -61,24 +79,18 @@ const DocumentUpload = ({
 
   const handleView = async () => {
     try {
-      const response = await fetch(
-        `${baseUrl}/api/employee-registration/download-document?contact=${encodeURIComponent(
-          contact
-        )}&documentType=${documentType}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      // Create the URL with a timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const backendDocType = getBackendDocumentType(documentType);
+      const url = `${baseUrl}/api/employee-registration/download-document?contact=${encodeURIComponent(
+        contact
+      )}&documentType=${encodeURIComponent(backendDocType)}&t=${timestamp}`;
 
-      if (!response.ok) {
-        throw new Error(response.status === 404 ? 'Document not found' : 'Failed to view document');
+      // Open URL directly in a new tab
+      const newWindow = window.open(url, '_blank');
+      if (newWindow) {
+        newWindow.focus();
       }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
     } catch (error) {
       console.error("Error viewing document:", error);
       toast.error(error.message || "Failed to view the document");
@@ -87,10 +99,11 @@ const DocumentUpload = ({
 
   const handleDownload = async () => {
     try {
+      const backendDocType = getBackendDocumentType(documentType);
       const response = await fetch(
         `${baseUrl}/api/employee-registration/download-document?contact=${encodeURIComponent(
           contact
-        )}&documentType=${documentType}`,
+        )}&documentType=${encodeURIComponent(backendDocType)}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -221,7 +221,8 @@ const EmployeeRoleAssign = React.memo(() => {
     isLoading,
     error: apiError,
     assignRole,
-    unassignRole
+    unassignRole,
+    refetch
   } = useEmployeeRoleAssignData(assignmentFilter, debouncedSearchQuery);
 
   // Memoize filtered employees
@@ -289,6 +290,8 @@ const EmployeeRoleAssign = React.memo(() => {
     try {
       await unassignRole.mutateAsync({ EmployeeRoleAssignId: employeeId });
       setSuccessMessage("Unassigned successfully!");
+      // Force reload after successful unassignment
+      window.location.reload();
     } catch (error) {
       setError(`Error in unassigning: ${error.message}`);
     } finally {
@@ -319,6 +322,8 @@ const EmployeeRoleAssign = React.memo(() => {
       await assignRole.mutateAsync(payload);
       setSuccessMessage("Assigned successfully!");
       handleCloseModal();
+      // Force reload after successful assignment
+      window.location.reload();
     } catch (error) {
       console.error('Assignment error:', error);
       setError(`Error in assignment: ${error.message}`);

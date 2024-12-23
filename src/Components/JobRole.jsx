@@ -271,7 +271,7 @@ const JobRole = React.memo(() => {
     addJobRole, 
     updateJobRole, 
     deleteJobRole 
-  } = useJobRoleData(debouncedSearchQuery);
+  } = useJobRoleData();
 
   // Memoize handlers
   const handleChange = useCallback((e) => {
@@ -334,14 +334,18 @@ const JobRole = React.memo(() => {
     setShowForm(false);
   }, []);
 
-  // Memoize filtered job roles
+  // Memoize filtered job roles with local filtering
   const filteredJobRoles = useMemo(() => {
     if (!jobRoles) return [];
-    return jobRoles.filter(
-      (role) =>
+    
+    return jobRoles.filter((role) => {
+      // Only apply search filter if there's a search query
+      const searchMatch = !debouncedSearchQuery || 
         role.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-        role.departmentName?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-    );
+        role.departmentName?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+      
+      return searchMatch;
+    });
   }, [jobRoles, debouncedSearchQuery]);
 
   if (error) {

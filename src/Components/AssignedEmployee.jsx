@@ -628,7 +628,7 @@ const AssignedEmployee = React.memo(() => {
                                 </Button>
                                 <Button
                                   variant="contained"
-                                  disabled={!assignedMap.get(item.id) || loadingMap[item.id]}
+                                  disabled={!assignedMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
                                   onClick={() => handleDownloadOfferLetter(assignedMap.get(item.id)?.id)}
                                   startIcon={loadingMap[item.id] ? 
                                     <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 

@@ -281,7 +281,7 @@ const ClientCrud = React.memo(() => {
     addClient, 
     updateClient, 
     deleteClient 
-  } = useClientData(debouncedSearchQuery, clientFilter);
+  } = useClientData();
 
   // Memoize handlers
   const handleAddClick = useCallback(() => {
@@ -291,6 +291,15 @@ const ClientCrud = React.memo(() => {
 
   const handleEditClick = useCallback((client) => {
     setSelectedClient(client);
+    setClient({
+      name: client.name,
+      email: client.email,
+      contact: client.contact,
+      address: client.address,
+      website: client.website,
+      isBlocked: client.isBlocked,
+      clientCode: client.clientCode,
+    });
     setShowForm(true);
   }, []);
 
@@ -304,16 +313,24 @@ const ClientCrud = React.memo(() => {
     setSelectedClient(null);
   }, []);
 
-  // Memoize filtered clients
+  // Memoize filtered clients with local filtering
   const filteredClients = useMemo(() => {
     if (!clients) return [];
-    return clients.filter((client) =>
-      (clientFilter === 'all' || 
-       (clientFilter === 'blocked' ? client.isBlocked : !client.isBlocked)) &&
-      (client.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-       client.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-       client.address.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
-    );
+    
+    return clients.filter((client) => {
+      // First apply the block status filter
+      const blockStatusMatch = 
+        clientFilter === 'all' || 
+        (clientFilter === 'blocked' ? client.isBlocked : !client.isBlocked);
+      
+      // Then apply the search filter if there's a search query
+      const searchMatch = !debouncedSearchQuery || 
+        client.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        client.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        client.address.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+      
+      return blockStatusMatch && searchMatch;
+    });
   }, [clients, debouncedSearchQuery, clientFilter]);
 
   // Handle form submission with React Query mutation

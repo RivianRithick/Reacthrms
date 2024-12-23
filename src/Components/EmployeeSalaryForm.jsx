@@ -318,8 +318,8 @@ const EmployeeSalaryForm = React.memo(() => {
                 pt: parseFloat(formData.pt),
                 totalDeduction: parseFloat(formData.totalDeduction),
                 netPay: parseFloat(formData.netPay),
-                effectiveDate: formData.effectiveDate ? new Date(formData.effectiveDate).toISOString() : null,
-                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+                effectiveDate: formData.effectiveDate ? new Date(formData.effectiveDate + 'T12:00:00').toISOString() : null,
+                endDate: formData.endDate ? new Date(formData.endDate + 'T12:00:00').toISOString() : null,
                 id: id ? parseInt(id) : undefined
             };
             
