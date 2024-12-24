@@ -26,6 +26,7 @@ import {
   InputAdornment,
   Avatar,
   Fade,
+  FormControl,
 } from "@mui/material";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +37,12 @@ import {
   Close as CloseIcon,
   BusinessCenter as BusinessCenterIcon,
   PersonRemove as PersonRemoveIcon,
+  Tag as TagIcon,
+  Email as EmailIcon,
+  Settings as SettingsIcon,
+  LocationOn as LocationOnIcon,
+  Domain as DomainIcon,
+  Phone as PhoneIcon,
 } from '@mui/icons-material';
 
 const theme = createTheme({
@@ -383,137 +390,116 @@ const EmployeeRoleAssign = React.memo(() => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 2 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography 
-            variant="h4" 
-            gutterBottom 
-            sx={{ 
-              textAlign: "center", 
-              color: "primary.main",
-              marginBottom: 4
-            }}
-          >
-            Employee Role Assignment
-          </Typography>
+          <Box sx={{ 
+            position: 'sticky',
+            top: 0,
+            zIndex: 1200,
+            backgroundColor: 'background.default',
+            pt: 2,
+            pb: 3,
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              mb: 3
+            }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: "primary.main",
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2
+                }}
+              >
+                <BusinessCenterIcon sx={{ fontSize: 40 }} />
+                Employee Role Assignment
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip
+                  icon={<BusinessCenterIcon />}
+                  label={`Total Records: ${filteredEmployees.length}`}
+                  color="primary"
+                  sx={{ 
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    '& .MuiChip-icon': { color: 'white' }
+                  }}
+                />
+              </Box>
+            </Box>
 
-          {/* Search and Filters Section */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+            {/* Search and Filters Section */}
             <Paper 
               elevation={0}
               sx={{ 
                 backgroundColor: 'background.paper',
                 borderRadius: 3,
-                p: 3,
-                mb: 3,
+                p: 2,
                 border: '1px solid',
                 borderColor: 'divider',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flexWrap: 'wrap',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
               }}
             >
-              <Typography 
-                variant="h6" 
+              <TextField
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 sx={{ 
-                  mb: 3,
-                  color: 'text.primary',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  '&::after': {
-                    content: '""',
-                    flex: 1,
-                    height: '2px',
-                    background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0))',
-                    ml: 2
+                  flex: 1, 
+                  minWidth: '200px',
+                  '& .MuiOutlinedInput-root': {
+                    background: 'rgba(255,255,255,0.9)',
                   }
                 }}
-              >
-                <BusinessCenterIcon sx={{ color: 'primary.main' }} />
-                Search & Filters
-              </Typography>
-
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <motion.div variants={itemVariants}>
-                    <TextField
-                      fullWidth
-                      placeholder="Search by name or email..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon sx={{ color: 'text.secondary' }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'background.paper',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            backgroundColor: 'action.hover',
-                          },
-                          '&.Mui-focused': {
-                            backgroundColor: 'background.paper',
-                            '& fieldset': {
-                              borderWidth: '2px',
-                              borderColor: 'primary.main',
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </motion.div>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <motion.div variants={itemVariants}>
-                    <InputLabel 
-                      sx={{ 
-                        mb: 1,
-                        color: 'text.primary',
-                        fontWeight: 500,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Assignment Status
-                    </InputLabel>
-                    <Select
-                      value={assignmentFilter}
-                      onChange={(e) => setAssignmentFilter(e.target.value)}
-                      displayEmpty
-                      fullWidth
-                      sx={{
-                        backgroundColor: 'background.paper',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'divider',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'primary.main',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'primary.main',
-                        },
-                      }}
-                    >
-                      <MenuItem value="all">All Employees</MenuItem>
-                      <MenuItem value="assigned">Assigned</MenuItem>
-                      <MenuItem value="notAssigned">Not Assigned</MenuItem>
-                    </Select>
-                  </motion.div>
-                </Grid>
-              </Grid>
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: 'primary.main' }} />
+                    </InputAdornment>
+                  ),
+                }}
+                size="small"
+              />
+              <FormControl sx={{ minWidth: 200 }}>
+                <Select
+                  value={assignmentFilter}
+                  onChange={(e) => setAssignmentFilter(e.target.value)}
+                  displayEmpty
+                  size="small"
+                  sx={{
+                    background: 'rgba(255,255,255,0.9)',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'divider',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderWidth: '2px',
+                    },
+                  }}
+                >
+                  <MenuItem value="all">All Employees</MenuItem>
+                  <MenuItem value="assigned">Assigned</MenuItem>
+                  <MenuItem value="notAssigned">Not Assigned</MenuItem>
+                </Select>
+              </FormControl>
             </Paper>
-          </motion.div>
+          </Box>
 
           {/* Employees List Section */}
           <motion.div
@@ -527,199 +513,221 @@ const EmployeeRoleAssign = React.memo(() => {
                 backgroundColor: 'background.paper',
                 borderRadius: 3,
                 overflow: 'hidden',
-                transform: 'translateZ(0)',
-                position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '100%',
-                  background: 'linear-gradient(135deg, rgba(61, 82, 160, 0.03) 0%, rgba(112, 145, 230, 0.03) 100%)',
-                  pointerEvents: 'none',
-                }
+                border: '1px solid',
+                borderColor: 'divider',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                backdropFilter: 'blur(10px)',
+                mt: 2,
               }}
             >
-              <Box sx={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center",
-                p: 3,
-                borderBottom: '1px solid',
-                borderColor: 'rgba(61, 82, 160, 0.1)',
-                background: 'linear-gradient(to right, rgba(245, 247, 255, 0.8), rgba(232, 236, 255, 0.8))',
-                backdropFilter: 'blur(8px)',
-              }}>
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    color: 'text.primary',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                  }}
-                >
-                  <WorkIcon sx={{ color: '#3D52A0' }} />
-                  Employees List
-                  <Chip 
-                    label={`Total: ${filteredEmployees.length}`}
-                    size="small"
-                    sx={{ 
-                      backgroundColor: 'rgba(61, 82, 160, 0.08)',
-                      color: '#3D52A0',
-                      fontWeight: 600,
-                      border: '1px solid',
-                      borderColor: 'rgba(61, 82, 160, 0.2)',
-                      '& .MuiChip-label': {
-                        px: 2
-                      }
-                    }}
-                  />
-                </Typography>
-              </Box>
-
               {isLoading ? (
                 <Box sx={{ 
                   display: "flex", 
                   justifyContent: "center", 
                   alignItems: "center",
-                  minHeight: "400px",
+                  py: 8,
                   flexDirection: 'column',
                   gap: 2
                 }}>
-                  <CircularProgress size={48} thickness={4} />
-                  <Typography variant="body1" color="text.secondary">
+                  <CircularProgress 
+                    size={48} 
+                    thickness={4}
+                    sx={{
+                      color: 'primary.main',
+                      '& .MuiCircularProgress-circle': {
+                        strokeLinecap: 'round',
+                      }
+                    }}
+                  />
+                  <Typography variant="h6" color="primary">
                     Loading employee data...
                   </Typography>
                 </Box>
+              ) : filteredEmployees.length === 0 ? (
+                <Box sx={{ 
+                  py: 8,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 2
+                }}>
+                  <SearchIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+                  <Typography variant="h6" color="primary">
+                    No employees found
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Try adjusting your search criteria
+                  </Typography>
+                </Box>
               ) : (
-                <TableContainer sx={{ maxHeight: 'calc(100vh - 50px)' }}>
-                  <Table stickyHeader>
+                <TableContainer>
+                  <Table>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ 
-                          backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                           fontWeight: 600,
-                          color: '#3D52A0',
-                          borderBottom: '2px solid',
-                          borderColor: 'rgba(61, 82, 160, 0.1)',
-                        }}>#</TableCell>
+                          color: 'primary.main',
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TagIcon sx={{ color: 'primary.main' }} />
+                            #
+                          </Box>
+                        </TableCell>
                         <TableCell sx={{ 
-                          backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                           fontWeight: 600,
-                          color: '#3D52A0',
-                          borderBottom: '2px solid',
-                          borderColor: 'rgba(61, 82, 160, 0.1)',
-                        }}>First Name</TableCell>
+                          color: 'primary.main',
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <WorkIcon sx={{ color: 'primary.main' }} />
+                            Employee Name
+                          </Box>
+                        </TableCell>
                         <TableCell sx={{ 
-                          backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                           fontWeight: 600,
-                          color: '#3D52A0',
-                          borderBottom: '2px solid',
-                          borderColor: 'rgba(61, 82, 160, 0.1)',
-                        }}>Last Name</TableCell>
+                          color: 'primary.main',
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <PhoneIcon sx={{ color: 'primary.main' }} />
+                            Contact
+                          </Box>
+                        </TableCell>
                         <TableCell sx={{ 
-                          backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                           fontWeight: 600,
-                          color: '#3D52A0',
-                          borderBottom: '2px solid',
-                          borderColor: 'rgba(61, 82, 160, 0.1)',
-                        }}>Email</TableCell>
+                          color: 'primary.main',
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocationOnIcon sx={{ color: 'primary.main' }} />
+                            Location
+                          </Box>
+                        </TableCell>
                         <TableCell sx={{ 
-                          backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                           fontWeight: 600,
-                          color: '#3D52A0',
-                          borderBottom: '2px solid',
-                          borderColor: 'rgba(61, 82, 160, 0.1)',
-                        }}>Actions</TableCell>
+                          color: 'primary.main',
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <EmailIcon sx={{ color: 'primary.main' }} />
+                            Email
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center" sx={{ 
+                          width: '200px',
+                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                          fontWeight: 600,
+                          color: 'primary.main',
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                            <SettingsIcon sx={{ color: 'primary.main' }} />
+                            Actions
+                          </Box>
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       <AnimatePresence>
-                        {filteredEmployees.length === 0 ? (
-                          <TableRow>
-                            <TableCell 
-                              colSpan={5} 
-                              align="center"
-                              sx={{ 
-                                py: 8,
-                                color: 'text.secondary',
-                              }}
-                            >
-                              <Box sx={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                alignItems: 'center',
-                                gap: 2
-                              }}>
-                                <Typography variant="h6" color="text.secondary">
-                                  No employees found
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  Try adjusting your search or filters
+                        {filteredEmployees.map((employee, index) => (
+                          <motion.tr
+                            key={employee.id}
+                            variants={itemVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
+                            component={TableRow}
+                            sx={{
+                              '&:nth-of-type(odd)': {
+                                backgroundColor: 'rgba(245, 247, 255, 0.5)',
+                              },
+                              '&:hover': {
+                                backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                                transform: 'scale(1.001) translateZ(0)',
+                                boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
+                              },
+                              transition: 'all 0.2s ease-in-out',
+                            }}
+                          >
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                {index + 1}
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Avatar 
+                                  sx={{ 
+                                    width: 32, 
+                                    height: 32,
+                                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                    color: 'white',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  {(employee.firstName?.[0] || '').toUpperCase()}
+                                </Avatar>
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  {`${employee.firstName || ""} ${employee.lastName || ""}`.trim() || "N/A"}
                                 </Typography>
                               </Box>
                             </TableCell>
-                          </TableRow>
-                        ) : (
-                          filteredEmployees.map((employee, index) => (
-                            <motion.tr
-                              key={employee.id}
-                              variants={itemVariants}
-                              initial="hidden"
-                              animate="visible"
-                              exit="hidden"
-                              component={TableRow}
-                              sx={{
-                                '&:nth-of-type(odd)': {
-                                  backgroundColor: 'rgba(245, 247, 255, 0.5)',
-                                },
-                                '&:nth-of-type(even)': {
-                                  backgroundColor: '#ffffff',
-                                },
-                                '&:hover': {
-                                  backgroundColor: 'rgba(61, 82, 160, 0.04)',
-                                  transform: 'scale(1.001) translateZ(0)',
-                                  boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
-                                },
-                                transition: 'all 0.2s ease-in-out',
-                              }}
-                            >
-                              <TableCell>{index + 1}</TableCell>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Avatar 
-                                    sx={{ 
-                                      width: 40, 
-                                      height: 40,
-                                      background: `linear-gradient(135deg, ${employee.firstName?.[0] ? '#3D52A0' : '#8697C4'}, ${employee.firstName?.[0] ? '#7091E6' : '#ADBBDA'})`,
-                                      color: 'white',
-                                      fontSize: '1rem',
-                                      fontWeight: 600,
-                                      boxShadow: '0 2px 8px rgba(61, 82, 160, 0.15)',
-                                      border: '2px solid white',
-                                    }}
-                                  >
-                                    {(employee.firstName?.[0] || '').toUpperCase()}
-                                  </Avatar>
-                                  <Typography variant="body2">
-                                    {employee.firstName}
-                                  </Typography>
-                                </Box>
-                              </TableCell>
-                              <TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <PhoneIcon sx={{ color: 'success.main', fontSize: 20 }} />
                                 <Typography variant="body2">
-                                  {employee.lastName}
+                                  {employee.contact && employee.contact !== "N/A" ? (
+                                    <Box component="span" sx={{ 
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 0.5,
+                                      color: 'success.main',
+                                      fontWeight: 500
+                                    }}>
+                                      {employee.contact}
+                                    </Box>
+                                  ) : (
+                                    <Box component="span" sx={{ color: 'text.secondary' }}>
+                                      Not Available
+                                    </Box>
+                                  )}
                                 </Typography>
-                              </TableCell>
-                              <TableCell>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <LocationOnIcon sx={{ color: 'warning.main', fontSize: 20 }} />
                                 <Typography variant="body2">
-                                  {employee.email}
+                                  {employee.presentDistrict && employee.presentDistrict !== "N/A" ? (
+                                    <Box component="span" sx={{ 
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 0.5,
+                                      color: 'warning.main',
+                                      fontWeight: 500
+                                    }}>
+                                      {employee.presentDistrict}
+                                    </Box>
+                                  ) : (
+                                    <Box component="span" sx={{ color: 'text.secondary' }}>
+                                      Not Available
+                                    </Box>
+                                  )}
                                 </Typography>
-                              </TableCell>
-                              <TableCell>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <EmailIcon sx={{ color: 'info.main', fontSize: 20 }} />
+                                <Typography variant="body2">
+                                  {employee.email || "N/A"}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
                                 {employee.isAssigned ? (
                                   <Button
                                     variant="contained"
@@ -730,24 +738,20 @@ const EmployeeRoleAssign = React.memo(() => {
                                       <PersonRemoveIcon />
                                     }
                                     sx={{
+                                      minWidth: '90px',
+                                      height: '32px',
+                                      fontSize: '0.8125rem',
+                                      padding: '4px 10px',
                                       background: 'linear-gradient(45deg, #dc2626, #ef4444)',
                                       color: '#FFFFFF',
-                                      borderRadius: '12px',
-                                      textTransform: 'none',
-                                      fontWeight: 600,
-                                      padding: '10px 24px',
-                                      boxShadow: 'none',
-                                      minWidth: 'auto',
                                       '&:hover': {
                                         background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
                                         transform: 'translateY(-1px)',
-                                        boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)',
                                       },
                                       '&.Mui-disabled': {
                                         background: 'rgba(0, 0, 0, 0.12)',
                                         color: 'rgba(0, 0, 0, 0.26)',
                                       },
-                                      transition: 'all 0.2s ease-in-out',
                                     }}
                                   >
                                     Unassign
@@ -758,22 +762,24 @@ const EmployeeRoleAssign = React.memo(() => {
                                     onClick={() => handleOpenModal(employee.id)}
                                     startIcon={<AddIcon />}
                                     sx={{
+                                      minWidth: '90px',
+                                      height: '32px',
+                                      fontSize: '0.8125rem',
+                                      padding: '4px 10px',
                                       background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                                       '&:hover': {
                                         background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
                                         transform: 'translateY(-1px)',
-                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
                                       },
-                                      transition: 'all 0.2s ease-in-out',
                                     }}
                                   >
                                     Assign
                                   </Button>
                                 )}
-                              </TableCell>
-                            </motion.tr>
-                          ))
-                        )}
+                              </Box>
+                            </TableCell>
+                          </motion.tr>
+                        ))}
                       </AnimatePresence>
                     </TableBody>
                   </Table>
@@ -796,16 +802,17 @@ const EmployeeRoleAssign = React.memo(() => {
                 transform: 'translate(-50%, -50%)',
                 width: 500,
                 maxWidth: '90%',
-                maxHeight: '90vh',
                 bgcolor: 'background.paper',
                 borderRadius: 3,
                 boxShadow: 24,
                 display: 'flex',
                 flexDirection: 'column',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+                backdropFilter: 'blur(10px)',
               }}>
                 {/* Fixed Header */}
                 <Box sx={{ 
-                  p: 3,
+                  p: 2,
                   borderBottom: '1px solid',
                   borderColor: 'divider',
                 }}>
@@ -814,14 +821,17 @@ const EmployeeRoleAssign = React.memo(() => {
                     justifyContent: 'space-between', 
                     alignItems: 'center',
                   }}>
-                    <Typography variant="h6" sx={{ 
+                    <Typography variant="h5" sx={{ 
                       fontWeight: 600, 
                       color: 'primary.main',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1
+                      gap: 1,
+                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
                     }}>
-                      <WorkIcon />
+                      <BusinessCenterIcon />
                       Assign Role
                     </Typography>
                     <IconButton 
@@ -840,29 +850,34 @@ const EmployeeRoleAssign = React.memo(() => {
                   </Box>
                 </Box>
 
-                {/* Scrollable Content */}
-                <Box sx={{ 
-                  overflowY: 'auto',
-                  p: 3,
-                  flex: 1,
-                  '&::-webkit-scrollbar': {
-                    width: '8px',
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    background: 'rgba(0,0,0,0.1)',
-                    borderRadius: '4px',
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    background: 'rgba(0,0,0,0.2)',
-                    borderRadius: '4px',
-                    '&:hover': {
-                      background: 'rgba(0,0,0,0.3)',
-                    },
-                  },
-                }}>
-                  <Grid container spacing={3}>
+                {/* Content */}
+                <Box sx={{ p: 2 }}>
+                  <Grid container spacing={2}>
                     <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                      <Box sx={{ 
+                        mb: 2,
+                        pb: 1,
+                        borderBottom: '2px solid',
+                        borderColor: 'rgba(61, 82, 160, 0.1)',
+                      }}>
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            color: 'primary.main',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            fontWeight: 600,
+                          }}
+                        >
+                          <BusinessCenterIcon />
+                          Assignment Details
+                        </Typography>
+                      </Box>
+                    </Grid>
+
+                    <Grid item xs={6}>
+                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
                         Client
                       </InputLabel>
                       <Select
@@ -870,6 +885,14 @@ const EmployeeRoleAssign = React.memo(() => {
                         value={selectedClientId}
                         onChange={(e) => handleClientChange(e.target.value)}
                         displayEmpty
+                        size="small"
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: 250,
+                            },
+                          },
+                        }}
                         sx={{
                           backgroundColor: 'background.paper',
                           '& .MuiOutlinedInput-notchedOutline': {
@@ -886,14 +909,17 @@ const EmployeeRoleAssign = React.memo(() => {
                         <MenuItem value="" disabled>Select Client</MenuItem>
                         {clients.map((client) => (
                           <MenuItem key={client.id} value={client.id}>
-                            {`${client.name} (${client.clientCode || 'No Code'})`}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <BusinessCenterIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                              {`${client.name} (${client.clientCode || 'No Code'})`}
+                            </Box>
                           </MenuItem>
                         ))}
                       </Select>
                     </Grid>
 
-                    <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                    <Grid item xs={6}>
+                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
                         Department
                       </InputLabel>
                       <Select
@@ -901,7 +927,15 @@ const EmployeeRoleAssign = React.memo(() => {
                         value={selectedDepartmentId}
                         onChange={(e) => handleDepartmentChange(e.target.value)}
                         displayEmpty
-                        disabled={!selectedClientId} // Disable if no client is selected
+                        disabled={!selectedClientId}
+                        size="small"
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: 250,
+                            },
+                          },
+                        }}
                         sx={{
                           backgroundColor: 'background.paper',
                           '& .MuiOutlinedInput-notchedOutline': {
@@ -918,14 +952,17 @@ const EmployeeRoleAssign = React.memo(() => {
                         <MenuItem value="" disabled>Select Department</MenuItem>
                         {filteredDepartments.map((department) => (
                           <MenuItem key={department.id} value={department.id}>
-                            {`${department.name} (${department.departmentCode || 'No Code'})`}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <DomainIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                              {`${department.name} (${department.departmentCode || 'No Code'})`}
+                            </Box>
                           </MenuItem>
                         ))}
                       </Select>
                     </Grid>
 
-                    <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                    <Grid item xs={6}>
+                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
                         Job Role
                       </InputLabel>
                       <Select
@@ -934,6 +971,14 @@ const EmployeeRoleAssign = React.memo(() => {
                         onChange={(e) => setSelectedJobRoleId(e.target.value)}
                         displayEmpty
                         disabled={!selectedDepartmentId}
+                        size="small"
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: 250,
+                            },
+                          },
+                        }}
                         sx={{
                           backgroundColor: 'background.paper',
                           '& .MuiOutlinedInput-notchedOutline': {
@@ -950,14 +995,17 @@ const EmployeeRoleAssign = React.memo(() => {
                         <MenuItem value="" disabled>Select Job Role</MenuItem>
                         {jobRoles.map((role) => (
                           <MenuItem key={role.id} value={role.id}>
-                            {`${role.title} (${role.jobRoleCode || 'No Code'})`}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <WorkIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                              {`${role.title} (${role.jobRoleCode || 'No Code'})`}
+                            </Box>
                           </MenuItem>
                         ))}
                       </Select>
                     </Grid>
 
-                    <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                    <Grid item xs={6}>
+                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
                         Location
                       </InputLabel>
                       <Select
@@ -965,6 +1013,14 @@ const EmployeeRoleAssign = React.memo(() => {
                         value={selectedLocationId}
                         onChange={(e) => setSelectedLocationId(e.target.value)}
                         displayEmpty
+                        size="small"
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: 250,
+                            },
+                          },
+                        }}
                         sx={{
                           backgroundColor: 'background.paper',
                           '& .MuiOutlinedInput-notchedOutline': {
@@ -981,15 +1037,38 @@ const EmployeeRoleAssign = React.memo(() => {
                         <MenuItem value="" disabled>Select Location</MenuItem>
                         {locations.map((location) => (
                           <MenuItem key={location.id} value={location.id}>
-                            {`${location.city}, ${location.state}, ${location.country}`}
-                            {location.address && ` - ${location.address}`} {/* Optional: Show address if available */}
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1,
+                              maxWidth: '100%',
+                              overflow: 'hidden'
+                            }}>
+                              <LocationOnIcon sx={{ 
+                                color: 'primary.main', 
+                                fontSize: 20,
+                                flexShrink: 0 
+                              }} />
+                              <Typography
+                                noWrap
+                                sx={{
+                                  flex: 1,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}
+                                title={`${location.city}, ${location.state}, ${location.country}${location.address ? ` - ${location.address}` : ''}`}
+                              >
+                                {`${location.city}, ${location.state}, ${location.country}`}
+                                {location.address && ` - ${location.address}`}
+                              </Typography>
+                            </Box>
                           </MenuItem>
                         ))}
                       </Select>
                     </Grid>
 
                     <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
                         Salary Structure
                       </InputLabel>
                       <Select
@@ -997,6 +1076,14 @@ const EmployeeRoleAssign = React.memo(() => {
                         value={selectedSalaryId}
                         onChange={(e) => setSelectedSalaryId(e.target.value)}
                         displayEmpty
+                        size="small"
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: 250,
+                            },
+                          },
+                        }}
                         sx={{
                           backgroundColor: 'background.paper',
                           '& .MuiOutlinedInput-notchedOutline': {
@@ -1012,64 +1099,89 @@ const EmployeeRoleAssign = React.memo(() => {
                       >
                         <MenuItem value="" disabled>Select Salary Structure</MenuItem>
                         {salaries.map((salary) => (
-                          <MenuItem 
-                            key={salary.id} 
-                            value={salary.id}
-                            sx={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                              padding: '10px'
-                            }}
-                          >
-                            <Box>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                {`${salary.currency} ${salary.gross?.toLocaleString() || '0'} (${salary.paymentFrequency || 'Monthly'})`}
+                          <MenuItem key={salary.id} value={salary.id} sx={{ py: 1 }}>
+                            <Box sx={{ width: '100%' }}>
+                              <Typography 
+                                variant="subtitle2" 
+                                sx={{ 
+                                  fontWeight: 600,
+                                  color: 'primary.main',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  mb: 0.5
+                                }}
+                              >
+                                <WorkIcon sx={{ fontSize: 20 }} />
+                                {salary.title}
                               </Typography>
-                              <Grid container spacing={2} sx={{ mt: 1 }}>
-                                <Grid item xs={6}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    Basic: {salary.currency} {salary.basic?.toLocaleString() || '0'}
-                                  </Typography>
-                                </Grid>
-                                <Grid item xs={6}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    HRA: {salary.currency} {salary.hra?.toLocaleString() || '0'}
-                                  </Typography>
-                                </Grid>
-                              </Grid>
-                              <Grid container spacing={2}>
-                                <Grid item xs={6}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    Gross: {salary.currency} {salary.gross?.toLocaleString() || '0'}
-                                  </Typography>
-                                </Grid>
-                                <Grid item xs={6}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    Net Pay: {salary.currency} {salary.netPay?.toLocaleString() || '0'}
-                                  </Typography>
-                                </Grid>
-                              </Grid>
-                              <Typography variant="caption" sx={{ 
-                                display: 'block', 
-                                mt: 1,
-                                color: 'info.main',
-                                fontSize: '0.75rem'
+                              <Box sx={{ 
+                                display: 'flex', 
+                                gap: 2,
+                                mt: 0.5,
+                                backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                                borderRadius: 1,
+                                p: 1
                               }}>
-                                Effective from: {new Date(salary.effectiveDate).toLocaleDateString()}
-                                {salary.endDate && ` to ${new Date(salary.endDate).toLocaleDateString()}`}
-                              </Typography>
+                                <Box sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: 0.5,
+                                  color: 'success.main'
+                                }}>
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                      fontWeight: 500,
+                                      color: 'text.secondary'
+                                    }}
+                                  >
+                                    Gross: 
+                                  </Typography>
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                      fontWeight: 600,
+                                      color: 'success.main'
+                                    }}
+                                  >
+                                    {salary.currency} {salary.gross?.toLocaleString() || '0'}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: 0.5,
+                                  color: 'primary.main'
+                                }}>
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                      fontWeight: 500,
+                                      color: 'text.secondary'
+                                    }}
+                                  >
+                                    Net: 
+                                  </Typography>
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                      fontWeight: 600,
+                                      color: 'primary.main'
+                                    }}
+                                  >
+                                    {salary.currency} {salary.netPay?.toLocaleString() || '0'}
+                                  </Typography>
+                                </Box>
+                              </Box>
                             </Box>
                           </MenuItem>
                         ))}
                       </Select>
-                      <FormHelperText>
-                        Select the salary structure for the employee
-                      </FormHelperText>
                     </Grid>
 
                     <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
                         Date of Joining
                       </InputLabel>
                       <TextField
@@ -1077,6 +1189,7 @@ const EmployeeRoleAssign = React.memo(() => {
                         type="date"
                         value={dateOfJoining}
                         onChange={(e) => setDateOfJoining(e.target.value)}
+                        size="small"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             backgroundColor: 'background.paper',
@@ -1095,7 +1208,7 @@ const EmployeeRoleAssign = React.memo(() => {
 
                 {/* Fixed Footer with Button */}
                 <Box sx={{ 
-                  p: 3,
+                  p: 2,
                   borderTop: '1px solid',
                   borderColor: 'divider',
                   backgroundColor: 'background.paper',
@@ -1107,8 +1220,9 @@ const EmployeeRoleAssign = React.memo(() => {
                     color="primary" 
                     onClick={handleAssignmentAction}
                     fullWidth
+                    disabled={!selectedClientId || !selectedDepartmentId || !selectedJobRoleId || !selectedLocationId || !selectedSalaryId || !dateOfJoining}
                     sx={{
-                      py: 1.5,
+                      py: 1,
                       fontWeight: 600,
                       background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                       '&:hover': {
@@ -1117,6 +1231,10 @@ const EmployeeRoleAssign = React.memo(() => {
                         boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
                       },
                       transition: 'all 0.2s ease-in-out',
+                      '&.Mui-disabled': {
+                        background: 'rgba(0, 0, 0, 0.12)',
+                        color: 'rgba(0, 0, 0, 0.26)',
+                      },
                     }}
                   >
                     Assign Role

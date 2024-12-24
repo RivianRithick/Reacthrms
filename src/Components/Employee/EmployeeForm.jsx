@@ -14,6 +14,8 @@ import {
   Step,
   StepLabel,
   styled,
+  InputAdornment,
+  Paper,
 } from '@mui/material';
 import { MdBlock } from "react-icons/md";
 import { FaIdCard } from "react-icons/fa";
@@ -22,10 +24,41 @@ import { bloodGroups, documentTypes } from '../../constants';
 import useOnboardingManagerData from '../../hooks/useOnboardingManagerData';
 import useRecruiterData from '../../hooks/useRecruiterData';
 import { toast } from 'react-toastify';
+import AddIcon from '@mui/icons-material/Add';
+import CancelIcon from '@mui/icons-material/Cancel';
+import {
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Bloodtype as BloodtypeIcon,
+  Cake as CakeIcon,
+  Wc as WcIcon,
+  Favorite as FavoriteIcon,
+  Phone as PhoneIcon,
+  CreditCard as CreditCardIcon,
+  Badge as BadgeIcon,
+  People as PeopleIcon,
+  LocationOn as LocationOnIcon,
+  ContentCopy as ContentCopyIcon,
+  Home as HomeIcon,
+  Apartment as ApartmentIcon,
+  LocationCity as LocationCityIcon,
+  Public as PublicIcon,
+  PinDrop as PinDropIcon,
+  AccountBalance as AccountBalanceIcon,
+  Numbers as NumbersIcon,
+  Business as BusinessIcon,
+  Code as CodeIcon,
+  Work as WorkIcon,
+  CalendarToday as CalendarTodayIcon,
+  AttachMoney as AttachMoneyIcon,
+  Description as DescriptionIcon,
+  Assignment as AssignmentIcon,
+  SupervisorAccount as SupervisorAccountIcon,
+} from '@mui/icons-material';
 
 // Styled Components
 const StyledStepper = styled(Stepper)(({ theme }) => ({
-  marginBottom: theme.spacing(4),
+  marginBottom: theme.spacing(3),
   '& .MuiStepLabel-root .Mui-completed': {
     color: '#3D52A0',
   },
@@ -43,16 +76,15 @@ const GradientTypography = styled(Typography)(({ theme }) => ({
   backgroundClip: 'text',
   WebkitBackgroundClip: 'text',
   color: 'transparent',
-  fontSize: '2rem',
+  fontSize: '1.75rem',
   fontWeight: 700,
   marginBottom: theme.spacing(1),
 }));
 
-const StyledCard = styled(Box)(({ theme }) => ({
+const StyledCard = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.8)',
   borderRadius: '16px',
   padding: theme.spacing(3),
-  boxShadow: '0 4px 20px rgba(61, 82, 160, 0.05)',
   backdropFilter: 'blur(8px)',
   border: '1px solid rgba(61, 82, 160, 0.08)',
   transition: 'transform 0.2s ease-in-out',
@@ -64,28 +96,44 @@ const StyledCard = styled(Box)(({ theme }) => ({
 const formStyles = {
   formField: {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
+      borderRadius: '8px',
       transition: 'all 0.2s ease-in-out',
-      '&:hover fieldset': {
-        borderColor: '#7091E6',
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      '&:hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        '& .MuiOutlinedInput-notchedOutline': {
+          borderColor: 'primary.main',
+        }
       },
-      '&.Mui-focused fieldset': {
-        borderColor: '#3D52A0',
-        borderWidth: '2px',
-      },
+      '&.Mui-focused': {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        '& .MuiOutlinedInput-notchedOutline': {
+          borderWidth: '2px',
+          borderColor: 'primary.main',
+        }
+      }
     },
     '& .MuiInputLabel-root': {
       color: 'text.secondary',
-    },
-    '& .MuiInputLabel-root.Mui-focused': {
-      color: '#3D52A0',
+      '&.Mui-focused': {
+        color: 'primary.main'
+      }
     },
   },
   sectionTitle: {
-    color: '#3D52A0',
+    color: 'text.primary',
     fontWeight: 600,
     fontSize: '1.1rem',
     marginBottom: 2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+    '&::after': {
+      content: '""',
+      flex: 1,
+      height: '1px',
+      background: 'linear-gradient(90deg, rgba(61, 82, 160, 0.2), transparent)',
+    },
   },
   documentCard: {
     height: '100%',
@@ -100,6 +148,85 @@ const steps = [
   'Previous Employment',
   'Documents',
   'Assignments',
+];
+
+const indianStates = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry"
+];
+
+const indianBanks = [
+  "State Bank of India",
+  "Punjab National Bank",
+  "Bank of Baroda",
+  "Bank of India",
+  "Canara Bank",
+  "Union Bank of India",
+  "Indian Bank",
+  "Central Bank of India",
+  "Indian Overseas Bank",
+  "UCO Bank",
+  "Bank of Maharashtra",
+  "Punjab & Sind Bank",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Kotak Mahindra Bank",
+  "IndusInd Bank",
+  "Yes Bank",
+  "IDBI Bank",
+  "Federal Bank",
+  "South Indian Bank",
+  "Karnataka Bank",
+  "Bandhan Bank",
+  "IDFC First Bank",
+  "RBL Bank",
+  "City Union Bank",
+  "Karur Vysya Bank",
+  "Tamilnad Mercantile Bank",
+  "CSB Bank",
+  "DCB Bank",
+  "Dhanlaxmi Bank",
+  "Jammu & Kashmir Bank",
+  "Nainital Bank",
+  "AU Small Finance Bank",
+  "Equitas Small Finance Bank",
+  "Ujjivan Small Finance Bank",
+  "Jana Small Finance Bank"
 ];
 
 const EmployeeForm = ({
@@ -138,6 +265,8 @@ const EmployeeForm = ({
     setEmployee(prev => ({
       ...prev,
       permanentAddress: prev.presentAddress,
+      permanentState: prev.presentState,
+      permanentDistrict: prev.presentDistrict,
     }));
   };
 
@@ -173,96 +302,168 @@ const EmployeeForm = ({
         component="form"
         onSubmit={handleSubmit}
         sx={{
-          maxWidth: 600,
+          maxWidth: 800,
           margin: '0 auto',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(61, 82, 160, 0.1)',
+          boxShadow: '0 8px 32px rgba(61, 82, 160, 0.1)',
         }}
       >
-        <GradientTypography variant="h4" align="center">
-          Create New Employee
-        </GradientTypography>
-        <Typography 
-          variant="body1" 
-          sx={{ 
-            textAlign: 'center', 
-            color: 'text.secondary',
-            mb: 4 
-          }}
-        >
-          Enter contact number to create a new employee profile
-        </Typography>
-
-        <TextField
-          fullWidth
-          label="Contact Number"
-          name="contact"
-          value={employee.contact}
-          onChange={handleContactChange}
-          required
-          sx={{ 
-            mb: 4,
-            ...formStyles.formField
-          }}
-          helperText="Format: +91 followed by 10 digits"
-        />
+        <Box sx={{ 
+          textAlign: 'center',
+          mb: 4,
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: '-20px',
+            left: '10%',
+            width: '80%',
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(61, 82, 160, 0.2), transparent)',
+          }
+        }}>
+          <GradientTypography variant="h4">
+            Create New Employee
+          </GradientTypography>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'text.secondary',
+              mt: 1,
+              fontSize: '1rem',
+              maxWidth: '600px',
+              margin: '0 auto'
+            }}
+          >
+            Enter the contact number to create a new employee profile. Make sure to use the correct format.
+          </Typography>
+        </Box>
 
         <Box sx={{ 
-          display: "flex", 
-          gap: 2, 
-          justifyContent: "center"
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 3,
+          px: { xs: 2, sm: 4 },
+          py: 4
         }}>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            disabled={isLoading}
-            sx={{
-              background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-              color: '#FFFFFF',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              padding: '12px 32px',
-              boxShadow: 'none',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
-              },
-              '&.Mui-disabled': {
-                background: 'rgba(0, 0, 0, 0.12)',
-                color: 'rgba(0, 0, 0, 0.26)',
-              },
-              transition: 'all 0.2s ease-in-out',
+          <TextField
+            fullWidth
+            label="Contact Number"
+            name="contact"
+            value={employee.contact}
+            onChange={handleContactChange}
+            required
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PhoneIcon sx={{ color: 'primary.main' }} />
+                </InputAdornment>
+              ),
             }}
-          >
-            {isLoading ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} sx={{ color: 'inherit' }} />
-                Creating...
-              </Box>
-            ) : (
-              'Create Employee'
-            )}
-          </Button>
-          <Button 
-            variant="outlined" 
-            onClick={resetForm}
-            sx={{
-              borderColor: '#3D52A0',
-              color: '#3D52A0',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              padding: '12px 32px',
-              '&:hover': {
-                borderColor: '#2A3B7D',
-                backgroundColor: 'rgba(61, 82, 160, 0.04)',
-                transform: 'translateY(-1px)',
+            sx={{ 
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main',
+                  }
+                },
+                '&.Mui-focused': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '2px',
+                    borderColor: 'primary.main',
+                  }
+                }
               },
-              transition: 'all 0.2s ease-in-out',
+              '& .MuiInputLabel-root': {
+                '&.Mui-focused': {
+                  color: 'primary.main'
+                }
+              }
             }}
-          >
-            Cancel
-          </Button>
+            helperText="Format: +91 followed by 10 digits"
+          />
+
+          <Box sx={{ 
+            display: "flex", 
+            gap: 2, 
+            justifyContent: "center",
+            mt: 2
+          }}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              disabled={isLoading}
+              sx={{
+                minWidth: '180px',
+                background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                color: '#FFFFFF',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                padding: '12px 32px',
+                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.18)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 6px 16px rgba(61, 82, 160, 0.25)',
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
+                },
+                '&.Mui-disabled': {
+                  background: 'rgba(0, 0, 0, 0.12)',
+                  color: 'rgba(0, 0, 0, 0.26)',
+                  boxShadow: 'none',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              {isLoading ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={20} sx={{ color: 'inherit' }} />
+                  <span>Creating...</span>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AddIcon />
+                  <span>Create Employee</span>
+                </Box>
+              )}
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={resetForm}
+              startIcon={<CancelIcon />}
+              sx={{
+                minWidth: '120px',
+                background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                color: 'white',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                padding: '12px 32px',
+                border: 'none',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              Cancel
+            </Button>
+          </Box>
         </Box>
       </StyledCard>
     );
@@ -277,22 +478,59 @@ const EmployeeForm = ({
         margin: '0 auto',
       }}
     >
-      <StyledCard sx={{ mb: 3 }}>
+      <StyledCard sx={{ 
+        mb: 3,
+        background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(61, 82, 160, 0.1)',
+        boxShadow: '0 8px 32px rgba(61, 82, 160, 0.1)',
+      }}>
         <Box sx={{ 
-          borderBottom: '1px solid rgba(61, 82, 160, 0.1)', 
-          pb: 3, 
+          textAlign: 'center',
           mb: 4,
-          textAlign: 'center'
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: '-20px',
+            left: '10%',
+            width: '80%',
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(61, 82, 160, 0.2), transparent)',
+          }
         }}>
           <GradientTypography>
             Edit Employee Profile
           </GradientTypography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body1" sx={{ 
+            color: 'text.secondary',
+            mt: 1,
+            fontSize: '1rem',
+            maxWidth: '600px',
+            margin: '0 auto'
+          }}>
             Update employee information and documents
           </Typography>
         </Box>
 
-        <StyledStepper activeStep={activeTab} alternativeLabel>
+        <StyledStepper 
+          activeStep={activeTab} 
+          alternativeLabel
+          sx={{
+            '& .MuiStepLabel-root .Mui-active': {
+              color: '#7091E6',
+              '& .MuiStepIcon-text': {
+                fill: '#FFFFFF',
+              }
+            },
+            '& .MuiStepLabel-root .Mui-completed': {
+              color: '#3D52A0',
+            },
+            '& .MuiStepConnector-line': {
+              borderColor: 'rgba(61, 82, 160, 0.2)',
+            }
+          }}
+        >
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -300,10 +538,40 @@ const EmployeeForm = ({
           ))}
         </StyledStepper>
 
-        <StyledCard sx={{ mb: 4 }}>
+        <StyledCard sx={{ 
+          mb: 4,
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(61, 82, 160, 0.1)',
+          boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
+          '&:hover': {
+            boxShadow: '0 8px 32px rgba(61, 82, 160, 0.12)',
+          },
+          transition: 'all 0.3s ease-in-out',
+        }}>
           {/* Basic Info Tab */}
           {activeTab === 0 && (
-            <Grid container spacing={3}>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  mb: 3,
+                }}>
+                  <PersonIcon sx={{ 
+                    fontSize: 24,
+                    color: 'white',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    borderRadius: '8px',
+                    p: 1,
+                  }} />
+                  <Typography variant="h6" sx={formStyles.sectionTitle}>
+                    Basic Information
+                  </Typography>
+                </Box>
+              </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -311,6 +579,13 @@ const EmployeeForm = ({
                   name="firstName"
                   value={employee.firstName || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -321,6 +596,13 @@ const EmployeeForm = ({
                   name="lastName"
                   value={employee.lastName || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -332,6 +614,13 @@ const EmployeeForm = ({
                   name="email"
                   value={employee.email || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -343,7 +632,25 @@ const EmployeeForm = ({
                     value={employee.bloodGroup || ""}
                     onChange={handleChange}
                     label="Blood Group"
-                    sx={formStyles.formField}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <BloodtypeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(61, 82, 160, 0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                        borderWidth: '2px',
+                      }
+                    }}
                   >
                     <MenuItem value="">Select Blood Group</MenuItem>
                     {bloodGroups.map((group) => (
@@ -363,6 +670,13 @@ const EmployeeForm = ({
                   value={employee.dateOfBirth || ""}
                   onChange={handleChange}
                   InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CakeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -374,7 +688,25 @@ const EmployeeForm = ({
                     value={employee.gender || ""}
                     onChange={handleChange}
                     label="Gender"
-                    sx={formStyles.formField}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <WcIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(61, 82, 160, 0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                        borderWidth: '2px',
+                      }
+                    }}
                   >
                     <MenuItem value="">Select Gender</MenuItem>
                     <MenuItem value="Male">Male</MenuItem>
@@ -391,7 +723,25 @@ const EmployeeForm = ({
                     value={employee.maritalStatus || ""}
                     onChange={handleChange}
                     label="Marital Status"
-                    sx={formStyles.formField}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <FavoriteIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(61, 82, 160, 0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                        borderWidth: '2px',
+                      }
+                    }}
                   >
                     <MenuItem value="">Select Status</MenuItem>
                     <MenuItem value="Single">Single</MenuItem>
@@ -407,6 +757,13 @@ const EmployeeForm = ({
                   name="alternateContact"
                   value={employee.alternateContact || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -417,6 +774,13 @@ const EmployeeForm = ({
                   name="aadhaarNumber"
                   value={employee.aadhaarNumber || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CreditCardIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -427,6 +791,13 @@ const EmployeeForm = ({
                   name="panNumber"
                   value={employee.panNumber || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BadgeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -435,7 +806,27 @@ const EmployeeForm = ({
 
           {/* Family Details Tab */}
           {activeTab === 1 && (
-            <Grid container spacing={3}>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  mb: 3,
+                }}>
+                  <PeopleIcon sx={{ 
+                    fontSize: 24,
+                    color: 'white',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    borderRadius: '8px',
+                    p: 1,
+                  }} />
+                  <Typography variant="h6" sx={formStyles.sectionTitle}>
+                    Family Details
+                  </Typography>
+                </Box>
+              </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -443,6 +834,13 @@ const EmployeeForm = ({
                   name="fatherName"
                   value={employee.fatherName || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -453,6 +851,13 @@ const EmployeeForm = ({
                   name="motherName"
                   value={employee.motherName || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -465,6 +870,13 @@ const EmployeeForm = ({
                   value={employee.fatherDateOfBirth || ""}
                   onChange={handleChange}
                   InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CakeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -477,6 +889,13 @@ const EmployeeForm = ({
                   value={employee.motherDateOfBirth || ""}
                   onChange={handleChange}
                   InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CakeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -487,6 +906,13 @@ const EmployeeForm = ({
                   name="spouseName"
                   value={employee.spouseName || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -499,94 +925,73 @@ const EmployeeForm = ({
                   value={employee.spouseDateOfBirth || ""}
                   onChange={handleChange}
                   InputLabelProps={{ shrink: true }}
-                  sx={formStyles.formField}
-                />
-              </Grid>
-            </Grid>
-          )}
-
-          {/* Address Tab */}
-          {activeTab === 2 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Present Address"
-                  name="presentAddress"
-                  value={employee.presentAddress || ""}
-                  onChange={handleChange}
-                  multiline
-                  rows={2}
-                  sx={formStyles.formField}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Present State"
-                  name="presentState"
-                  value={employee.presentState || ""}
-                  onChange={handleChange}
-                  sx={formStyles.formField}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Present District"
-                  name="presentDistrict"
-                  value={employee.presentDistrict || ""}
-                  onChange={handleChange}
-                  sx={formStyles.formField}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Permanent Address"
-                  name="permanentAddress"
-                  value={employee.permanentAddress || ""}
-                  onChange={handleChange}
-                  multiline
-                  rows={2}
-                  sx={formStyles.formField}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  variant="outlined"
-                  onClick={copyPresentToPermanent}
-                  sx={{
-                    borderColor: '#3D52A0',
-                    color: '#3D52A0',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    padding: '8px 16px',
-                    '&:hover': {
-                      borderColor: '#2A3B7D',
-                      backgroundColor: 'rgba(61, 82, 160, 0.04)',
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all 0.2s ease-in-out',
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CakeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
                   }}
-                >
-                  Copy Present Address to Permanent Address
-                </Button>
+                  sx={formStyles.formField}
+                />
               </Grid>
             </Grid>
           )}
 
           {/* Bank Details Tab */}
           {activeTab === 3 && (
-            <Grid container spacing={3}>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  mb: 3,
+                }}>
+                  <AccountBalanceIcon sx={{ 
+                    fontSize: 24,
+                    color: 'white',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    borderRadius: '8px',
+                    p: 1,
+                  }} />
+                  <Typography variant="h6" sx={formStyles.sectionTitle}>
+                    Bank Details
+                  </Typography>
+                </Box>
+              </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Bank Account Name"
+                  label="Account Number"
+                  name="bankAccountNumber"
+                  value={employee.bankAccountNumber || ""}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <NumbersIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Account Holder Name"
                   name="bankAccountName"
                   value={employee.bankAccountName || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -598,43 +1003,34 @@ const EmployeeForm = ({
                     value={employee.bankName || ""}
                     onChange={handleChange}
                     label="Bank Name"
-                    sx={formStyles.formField}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <BusinessIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(61, 82, 160, 0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                        borderWidth: '2px',
+                      }
+                    }}
                   >
                     <MenuItem value="">Select Bank</MenuItem>
-                    <MenuItem value="State Bank of India">State Bank of India</MenuItem>
-                    <MenuItem value="Punjab National Bank">Punjab National Bank</MenuItem>
-                    <MenuItem value="Bank of Baroda">Bank of Baroda</MenuItem>
-                    <MenuItem value="Bank of India">Bank of India</MenuItem>
-                    <MenuItem value="Canara Bank">Canara Bank</MenuItem>
-                    <MenuItem value="Union Bank of India">Union Bank of India</MenuItem>
-                    <MenuItem value="HDFC Bank">HDFC Bank</MenuItem>
-                    <MenuItem value="ICICI Bank">ICICI Bank</MenuItem>
-                    <MenuItem value="Axis Bank">Axis Bank</MenuItem>
-                    <MenuItem value="Kotak Mahindra Bank">Kotak Mahindra Bank</MenuItem>
-                    <MenuItem value="IndusInd Bank">IndusInd Bank</MenuItem>
-                    <MenuItem value="Yes Bank">Yes Bank</MenuItem>
-                    <MenuItem value="IDBI Bank">IDBI Bank</MenuItem>
-                    <MenuItem value="Federal Bank">Federal Bank</MenuItem>
-                    <MenuItem value="South Indian Bank">South Indian Bank</MenuItem>
-                    <MenuItem value="Karnataka Bank">Karnataka Bank</MenuItem>
-                    <MenuItem value="Indian Bank">Indian Bank</MenuItem>
-                    <MenuItem value="Indian Overseas Bank">Indian Overseas Bank</MenuItem>
-                    <MenuItem value="UCO Bank">UCO Bank</MenuItem>
-                    <MenuItem value="Bank of Maharashtra">Bank of Maharashtra</MenuItem>
-                    <MenuItem value="Central Bank of India">Central Bank of India</MenuItem>
-                    <MenuItem value="Punjab & Sind Bank">Punjab & Sind Bank</MenuItem>
+                    {indianBanks.map((bank) => (
+                      <MenuItem key={bank} value={bank}>
+                        {bank}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Account Number"
-                  name="bankAccountNumber"
-                  value={employee.bankAccountNumber || ""}
-                  onChange={handleChange}
-                  sx={formStyles.formField}
-                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -643,6 +1039,13 @@ const EmployeeForm = ({
                   name="ifscCode"
                   value={employee.ifscCode || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CodeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -651,7 +1054,27 @@ const EmployeeForm = ({
 
           {/* Previous Employment Tab */}
           {activeTab === 4 && (
-            <Grid container spacing={3}>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  mb: 3,
+                }}>
+                  <WorkIcon sx={{ 
+                    fontSize: 24,
+                    color: 'white',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    borderRadius: '8px',
+                    p: 1,
+                  }} />
+                  <Typography variant="h6" sx={formStyles.sectionTitle}>
+                    Previous Employment
+                  </Typography>
+                </Box>
+              </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -659,6 +1082,13 @@ const EmployeeForm = ({
                   name="previousUANNumber"
                   value={employee.previousUANNumber || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <NumbersIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -669,6 +1099,13 @@ const EmployeeForm = ({
                   name="previousESICNumber"
                   value={employee.previousESICNumber || ""}
                   onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <NumbersIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={formStyles.formField}
                 />
               </Grid>
@@ -677,13 +1114,13 @@ const EmployeeForm = ({
 
           {/* Documents Tab */}
           {activeTab === 5 && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {/* Identity Documents */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <Box>
                 <Typography variant="h6" sx={formStyles.sectionTitle}>
+                  <FaIdCard size={20} />
                   Identity Documents
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={3}>
                     <DocumentUpload
                       label="Candidate Photo"
@@ -703,7 +1140,7 @@ const EmployeeForm = ({
                       filePath={employee.panCardFilePath}
                       documentType="PAN_CARD"
                       contact={employee.contact}
-                      description="Upload PAN Card (PDF or Image)"
+                      description="Upload PAN Card"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         panCardFilePath: filePath
@@ -716,7 +1153,7 @@ const EmployeeForm = ({
                       filePath={employee.aadhaarCardFilePath}
                       documentType="AADHAAR_CARD"
                       contact={employee.contact}
-                      description="Upload Aadhaar Card (PDF or Image)"
+                      description="Upload Aadhaar Card"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         aadhaarCardFilePath: filePath
@@ -729,7 +1166,7 @@ const EmployeeForm = ({
                       filePath={employee.voterIdPath}
                       documentType="VOTER_ID"
                       contact={employee.contact}
-                      description="Upload Voter ID (PDF or Image)"
+                      description="Upload Voter ID"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         voterIdPath: filePath
@@ -739,19 +1176,18 @@ const EmployeeForm = ({
                 </Grid>
               </Box>
 
-              {/* Educational Documents */}
               <Box>
                 <Typography variant="h6" sx={formStyles.sectionTitle}>
                   Educational Documents
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={4}>
                     <DocumentUpload
                       label="10th Certificate"
                       filePath={employee.tenthCertificatePath}
                       documentType="TENTH_CERTIFICATE"
                       contact={employee.contact}
-                      description="Upload 10th Certificate (PDF or Image)"
+                      description="Upload 10th Certificate"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         tenthCertificatePath: filePath
@@ -764,7 +1200,7 @@ const EmployeeForm = ({
                       filePath={employee.twelthCertificatePath}
                       documentType="TWELTH_CERTIFICATE"
                       contact={employee.contact}
-                      description="Upload 12th Certificate (PDF or Image)"
+                      description="Upload 12th Certificate"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         twelthCertificatePath: filePath
@@ -777,7 +1213,7 @@ const EmployeeForm = ({
                       filePath={employee.degreeCertificatePath}
                       documentType="DEGREE_CERTIFICATE"
                       contact={employee.contact}
-                      description="Upload Degree Certificate (PDF or Image)"
+                      description="Upload Degree Certificate"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         degreeCertificatePath: filePath
@@ -787,19 +1223,18 @@ const EmployeeForm = ({
                 </Grid>
               </Box>
 
-              {/* Professional Documents */}
               <Box>
                 <Typography variant="h6" sx={formStyles.sectionTitle}>
                   Professional Documents
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={4}>
                     <DocumentUpload
                       label="Offer Letter"
                       filePath={employee.offerLetterPath}
                       documentType="OFFER_LETTER"
                       contact={employee.contact}
-                      description="Upload Offer Letter (PDF)"
+                      description="Upload Offer Letter"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         offerLetterPath: filePath
@@ -812,7 +1247,7 @@ const EmployeeForm = ({
                       filePath={employee.experienceLetterPath}
                       documentType="EXPERIENCE_LETTER"
                       contact={employee.contact}
-                      description="Upload Experience Letter (PDF)"
+                      description="Upload Experience Letter"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         experienceLetterPath: filePath
@@ -825,7 +1260,7 @@ const EmployeeForm = ({
                       filePath={employee.payslipPath}
                       documentType="PAYSLIP"
                       contact={employee.contact}
-                      description="Upload Latest Payslip (PDF)"
+                      description="Upload Latest Payslip"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         payslipPath: filePath
@@ -835,12 +1270,11 @@ const EmployeeForm = ({
                 </Grid>
               </Box>
 
-              {/* Family Documents */}
               <Box>
                 <Typography variant="h6" sx={formStyles.sectionTitle}>
                   Family Documents
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <DocumentUpload
                       label="Family Photo"
@@ -860,7 +1294,7 @@ const EmployeeForm = ({
                       filePath={employee.passbookFilePath}
                       documentType="PASSBOOK"
                       contact={employee.contact}
-                      description="Upload Bank Passbook (PDF or Image)"
+                      description="Upload Bank Passbook"
                       onUploadSuccess={(filePath) => setEmployee(prev => ({
                         ...prev,
                         passbookFilePath: filePath
@@ -872,100 +1306,293 @@ const EmployeeForm = ({
             </Box>
           )}
 
+          {/* Address Tab */}
+          {activeTab === 2 && (
+            <Grid container spacing={2.5}>
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  mb: 3,
+                }}>
+                  <HomeIcon sx={{ 
+                    fontSize: 24,
+                    color: 'white',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    borderRadius: '8px',
+                    p: 1,
+                  }} />
+                  <Typography variant="h6" sx={formStyles.sectionTitle}>
+                    Address Information
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* Present Address Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  mt: 2,
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}>
+                  <LocationOnIcon sx={{ color: 'primary.main' }} />
+                  Present Address
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Present Address"
+                  name="presentAddress"
+                  value={employee.presentAddress || ""}
+                  onChange={handleChange}
+                  multiline
+                  rows={2}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <HomeIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Present State</InputLabel>
+                  <Select
+                    name="presentState"
+                    value={employee.presentState || ""}
+                    onChange={handleChange}
+                    label="Present State"
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <PublicIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(61, 82, 160, 0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                        borderWidth: '2px',
+                      }
+                    }}
+                  >
+                    <MenuItem value="">Select State</MenuItem>
+                    {indianStates.map((state) => (
+                      <MenuItem key={state} value={state}>
+                        {state}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Present District"
+                  name="presentDistrict"
+                  value={employee.presentDistrict || ""}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationCityIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+
+              {/* Permanent Address Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  mt: 2,
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}>
+                  <ApartmentIcon sx={{ color: 'primary.main' }} />
+                  Permanent Address
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Permanent Address"
+                  name="permanentAddress"
+                  value={employee.permanentAddress || ""}
+                  onChange={handleChange}
+                  multiline
+                  rows={2}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <ApartmentIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={formStyles.formField}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button
+                  variant="outlined"
+                  onClick={copyPresentToPermanent}
+                  startIcon={<ContentCopyIcon />}
+                  sx={{
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    color: 'white',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    padding: '8px 24px',
+                    border: 'none',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                    },
+                    '&:active': {
+                      transform: 'translateY(0)',
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                  }}
+                >
+                  Copy Present Address to Permanent Address
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+
           {/* New Assignments Tab */}
           {activeTab === 6 && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <Typography variant="h6" sx={formStyles.sectionTitle}>
-                Employee Assignments
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Onboarding Manager</InputLabel>
-                    <Select
-                      name="onboardingManagerId"
-                      value={employee.onboardingManagerId || ""}
-                      onChange={(e) => handleAssignOnboardingManager(e.target.value)}
-                      label="Onboarding Manager"
-                      disabled={managersLoading}
-                      sx={formStyles.formField}
-                    >
-                      <MenuItem value="">Select Onboarding Manager</MenuItem>
-                      {managers.filter(m => m.isActive).map((manager) => (
-                        <MenuItem key={manager.onboardingManagerId} value={manager.onboardingManagerId}>
-                          {`${manager.firstName} ${manager.lastName}`}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Recruiter</InputLabel>
-                    <Select
-                      name="recruiterId"
-                      value={employee.recruiterId || ""}
-                      onChange={(e) => handleAssignRecruiter(e.target.value)}
-                      label="Recruiter"
-                      disabled={recruitersLoading}
-                      sx={formStyles.formField}
-                    >
-                      <MenuItem value="">Select Recruiter</MenuItem>
-                      {recruiters.filter(r => r.isActive).map((recruiter) => (
-                        <MenuItem key={recruiter.recruiterId} value={recruiter.recruiterId}>
-                          {`${recruiter.firstName} ${recruiter.lastName}`}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                {/* Display current assignments info */}
-                <Grid item xs={12}>
-                  <Box sx={{ 
-                    mt: 4, 
-                    p: 3, 
-                    bgcolor: 'rgba(61, 82, 160, 0.04)', 
-                    borderRadius: 2,
-                    border: '1px solid rgba(61, 82, 160, 0.1)'
-                  }}>
-                    <Typography variant="subtitle1" sx={{ mb: 2, color: 'text.primary', fontWeight: 600 }}>
-                      Current Assignments
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          Onboarding Manager:
-                        </Typography>
-                        <Typography variant="body1">
-                          {managers.find(m => m.onboardingManagerId === employee.onboardingManagerId)
-                            ? `${managers.find(m => m.onboardingManagerId === employee.onboardingManagerId).firstName} ${managers.find(m => m.onboardingManagerId === employee.onboardingManagerId).lastName}`
-                            : 'Not Assigned'}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          Recruiter:
-                        </Typography>
-                        <Typography variant="body1">
-                          {recruiters.find(r => r.recruiterId === employee.recruiterId)
-                            ? `${recruiters.find(r => r.recruiterId === employee.recruiterId).firstName} ${recruiters.find(r => r.recruiterId === employee.recruiterId).lastName}`
-                            : 'Not Assigned'}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Grid>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  mb: 3,
+                }}>
+                  <AssignmentIcon sx={{ 
+                    fontSize: 24,
+                    color: 'white',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    borderRadius: '8px',
+                    p: 1,
+                  }} />
+                  <Typography variant="h6" sx={formStyles.sectionTitle}>
+                    Employee Assignments
+                  </Typography>
+                </Box>
               </Grid>
-            </Box>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Onboarding Manager</InputLabel>
+                  <Select
+                    name="onboardingManagerId"
+                    value={employee.onboardingManagerId || ""}
+                    onChange={(e) => handleAssignOnboardingManager(e.target.value)}
+                    label="Onboarding Manager"
+                    disabled={managersLoading}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <SupervisorAccountIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(61, 82, 160, 0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                        borderWidth: '2px',
+                      }
+                    }}
+                  >
+                    <MenuItem value="">Select Onboarding Manager</MenuItem>
+                    {managers.filter(m => m.isActive).map((manager) => (
+                      <MenuItem key={manager.onboardingManagerId} value={manager.onboardingManagerId}>
+                        {`${manager.firstName} ${manager.lastName}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Recruiter</InputLabel>
+                  <Select
+                    name="recruiterId"
+                    value={employee.recruiterId || ""}
+                    onChange={(e) => handleAssignRecruiter(e.target.value)}
+                    label="Recruiter"
+                    disabled={recruitersLoading}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'primary.main' }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(61, 82, 160, 0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                        borderWidth: '2px',
+                      }
+                    }}
+                  >
+                    <MenuItem value="">Select Recruiter</MenuItem>
+                    {recruiters.filter(r => r.isActive).map((recruiter) => (
+                      <MenuItem key={recruiter.recruiterId} value={recruiter.recruiterId}>
+                        {`${recruiter.firstName} ${recruiter.lastName}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
           )}
         </StyledCard>
 
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between',
-          mt: 4,
+          mt: 3,
           pt: 3,
           borderTop: '1px solid rgba(61, 82, 160, 0.1)',
         }}>
@@ -973,10 +1600,27 @@ const EmployeeForm = ({
             onClick={handlePreviousTab}
             disabled={activeTab === 0}
             sx={{
-              color: '#3D52A0',
+              background: 'linear-gradient(45deg, #6B7DB3, #A5B4E2)',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              padding: '10px 24px',
+              opacity: activeTab === 0 ? 0.5 : 1,
               '&:hover': {
-                backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                background: 'linear-gradient(45deg, #5A6B99, #8E9CC8)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
               },
+              '&:active': {
+                transform: 'translateY(0)',
+              },
+              '&.Mui-disabled': {
+                background: 'rgba(0, 0, 0, 0.12)',
+                color: 'rgba(0, 0, 0, 0.26)',
+                boxShadow: 'none',
+              },
+              transition: 'all 0.2s ease-in-out',
             }}
           >
             Previous
@@ -985,17 +1629,23 @@ const EmployeeForm = ({
             <Button 
               variant="outlined" 
               onClick={resetForm}
+              startIcon={<CancelIcon />}
               sx={{
-                borderColor: '#3D52A0',
-                color: '#3D52A0',
+                minWidth: '120px',
+                background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                color: 'white',
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
-                padding: '10px 24px',
+                padding: '12px 32px',
+                border: 'none',
                 '&:hover': {
-                  borderColor: '#2A3B7D',
-                  backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                  background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
                   transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
                 },
                 transition: 'all 0.2s ease-in-out',
               }}
@@ -1013,17 +1663,26 @@ const EmployeeForm = ({
                 variant="contained"
                 disabled={isLoading}
                 sx={{
+                  minWidth: '180px',
                   background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                   color: '#FFFFFF',
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
                   padding: '10px 24px',
-                  boxShadow: 'none',
+                  boxShadow: '0 4px 12px rgba(61, 82, 160, 0.18)',
                   '&:hover': {
                     background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                    boxShadow: '0 6px 16px rgba(61, 82, 160, 0.25)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
+                  '&.Mui-disabled': {
+                    background: 'rgba(0, 0, 0, 0.12)',
+                    color: 'rgba(0, 0, 0, 0.26)',
+                    boxShadow: 'none',
                   },
                   transition: 'all 0.2s ease-in-out',
                 }}
@@ -1031,7 +1690,7 @@ const EmployeeForm = ({
                 {isLoading ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CircularProgress size={20} sx={{ color: 'inherit' }} />
-                    Saving...
+                    <span>Saving...</span>
                   </Box>
                 ) : (
                   'Save Changes'
@@ -1042,17 +1701,26 @@ const EmployeeForm = ({
                 onClick={handleNextTab}
                 variant="contained"
                 sx={{
+                  minWidth: '120px',
                   background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                   color: '#FFFFFF',
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
                   padding: '10px 24px',
-                  boxShadow: 'none',
+                  boxShadow: '0 4px 12px rgba(61, 82, 160, 0.18)',
                   '&:hover': {
                     background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                    boxShadow: '0 6px 16px rgba(61, 82, 160, 0.25)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
+                  '&.Mui-disabled': {
+                    background: 'rgba(0, 0, 0, 0.12)',
+                    color: 'rgba(0, 0, 0, 0.26)',
+                    boxShadow: 'none',
                   },
                   transition: 'all 0.2s ease-in-out',
                 }}
@@ -1065,7 +1733,12 @@ const EmployeeForm = ({
       </StyledCard>
 
       {/* Action Buttons */}
-      <StyledCard>
+      <StyledCard sx={{
+        background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(61, 82, 160, 0.1)',
+        boxShadow: '0 8px 32px rgba(61, 82, 160, 0.1)',
+      }}>
         <Box sx={{ 
           display: 'flex', 
           gap: 2, 
@@ -1081,6 +1754,7 @@ const EmployeeForm = ({
             }}
             disabled={assignedEmployees.some(id => id === employee.id)}
             sx={{
+              minWidth: '200px',
               background: employee.isApproved 
                 ? 'linear-gradient(45deg, #dc2626, #ef4444)'
                 : 'linear-gradient(45deg, #059669, #34d399)',
@@ -1089,7 +1763,7 @@ const EmployeeForm = ({
               textTransform: 'none',
               fontWeight: 600,
               padding: '12px 32px',
-              boxShadow: 'none',
+              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.18)',
               display: 'flex',
               alignItems: 'center',
               gap: 1,
@@ -1098,11 +1772,15 @@ const EmployeeForm = ({
                   ? 'linear-gradient(45deg, #b91c1c, #dc2626)'
                   : 'linear-gradient(45deg, #047857, #10b981)',
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                boxShadow: '0 6px 16px rgba(61, 82, 160, 0.25)',
+              },
+              '&:active': {
+                transform: 'translateY(0)',
               },
               '&.Mui-disabled': {
                 background: 'rgba(0, 0, 0, 0.12)',
                 color: 'rgba(0, 0, 0, 0.26)',
+                boxShadow: 'none',
               },
               transition: 'all 0.2s ease-in-out',
             }}
@@ -1134,6 +1812,7 @@ const EmployeeForm = ({
             }}
             disabled={employee.isApproved}
             sx={{
+              minWidth: '200px',
               background: employee.isBlocked 
                 ? 'linear-gradient(45deg, #059669, #34d399)'
                 : 'linear-gradient(45deg, #dc2626, #ef4444)',
@@ -1142,7 +1821,7 @@ const EmployeeForm = ({
               textTransform: 'none',
               fontWeight: 600,
               padding: '12px 32px',
-              boxShadow: 'none',
+              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.18)',
               display: 'flex',
               alignItems: 'center',
               gap: 1,
@@ -1151,11 +1830,15 @@ const EmployeeForm = ({
                   ? 'linear-gradient(45deg, #047857, #10b981)'
                   : 'linear-gradient(45deg, #b91c1c, #dc2626)',
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                boxShadow: '0 6px 16px rgba(61, 82, 160, 0.25)',
+              },
+              '&:active': {
+                transform: 'translateY(0)',
               },
               '&.Mui-disabled': {
                 background: 'rgba(0, 0, 0, 0.12)',
                 color: 'rgba(0, 0, 0, 0.26)',
+                boxShadow: 'none',
               },
               transition: 'all 0.2s ease-in-out',
             }}

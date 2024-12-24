@@ -25,6 +25,11 @@ import {
   InputAdornment,
   Chip,
   IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +41,15 @@ import {
   Business as BusinessIcon,
   ArrowBack as ArrowBackIcon,
   Block as BlockIcon,
+  Tag as TagIcon,
+  Code as CodeIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  LocationOn as LocationOnIcon,
+  Language as LanguageIcon,
+  Settings as SettingsIcon,
+  SearchOff as SearchOffIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 
 const theme = createTheme({
@@ -402,23 +416,136 @@ const ClientCrud = React.memo(() => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 2 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography 
-            variant="h4" 
-            gutterBottom 
-            sx={{ 
-              textAlign: "center", 
-              color: "primary.main",
-              marginBottom: 4
-            }}
-          >
-            Client Management
-          </Typography>
+          <Box sx={{ 
+            position: 'sticky',
+            top: 0,
+            zIndex: 1200,
+            backgroundColor: 'background.default',
+            pt: 2,
+            pb: 3,
+          }}>
+            {!showForm && (
+              <>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  mb: 3
+                }}>
+                  <Typography 
+                    variant="h4" 
+                    sx={{ 
+                      color: "primary.main",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <BusinessIcon sx={{ fontSize: 40 }} />
+                    Client Management
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Chip
+                      icon={<BusinessIcon />}
+                      label={`Total Records: ${filteredClients.length}`}
+                      color="primary"
+                      sx={{ 
+                        fontWeight: 'bold',
+                        background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                        '& .MuiChip-icon': { color: 'white' }
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Search and Add Button Section */}
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    backgroundColor: 'background.paper',
+                    borderRadius: 3,
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    flexWrap: 'wrap',
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
+                  }}
+                >
+                  <TextField
+                    placeholder="Search by Name or Address..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    sx={{ 
+                      flex: 1, 
+                      minWidth: '200px',
+                      '& .MuiOutlinedInput-root': {
+                        background: 'rgba(255,255,255,0.9)',
+                      }
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: 'primary.main' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    size="small"
+                  />
+                  <FormControl sx={{ minWidth: 200 }}>
+                    <InputLabel>Block Status</InputLabel>
+                    <Select
+                      value={clientFilter}
+                      onChange={handleFilterChange}
+                      label="Block Status"
+                      size="small"
+                      sx={{
+                        background: 'rgba(255,255,255,0.9)',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'divider',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderWidth: '2px',
+                        },
+                      }}
+                    >
+                      <MenuItem value="all">All Clients</MenuItem>
+                      <MenuItem value="blocked">Blocked</MenuItem>
+                      <MenuItem value="notBlocked">Not Blocked</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleAddClick}
+                    startIcon={<AddIcon />}
+                    sx={{
+                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                      boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                        boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                      }
+                    }}
+                  >
+                    Add New Client
+                  </Button>
+                </Paper>
+              </>
+            )}
+          </Box>
 
           <ToastContainer />
 
@@ -444,135 +571,172 @@ const ClientCrud = React.memo(() => {
               transition={{ duration: 0.3 }}
             >
               <Paper
+                elevation={0}
                 sx={{
                   backgroundColor: 'background.paper',
                   borderRadius: 3,
-                  p: 4,
+                  p: { xs: 2, sm: 3, md: 4 },
                   maxWidth: 800,
                   margin: '0 auto',
                   border: '1px solid',
                   borderColor: 'divider',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
                   mb: 3,
-                  gap: 1
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2
                 }}>
-                  <IconButton 
+                  <IconButton
                     onClick={resetForm}
-                    sx={{ mr: 1 }}
-                  >
-                    <ArrowBackIcon />
-                  </IconButton>
-                  <Typography
-                    variant="h5"
                     sx={{
-                      fontWeight: "bold",
-                      color: "primary.main",
+                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                      color: 'white',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                        transform: 'translateY(-2px)',
+                      },
                     }}
                   >
+                    <CancelIcon />
+                  </IconButton>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <BusinessIcon sx={{ fontSize: 40 }} />
                     {selectedClient ? "Edit Client" : "Create Client"}
                   </Typography>
                 </Box>
 
                 <form onSubmit={handleSubmit}>
                   <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Box sx={{ 
+                        mb: 3,
+                        pb: 2,
+                        borderBottom: '2px solid',
+                        borderColor: 'rgba(61, 82, 160, 0.1)',
+                      }}>
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            color: 'primary.main',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            fontWeight: 600,
+                          }}
+                        >
+                          <BusinessIcon />
+                          Client Details
+                        </Typography>
+                      </Box>
+                    </Grid>
+
                     {["clientCode", "name", "email", "contact", "address", "website"].map((field) => (
                       <Grid item xs={12} sm={6} key={field}>
-                        {field === "contact" ? (
-                          <TextField
-                            fullWidth
-                            label="Contact"
-                            name={field}
-                            value={client[field]}
-                            onChange={handleChange}
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Typography sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                                    +91
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                            required
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '&:hover fieldset': {
-                                  borderColor: 'primary.main',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderWidth: '2px',
-                                },
+                        <TextField
+                          fullWidth
+                          label={field === "clientCode" ? "Client Code" : field.charAt(0).toUpperCase() + field.slice(1)}
+                          name={field}
+                          value={client[field]}
+                          onChange={handleChange}
+                          required
+                          InputProps={{
+                            startAdornment: field === "contact" ? (
+                              <InputAdornment position="start">
+                                <Typography sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                  +91
+                                </Typography>
+                              </InputAdornment>
+                            ) : null
+                          }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              background: 'rgba(255,255,255,0.9)',
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                background: 'rgba(255,255,255,1)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                               },
-                            }}
-                          />
-                        ) : (
-                          <TextField
-                            fullWidth
-                            label={field === "clientCode" ? "Client Code" : field.charAt(0).toUpperCase() + field.slice(1)}
-                            name={field}
-                            value={client[field]}
-                            onChange={handleChange}
-                            required
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '&:hover fieldset': {
-                                  borderColor: 'primary.main',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderWidth: '2px',
-                                },
-                              },
-                            }}
-                          />
-                        )}
+                            },
+                          }}
+                        />
                       </Grid>
                     ))}
+
                     <Grid item xs={12}>
-                      <Button
-                        variant={client.isBlocked ? "contained" : "outlined"}
-                        color={client.isBlocked ? "error" : "primary"}
-                        onClick={() => {
-                          setClient(prev => ({
-                            ...prev,
-                            isBlocked: !prev.isBlocked
-                          }));
-                        }}
-                        startIcon={<BlockIcon />}
-                        sx={{
-                          transition: 'all 0.2s ease-in-out',
-                        }}
-                      >
-                        {client.isBlocked ? "Unblock Client" : "Block Client"}
-                      </Button>
+                      <Box sx={{ 
+                        mt: 4, 
+                        pt: 3,
+                        borderTop: '2px solid',
+                        borderColor: 'rgba(61, 82, 160, 0.1)',
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        gap: 2 
+                      }}>
+                        <Button
+                          variant="outlined"
+                          color={client.isBlocked ? "error" : "primary"}
+                          onClick={() => {
+                            setClient(prev => ({
+                              ...prev,
+                              isBlocked: !prev.isBlocked
+                            }));
+                          }}
+                          startIcon={<BlockIcon />}
+                          sx={{
+                            borderWidth: '2px',
+                            '&:hover': {
+                              borderWidth: '2px',
+                            },
+                          }}
+                        >
+                          {client.isBlocked ? "Unblock Client" : "Block Client"}
+                        </Button>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <Button
+                            variant="outlined"
+                            onClick={resetForm}
+                            startIcon={<CancelIcon />}
+                            sx={{
+                              borderWidth: '2px',
+                              '&:hover': {
+                                borderWidth: '2px',
+                              },
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            sx={{
+                              background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                              '&:hover': {
+                                background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                              }
+                            }}
+                          >
+                            {selectedClient ? "Update Client" : "Create Client"}
+                          </Button>
+                        </Box>
+                      </Box>
                     </Grid>
                   </Grid>
-
-                  <Box sx={{ 
-                    display: "flex", 
-                    gap: 2, 
-                    mt: 4,
-                    justifyContent: 'flex-end'
-                  }}>
-                    <Button 
-                      variant="outlined" 
-                      onClick={resetForm}
-                      startIcon={<ArrowBackIcon />}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      variant="contained" 
-                      color="primary"
-                      startIcon={<AddIcon />}
-                    >
-                      {selectedClient ? "Update Client" : "Create Client"}
-                    </Button>
-                  </Box>
                 </form>
               </Paper>
             </motion.div>
@@ -582,100 +746,6 @@ const ClientCrud = React.memo(() => {
               initial="hidden"
               animate="visible"
             >
-              {/* Search & Filters Section */}
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  backgroundColor: 'background.paper',
-                  borderRadius: 3,
-                  p: 3,
-                  mb: 3,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 3,
-                    color: 'text.primary',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    '&::after': {
-                      content: '""',
-                      flex: 1,
-                      height: '2px',
-                      background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0))',
-                      ml: 2
-                    }
-                  }}
-                >
-                  <SearchIcon sx={{ color: 'primary.main' }} />
-                  Search & Filters
-                </Typography>
-
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={8}>
-                    <TextField
-                      fullWidth
-                      placeholder="Search by Name or Address..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon sx={{ color: 'text.secondary' }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'background.paper',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            backgroundColor: 'action.hover',
-                          },
-                          '&.Mui-focused': {
-                            backgroundColor: 'background.paper',
-                            '& fieldset': {
-                              borderWidth: '2px',
-                              borderColor: 'primary.main',
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
-                      <InputLabel>Block Status</InputLabel>
-                      <Select
-                        value={clientFilter}
-                        onChange={handleFilterChange}
-                        label="Block Status"
-                        sx={{
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'divider',
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'primary.main',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderWidth: '2px',
-                          },
-                        }}
-                      >
-                        <MenuItem value="all">All Clients</MenuItem>
-                        <MenuItem value="blocked">Blocked</MenuItem>
-                        <MenuItem value="notBlocked">Not Blocked</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-              </Paper>
-
               {/* Clients List Section */}
               <Paper 
                 elevation={0}
@@ -685,190 +755,310 @@ const ClientCrud = React.memo(() => {
                   overflow: 'hidden',
                   border: '1px solid',
                   borderColor: 'divider',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  mt: 2,
                 }}
               >
-                <Box sx={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center",
-                  p: 3,
-                  borderBottom: '1px solid',
-                  borderColor: 'divider'
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        color: 'text.primary',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}
-                    >
-                      <BusinessIcon sx={{ color: 'primary.main' }} />
-                      Clients List
-                    </Typography>
-                    <Chip 
-                      label={`Total: ${filteredClients.length}`}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: 'primary.light',
+                {isLoading ? (
+                  <Box sx={{ 
+                    display: "flex", 
+                    justifyContent: "center", 
+                    alignItems: "center",
+                    py: 8,
+                    flexDirection: 'column',
+                    gap: 2
+                  }}>
+                    <CircularProgress 
+                      size={48} 
+                      thickness={4}
+                      sx={{
                         color: 'primary.main',
-                        fontWeight: 500,
+                        '& .MuiCircularProgress-circle': {
+                          strokeLinecap: 'round',
+                        }
                       }}
                     />
+                    <Typography variant="h6" color="primary">
+                      Loading clients...
+                    </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleAddClick}
-                    startIcon={<AddIcon />}
-                  >
-                    Add Client
-                  </Button>
-                </Box>
-
-                <TableContainer 
-                  sx={{ 
-                    maxHeight: 'calc(100vh - 50px)',
-                    '&::-webkit-scrollbar': {
-                      width: '8px',
-                      height: '8px',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: 'rgba(0,0,0,0.1)',
-                      borderRadius: '4px',
-                    },
-                  }}
-                >
-                  <Table stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        {['#', 'Client Code', 'Name', 'Email', 'Contact', 'Address', 'Website', 'Actions'].map((header) => (
-                          <TableCell
-                            key={header}
-                            sx={{ 
-                              backgroundColor: 'background.paper',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              borderBottom: '2px solid',
-                              borderColor: 'primary.light',
-                            }}
-                          >
-                            {header}
+                ) : (
+                  <TableContainer>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <TagIcon sx={{ color: 'primary.main' }} />
+                              #
+                            </Box>
                           </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <AnimatePresence>
-                        {filteredClients.length === 0 ? (
-                          <TableRow>
-                            <TableCell 
-                              colSpan={8} 
-                              align="center"
-                              sx={{ 
-                                py: 8,
-                                color: 'text.secondary',
-                              }}
-                            >
-                              <Typography variant="h6" gutterBottom>
-                                No clients available
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Try adjusting your search or filter criteria
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          filteredClients.map((client, index) => (
-                            <motion.tr
-                              key={client.id}
-                              variants={itemVariants}
-                              initial="hidden"
-                              animate="visible"
-                              exit="hidden"
-                              component={TableRow}
-                              sx={{
-                                '&:nth-of-type(odd)': {
-                                  backgroundColor: 'action.hover',
-                                },
-                                '&:hover': {
-                                  backgroundColor: 'action.selected',
-                                },
-                                transition: 'background-color 0.2s ease-in-out',
-                              }}
-                            >
-                              <TableCell>{index + 1}</TableCell>
-                              <TableCell>{client.clientCode}</TableCell>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  {client.name}
-                                  {client.isBlocked && (
-                                    <Chip
-                                      size="small"
-                                      label="Blocked"
-                                      color="error"
-                                      sx={{ height: 24 }}
-                                    />
-                                  )}
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CodeIcon sx={{ color: 'primary.main' }} />
+                              Client Code
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <BusinessIcon sx={{ color: 'primary.main' }} />
+                              Name
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <EmailIcon sx={{ color: 'primary.main' }} />
+                              Email
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <PhoneIcon sx={{ color: 'primary.main' }} />
+                              Contact
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon sx={{ color: 'primary.main' }} />
+                              Address
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center" sx={{ 
+                            width: '120px',
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                              <SettingsIcon sx={{ color: 'primary.main' }} />
+                              Actions
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <AnimatePresence>
+                          {filteredClients.length === 0 ? (
+                            <TableRow>
+                              <TableCell 
+                                colSpan={7} 
+                                align="center"
+                                sx={{ 
+                                  py: 8,
+                                  background: 'linear-gradient(145deg, rgba(245,247,255,0.5), rgba(232,236,255,0.5))'
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                  <SearchOffIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+                                  <Typography variant="h6" gutterBottom color="primary">
+                                    No clients found
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    Try adjusting your search criteria or add a new client
+                                  </Typography>
                                 </Box>
                               </TableCell>
-                              <TableCell>{client.email}</TableCell>
-                              <TableCell>+91 {client.contact}</TableCell>
-                              <TableCell>{client.address}</TableCell>
-                              <TableCell>{client.website}</TableCell>
-                              <TableCell>
-                                <Box sx={{ display: "flex", gap: 1 }}>
-                                  <IconButton
-                                    color="primary"
-                                    onClick={() => handleEditClick(client)}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: 'primary.light',
-                                      color: 'primary.main',
-                                      '&:hover': {
-                                        backgroundColor: 'primary.main',
-                                        color: 'white',
-                                      },
-                                    }}
-                                  >
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                  <IconButton
-                                    color="error"
-                                    onClick={() => handleDeleteClick(client)}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: 'error.light',
-                                      color: 'error.main',
-                                      '&:hover': {
-                                        backgroundColor: 'error.main',
-                                        color: 'white',
-                                      },
-                                    }}
-                                  >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Box>
-                              </TableCell>
-                            </motion.tr>
-                          ))
-                        )}
-                      </AnimatePresence>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                            </TableRow>
+                          ) : (
+                            filteredClients.map((client, index) => (
+                              <motion.tr
+                                key={client.id}
+                                variants={itemVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="hidden"
+                                component={TableRow}
+                                sx={{
+                                  '&:nth-of-type(odd)': {
+                                    backgroundColor: 'rgba(245, 247, 255, 0.5)',
+                                  },
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                                    transform: 'scale(1.001) translateZ(0)',
+                                    boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
+                                  },
+                                  transition: 'all 0.2s ease-in-out',
+                                }}
+                              >
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    {index + 1}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <CodeIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    {client.clientCode}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <BusinessIcon sx={{ color: 'warning.main', fontSize: 20 }} />
+                                    {client.name}
+                                    {client.isBlocked && (
+                                      <Chip
+                                        size="small"
+                                        label="Blocked"
+                                        color="error"
+                                        sx={{ height: 24 }}
+                                      />
+                                    )}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <EmailIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                                    {client.email}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <PhoneIcon sx={{ color: 'info.main', fontSize: 20 }} />
+                                    +91 {client.contact}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <LocationOnIcon sx={{ color: 'error.main', fontSize: 20 }} />
+                                    {client.address}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
+                                    <Tooltip title="Edit Client">
+                                      <IconButton
+                                        color="primary"
+                                        onClick={() => handleEditClick(client)}
+                                        size="small"
+                                        sx={{
+                                          background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                          color: 'white',
+                                          '&:hover': {
+                                            background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                            transform: 'translateY(-2px)',
+                                          },
+                                        }}
+                                      >
+                                        <EditIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete Client">
+                                      <IconButton
+                                        color="error"
+                                        onClick={() => handleDeleteClick(client)}
+                                        size="small"
+                                        sx={{
+                                          background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                                          color: 'white',
+                                          '&:hover': {
+                                            background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                                            transform: 'translateY(-2px)',
+                                          },
+                                        }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
+                                </TableCell>
+                              </motion.tr>
+                            ))
+                          )}
+                        </AnimatePresence>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
               </Paper>
             </motion.div>
           )}
 
-          <ConfirmationDialog
+          <Dialog
             open={dialogOpen}
             onClose={() => setDialogOpen(false)}
-            onConfirm={confirmDelete}
-          />
+            PaperProps={{
+              sx: {
+                borderRadius: 3,
+                width: '100%',
+                maxWidth: 400,
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+                backdropFilter: 'blur(10px)',
+              }
+            }}
+          >
+            <DialogTitle sx={{ 
+              pb: 1,
+              color: 'error.main',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              borderBottom: '2px solid',
+              borderColor: 'error.light'
+            }}>
+              <DeleteIcon />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogContent sx={{ mt: 2 }}>
+              <Typography>
+                Are you sure you want to delete this client? This action cannot be undone.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, pt: 0 }}>
+              <Button 
+                onClick={() => setDialogOpen(false)}
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                sx={{
+                  borderWidth: '2px',
+                  '&:hover': {
+                    borderWidth: '2px',
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmDelete}
+                variant="contained"
+                color="error"
+                startIcon={<DeleteIcon />}
+                sx={{
+                  background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
         </motion.div>
       </Container>
     </ThemeProvider>

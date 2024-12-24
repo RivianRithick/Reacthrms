@@ -14,36 +14,44 @@ import {
   IconButton,
   Chip,
   Avatar,
-  Fade
+  TextField,
+  InputAdornment,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Edit as EditIcon, 
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
+  Tag as TagIcon,
+  VerifiedUser as VerifiedUserIcon,
+  CircleOutlined as StatusIcon,
+  Settings as SettingsIcon,
+} from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
     case 'active':
       return {
-        color: '#059669',
-        bgColor: '#d1fae5',
-        borderColor: '#34d399'
+        background: 'linear-gradient(45deg, #059669, #34d399)',
+        boxShadow: '0 2px 8px rgba(5, 150, 105, 0.15)'
       };
     case 'inactive':
       return {
-        color: '#dc2626',
-        bgColor: '#fee2e2',
-        borderColor: '#f87171'
+        background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+        boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)'
       };
     case 'pending':
       return {
-        color: '#d97706',
-        bgColor: '#fef3c7',
-        borderColor: '#fbbf24'
+        background: 'linear-gradient(45deg, #d97706, #fbbf24)',
+        boxShadow: '0 2px 8px rgba(217, 119, 6, 0.15)'
       };
     default:
       return {
-        color: '#6b7280',
-        bgColor: '#f3f4f6',
-        borderColor: '#d1d5db'
+        background: 'linear-gradient(45deg, #6b7280, #9ca3af)',
+        boxShadow: '0 2px 8px rgba(107, 114, 128, 0.15)'
       };
   }
 };
@@ -55,7 +63,9 @@ const EmployeeList = ({
   setShowForm, 
   resetForm,
   setSelectedEmployee,
-  assignedEmployees 
+  assignedEmployees,
+  searchQuery,
+  setSearchQuery
 }) => {
   const tableContainerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -92,63 +102,90 @@ const EmployeeList = ({
       initial="hidden"
       animate="visible"
     >
-      <Paper 
-        elevation={0}
-        sx={{ 
-          backgroundColor: 'background.paper',
-          borderRadius: 3,
-          overflow: 'hidden',
-          transform: 'translateZ(0)',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '100%',
-            background: 'linear-gradient(135deg, rgba(61, 82, 160, 0.03) 0%, rgba(112, 145, 230, 0.03) 100%)',
-            pointerEvents: 'none',
-          }
-        }}
-      >
+      {/* Sticky Header */}
+      <Box sx={{ 
+        position: 'sticky',
+        top: 0,
+        zIndex: 1200,
+        backgroundColor: 'background.default',
+        pt: 2,
+        pb: 3,
+      }}>
         <Box sx={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center",
-          p: 3,
-          borderBottom: '1px solid',
-          borderColor: 'rgba(61, 82, 160, 0.1)',
-          background: 'linear-gradient(to right, rgba(245, 247, 255, 0.8), rgba(232, 236, 255, 0.8))',
-          backdropFilter: 'blur(8px)',
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 3
         }}>
           <Typography 
-            variant="h5" 
+            variant="h4" 
             sx={{ 
-              color: 'text.primary',
-              fontWeight: 700,
+              color: "primary.main",
               display: 'flex',
               alignItems: 'center',
               gap: 2,
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
           >
+            <PersonIcon sx={{ fontSize: 40 }} />
             Employees List
-            <Chip 
-              label={`Total: ${employees.length}`}
-              size="small"
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Chip
+              icon={<PersonIcon />}
+              label={`Total Records: ${employees.length}`}
+              color="primary"
               sx={{ 
-                backgroundColor: 'rgba(61, 82, 160, 0.08)',
-                color: '#3D52A0',
-                fontWeight: 600,
-                border: '1px solid',
-                borderColor: 'rgba(61, 82, 160, 0.2)',
-                '& .MuiChip-label': {
-                  px: 2
-                }
+                fontWeight: 'bold',
+                background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                '& .MuiChip-icon': { color: 'white' }
               }}
             />
-          </Typography>
-          
+          </Box>
+        </Box>
+
+        {/* Search and Add Section */}
+        <Paper 
+          elevation={0}
+          sx={{ 
+            backgroundColor: 'background.paper',
+            borderRadius: 3,
+            p: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            flexWrap: 'wrap',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
+          }}
+        >
+          <TextField
+            placeholder="Search employees..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{ 
+              flex: 1, 
+              minWidth: '200px',
+              '& .MuiOutlinedInput-root': {
+                background: 'rgba(255,255,255,0.9)',
+              }
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'primary.main' }} />
+                </InputAdornment>
+              ),
+            }}
+            size="small"
+          />
           <Button
             variant="contained"
             onClick={() => {
@@ -158,89 +195,115 @@ const EmployeeList = ({
             }}
             startIcon={<AddIcon />}
             sx={{
+              minWidth: '180px',
               background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-              borderRadius: 3,
-              px: 3,
-              py: 1,
+              borderRadius: '8px',
+              padding: '8px 24px',
+              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.18)',
               '&:hover': {
                 background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                boxShadow: '0 6px 16px rgba(61, 82, 160, 0.25)',
               },
+              '&:active': {
+                transform: 'translateY(0)',
+              },
+              fontWeight: 600,
+              fontSize: '0.95rem',
             }}
           >
-            Add Employee
+            Create New Employee
           </Button>
-        </Box>
+        </Paper>
+      </Box>
 
-        <TableContainer sx={{ maxHeight: 'calc(100vh - 200px)' }}>
-          <Table stickyHeader>
+      <Paper 
+        elevation={0}
+        sx={{ 
+          backgroundColor: 'background.paper',
+          borderRadius: 3,
+          overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+          backdropFilter: 'blur(10px)',
+          mt: 2,
+        }}
+      >
+        <TableContainer>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                  background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                   fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '5%'
-                }}>#</TableCell>
+                  color: 'primary.main',
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TagIcon sx={{ color: 'primary.main' }} />
+                    #
+                  </Box>
+                </TableCell>
                 <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                  background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                   fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '12%'
-                }}>First Name</TableCell>
+                  color: 'primary.main',
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PersonIcon sx={{ color: 'primary.main' }} />
+                    First Name
+                  </Box>
+                </TableCell>
                 <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                  background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                   fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '12%'
-                }}>Last Name</TableCell>
+                  color: 'primary.main',
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PersonIcon sx={{ color: 'primary.main' }} />
+                    Last Name
+                  </Box>
+                </TableCell>
                 <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                  background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                   fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '12%'
-                }}>Contact</TableCell>
+                  color: 'primary.main',
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PhoneIcon sx={{ color: 'primary.main' }} />
+                    Contact
+                  </Box>
+                </TableCell>
                 <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                  background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                   fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '15%'
-                }}>Email</TableCell>
+                  color: 'primary.main',
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <VerifiedUserIcon sx={{ color: 'primary.main' }} />
+                    Verification
+                  </Box>
+                </TableCell>
                 <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                  background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                   fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '17%'
-                }}>Verification</TableCell>
-                <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
+                  color: 'primary.main',
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <StatusIcon sx={{ color: 'primary.main' }} />
+                    Status
+                  </Box>
+                </TableCell>
+                <TableCell align="center" sx={{ 
+                  background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                   fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '12%'
-                }}>Status</TableCell>
-                <TableCell sx={{ 
-                  backgroundColor: 'rgba(245, 247, 255, 0.95)',
-                  fontWeight: 600,
-                  color: '#3D52A0',
-                  borderBottom: '2px solid',
-                  borderColor: 'rgba(61, 82, 160, 0.1)',
-                  width: '15%'
-                }}>Actions</TableCell>
+                  color: 'primary.main',
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                    <SettingsIcon sx={{ color: 'primary.main' }} />
+                    Actions
+                  </Box>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -248,7 +311,7 @@ const EmployeeList = ({
                 {employees.length === 0 ? (
                   <TableRow>
                     <TableCell 
-                      colSpan={8} 
+                      colSpan={7} 
                       align="center"
                       sx={{ 
                         py: 8,
@@ -261,6 +324,7 @@ const EmployeeList = ({
                         alignItems: 'center',
                         gap: 2
                       }}>
+                        <PersonIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
                         <Typography variant="h6" color="text.secondary">
                           No employees found
                         </Typography>
@@ -291,55 +355,60 @@ const EmployeeList = ({
                         transition: 'all 0.2s ease-in-out',
                       }}
                     >
-                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                          {index + 1}
+                        </Box>
+                      </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Avatar 
                             sx={{ 
-                              width: 40, 
-                              height: 40,
-                              background: `linear-gradient(135deg, ${employee.firstName?.[0] ? '#3D52A0' : '#8697C4'}, ${employee.firstName?.[0] ? '#7091E6' : '#ADBBDA'})`,
+                              width: 32, 
+                              height: 32,
+                              background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                               color: 'white',
-                              fontSize: '1rem',
-                              fontWeight: 600,
-                              boxShadow: '0 2px 8px rgba(61, 82, 160, 0.15)',
-                              border: '2px solid white',
+                              fontSize: '0.875rem',
+                              fontWeight: 600
                             }}
                           >
-                            {(employee.firstName?.[0] || '').toUpperCase()}
+                            {employee.firstName?.[0]?.toUpperCase() || ''}
                           </Avatar>
-                          <Typography variant="body2">
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             {employee.firstName || "N/A"}
                           </Typography>
                         </Box>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
                           {employee.lastName || "N/A"}
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">
-                          {employee.contact || "N/A"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {employee.email || "N/A"}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <PhoneIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                          <Typography variant="body2">
+                            {employee.contact || "N/A"}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell>
                         {employee.isApproved ? (
                           <Chip 
                             label={`Verified by ${employee.verifiedBy || "Unknown"}`}
                             size="small"
+                            className="verification-chip"
                             sx={{ 
-                              backgroundColor: 'rgba(61, 82, 160, 0.08)',
-                              color: '#3D52A0',
+                              background: 'linear-gradient(45deg, #059669, #34d399)',
+                              color: 'white',
                               fontWeight: 600,
-                              border: '1px solid',
-                              borderColor: 'rgba(61, 82, 160, 0.2)',
-                              backdropFilter: 'blur(4px)',
+                              border: 'none',
+                              borderRadius: '16px',
+                              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.15)',
+                              '&.verification-chip': {
+                                background: 'linear-gradient(45deg, #059669, #34d399) !important',
+                              },
                               '& .MuiChip-label': {
                                 px: 2,
                               }
@@ -349,13 +418,17 @@ const EmployeeList = ({
                           <Chip 
                             label="Not Verified"
                             size="small"
+                            className="verification-chip"
                             sx={{ 
-                              backgroundColor: 'rgba(107, 114, 128, 0.1)',
-                              color: '#6b7280',
+                              background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                              color: 'white',
                               fontWeight: 600,
-                              border: '1px solid',
-                              borderColor: 'rgba(107, 114, 128, 0.2)',
-                              backdropFilter: 'blur(4px)',
+                              border: 'none',
+                              borderRadius: '16px',
+                              boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)',
+                              '&.verification-chip': {
+                                background: 'linear-gradient(45deg, #dc2626, #ef4444) !important',
+                              },
                               '& .MuiChip-label': {
                                 px: 2,
                               }
@@ -367,48 +440,56 @@ const EmployeeList = ({
                         <Chip 
                           label={employee.status || "Pending"}
                           size="small"
+                          className="status-chip"
                           sx={{ 
-                            backgroundColor: getStatusColor(employee.status).bgColor,
-                            color: getStatusColor(employee.status).color,
-                            border: '1px solid',
-                            borderColor: getStatusColor(employee.status).borderColor,
-                            fontWeight: 500,
-                            backdropFilter: 'blur(4px)',
+                            background: getStatusColor(employee.status).background,
+                            color: 'white',
+                            fontWeight: 600,
+                            border: 'none',
+                            borderRadius: '16px',
+                            boxShadow: getStatusColor(employee.status).boxShadow,
+                            '&.status-chip': {
+                              background: `${getStatusColor(employee.status).background} !important`,
+                            },
                             '& .MuiChip-label': {
-                              px: 1
+                              px: 2
                             }
                           }}
                         />
                       </TableCell>
                       <TableCell>
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <Tooltip title="Edit">
+                        <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
+                          <Tooltip title="Edit Employee">
                             <IconButton
+                              color="primary"
                               onClick={() => handleEdit(employee)}
                               size="small"
                               sx={{
-                                color: 'warning.main',
+                                background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                color: 'white',
+                                borderRadius: '8px',
                                 '&:hover': {
-                                  backgroundColor: 'warning.light',
-                                  transform: 'translateY(-1px)',
+                                  background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                  transform: 'translateY(-2px)',
                                 },
-                                transition: 'all 0.2s ease-in-out',
                               }}
                             >
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title={employee.isDeleted ? "Enable" : "Disable"}>
+                          <Tooltip title={employee.isDeleted ? "Enable Employee" : "Disable Employee"}>
                             <IconButton
+                              color="error"
                               onClick={() => handleDelete(employee)}
                               size="small"
                               sx={{
-                                color: employee.isDeleted ? 'success.main' : 'error.main',
+                                background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                                color: 'white',
+                                borderRadius: '8px',
                                 '&:hover': {
-                                  backgroundColor: employee.isDeleted ? 'success.light' : 'error.light',
-                                  transform: 'translateY(-1px)',
+                                  background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                                  transform: 'translateY(-2px)',
                                 },
-                                transition: 'all 0.2s ease-in-out',
                               }}
                             >
                               <DeleteIcon fontSize="small" />
@@ -428,4 +509,4 @@ const EmployeeList = ({
   );
 };
 
-export default EmployeeList; 
+export default React.memo(EmployeeList); 

@@ -5,7 +5,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { Box, Typography, Container, Fade } from "@mui/material";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion } from "framer-motion";
-import SearchFilters from "./Employee/SearchFilters";
 import EmployeeList from "./Employee/EmployeeList";
 import EmployeeForm from "./Employee/EmployeeForm";
 import EmployeeDialogs from "./Employee/EmployeeDialogs";
@@ -357,14 +356,6 @@ const EmployeeComponent = () => {
             pointerEvents: 'none',
           }
         }}>
-          <Typography variant="h4" component="h1" sx={{ 
-            fontSize: { xs: '2rem', md: '2.5rem' },
-            textAlign: 'center',
-            mb: 4,
-          }}>
-            Employee Management System
-          </Typography>
-
           {isLoading ? (
             <Box sx={{ 
               display: "flex", 
@@ -417,13 +408,6 @@ const EmployeeComponent = () => {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <SearchFilters
-                      searchQuery={searchQuery}
-                      setSearchQuery={setSearchQuery}
-                      filters={filters}
-                      handleFilterChange={handleFilterChange}
-                    />
-
                     <EmployeeList
                       employees={filteredEmployees}
                       handleEdit={handleEdit}
@@ -435,6 +419,8 @@ const EmployeeComponent = () => {
                       resetForm={resetForm}
                       setSelectedEmployee={setSelectedEmployee}
                       assignedEmployees={assignedEmployees}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
                     />
                   </motion.div>
                 )}

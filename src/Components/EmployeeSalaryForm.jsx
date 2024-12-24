@@ -32,6 +32,7 @@ import {
     CalendarToday as CalendarIcon,
     Payment as PaymentIcon,
     CurrencyExchange as CurrencyIcon,
+    Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { useSalaryData } from '../hooks/useSalaryData';
 
@@ -91,8 +92,8 @@ const theme = createTheme({
                 root: {
                     background: 'linear-gradient(135deg, #F5F7FF 0%, #E8ECFF 100%)',
                     minHeight: '100vh',
-                    paddingTop: '2rem',
-                    paddingBottom: '2rem',
+                    paddingTop: '1rem',
+                    paddingBottom: '1rem',
                 },
             },
         },
@@ -119,6 +120,7 @@ const theme = createTheme({
                         '&:hover': {
                             background: 'rgba(61, 82, 160, 0.04)',
                             borderColor: '#2A3B7D',
+                            transform: 'translateY(-1px)',
                         },
                     },
                 },
@@ -130,7 +132,7 @@ const theme = createTheme({
                     borderRadius: 16,
                     boxShadow: '0 8px 32px rgba(61, 82, 160, 0.08)',
                     backdropFilter: 'blur(8px)',
-                    background: 'rgba(255, 255, 255, 0.95)',
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
                     border: '1px solid rgba(61, 82, 160, 0.08)',
                 },
             },
@@ -140,6 +142,7 @@ const theme = createTheme({
                 root: {
                     '& .MuiOutlinedInput-root': {
                         borderRadius: 12,
+                        background: 'rgba(255,255,255,0.9)',
                         '&:hover fieldset': {
                             borderColor: '#7091E6',
                         },
@@ -374,38 +377,45 @@ const EmployeeSalaryForm = React.memo(() => {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container maxWidth="xl" sx={{ py: 4 }}>
+            <Container maxWidth="xl" sx={{ py: 2 }}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <IconButton
-                            onClick={() => navigate('/salaries')}
-                            sx={{
-                                backgroundColor: 'primary.light',
-                                color: 'primary.main',
-                                '&:hover': {
-                                    backgroundColor: 'primary.main',
+                    <Box sx={{ 
+                        mb: 3, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between'
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <IconButton
+                                onClick={() => navigate('/salaries')}
+                                sx={{
+                                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                                     color: 'white',
-                                },
-                            }}
-                        >
-                            <ArrowBackIcon />
-                        </IconButton>
-                        <Typography 
-                            variant="h4" 
-                            sx={{ 
-                                color: 'primary.main',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                            }}
-                        >
-                            <MoneyIcon />
-                            {id ? 'Edit Salary Record' : 'Create New Salary Record'}
-                        </Typography>
+                                    '&:hover': {
+                                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                        transform: 'translateY(-2px)',
+                                    },
+                                }}
+                            >
+                                <ArrowBackIcon />
+                            </IconButton>
+                            <Typography 
+                                variant="h4" 
+                                sx={{ 
+                                    color: 'primary.main',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}
+                            >
+                                <PaymentIcon sx={{ fontSize: 40 }} />
+                                {id ? 'Edit Salary Record' : 'Create New Salary Record'}
+                            </Typography>
+                        </Box>
                     </Box>
 
                     <ToastContainer />
@@ -413,9 +423,11 @@ const EmployeeSalaryForm = React.memo(() => {
                     <Paper 
                         elevation={0}
                         sx={{ 
-                            p: 4,
+                            p: { xs: 2, sm: 3, md: 4 },
                             border: '1px solid',
                             borderColor: 'divider',
+                            background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                            backdropFilter: 'blur(10px)',
                         }}
                     >
                         {isLoading ? (
@@ -427,8 +439,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                 flexDirection: 'column',
                                 gap: 2
                             }}>
-                                <CircularProgress size={48} thickness={4} />
-                                <Typography variant="body1" color="text.secondary">
+                                <CircularProgress 
+                                    size={48} 
+                                    thickness={4}
+                                    sx={{
+                                        color: 'primary.main',
+                                        '& .MuiCircularProgress-circle': {
+                                            strokeLinecap: 'round',
+                                        }
+                                    }}
+                                />
+                                <Typography variant="h6" color="primary">
                                     {id ? 'Loading salary record...' : 'Preparing form...'}
                                 </Typography>
                             </Box>
@@ -437,11 +458,26 @@ const EmployeeSalaryForm = React.memo(() => {
                                 <Grid container spacing={3}>
                                     {/* Basic Salary Information */}
                                     <Grid item xs={12}>
-                                        <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <MoneyIcon />
-                                            Basic Salary Information
-                                        </Typography>
-                                        <Divider sx={{ mb: 3 }} />
+                                        <Box sx={{ 
+                                            mb: 3,
+                                            pb: 2,
+                                            borderBottom: '2px solid',
+                                            borderColor: 'rgba(61, 82, 160, 0.1)',
+                                        }}>
+                                            <Typography 
+                                                variant="h6" 
+                                                sx={{ 
+                                                    color: 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                <MoneyIcon />
+                                                Basic Salary Information
+                                            </Typography>
+                                        </Box>
                                     </Grid>
 
                                     <Grid item xs={12} sm={6} md={3}>
@@ -459,6 +495,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <MoneyIcon sx={{ color: 'primary.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         />
                                     </Grid>
@@ -478,6 +525,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={6} md={3}>
@@ -495,6 +553,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <WorkIcon sx={{ color: 'primary.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         />
                                     </Grid>
@@ -514,16 +583,43 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
 
                                     {/* Employee Contributions */}
                                     <Grid item xs={12}>
-                                        <Typography variant="h6" sx={{ mb: 2, mt: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <BankIcon />
-                                            Employee Contributions
-                                        </Typography>
-                                        <Divider sx={{ mb: 3 }} />
+                                        <Box sx={{ 
+                                            mb: 3,
+                                            mt: 4,
+                                            pb: 2,
+                                            borderBottom: '2px solid',
+                                            borderColor: 'rgba(61, 82, 160, 0.1)',
+                                        }}>
+                                            <Typography 
+                                                variant="h6" 
+                                                sx={{ 
+                                                    color: 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                <BankIcon />
+                                                Employee Contributions
+                                            </Typography>
+                                        </Box>
                                     </Grid>
 
                                     <Grid item xs={12} sm={6} md={3}>
@@ -541,6 +637,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <BankIcon sx={{ color: 'primary.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         />
                                     </Grid>
@@ -560,16 +667,43 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
 
                                     {/* Employer Contributions */}
                                     <Grid item xs={12}>
-                                        <Typography variant="h6" sx={{ mb: 2, mt: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <BankIcon />
-                                            Employer Contributions
-                                        </Typography>
-                                        <Divider sx={{ mb: 3 }} />
+                                        <Box sx={{ 
+                                            mb: 3,
+                                            mt: 4,
+                                            pb: 2,
+                                            borderBottom: '2px solid',
+                                            borderColor: 'rgba(61, 82, 160, 0.1)',
+                                        }}>
+                                            <Typography 
+                                                variant="h6" 
+                                                sx={{ 
+                                                    color: 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                <BankIcon />
+                                                Employer Contributions
+                                            </Typography>
+                                        </Box>
                                     </Grid>
 
                                     <Grid item xs={12} sm={6} md={3}>
@@ -587,6 +721,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <BankIcon sx={{ color: 'primary.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         />
                                     </Grid>
@@ -606,16 +751,43 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
 
                                     {/* Other Details */}
                                     <Grid item xs={12}>
-                                        <Typography variant="h6" sx={{ mb: 2, mt: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <PaymentIcon />
-                                            Other Details
-                                        </Typography>
-                                        <Divider sx={{ mb: 3 }} />
+                                        <Box sx={{ 
+                                            mb: 3,
+                                            mt: 4,
+                                            pb: 2,
+                                            borderBottom: '2px solid',
+                                            borderColor: 'rgba(61, 82, 160, 0.1)',
+                                        }}>
+                                            <Typography 
+                                                variant="h6" 
+                                                sx={{ 
+                                                    color: 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                <PaymentIcon />
+                                                Other Details
+                                            </Typography>
+                                        </Box>
                                     </Grid>
 
                                     <Grid item xs={12} sm={6} md={3}>
@@ -633,6 +805,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <PaymentIcon sx={{ color: 'primary.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         />
                                     </Grid>
@@ -652,16 +835,43 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
 
                                     {/* Calculated Fields */}
                                     <Grid item xs={12}>
-                                        <Typography variant="h6" sx={{ mb: 2, mt: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <MoneyIcon />
-                                            Calculated Totals
-                                        </Typography>
-                                        <Divider sx={{ mb: 3 }} />
+                                        <Box sx={{ 
+                                            mb: 3,
+                                            mt: 4,
+                                            pb: 2,
+                                            borderBottom: '2px solid',
+                                            borderColor: 'rgba(61, 82, 160, 0.1)',
+                                        }}>
+                                            <Typography 
+                                                variant="h6" 
+                                                sx={{ 
+                                                    color: 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                <MoneyIcon />
+                                                Calculated Totals
+                                            </Typography>
+                                        </Box>
                                     </Grid>
 
                                     <Grid item xs={12} sm={6} md={4}>
@@ -676,6 +886,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <MoneyIcon sx={{ color: 'success.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         />
                                     </Grid>
@@ -692,6 +913,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={6} md={4}>
@@ -707,16 +939,43 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
 
                                     {/* Payment Details */}
                                     <Grid item xs={12}>
-                                        <Typography variant="h6" sx={{ mb: 2, mt: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <PaymentIcon />
-                                            Payment Details
-                                        </Typography>
-                                        <Divider sx={{ mb: 3 }} />
+                                        <Box sx={{ 
+                                            mb: 3,
+                                            mt: 4,
+                                            pb: 2,
+                                            borderBottom: '2px solid',
+                                            borderColor: 'rgba(61, 82, 160, 0.1)',
+                                        }}>
+                                            <Typography 
+                                                variant="h6" 
+                                                sx={{ 
+                                                    color: 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                <PaymentIcon />
+                                                Payment Details
+                                            </Typography>
+                                        </Box>
                                     </Grid>
 
                                     <Grid item xs={12} sm={6} md={3}>
@@ -734,6 +993,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <CalendarIcon sx={{ color: 'primary.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         >
                                             <MenuItem value="Monthly">Monthly</MenuItem>
@@ -755,6 +1025,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                         <CurrencyIcon sx={{ color: 'primary.main' }} />
                                                     </InputAdornment>
                                                 ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
                                             }}
                                         >
                                             <MenuItem value="INR">INR</MenuItem>
@@ -778,6 +1059,17 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={6} md={3}>
@@ -797,34 +1089,87 @@ const EmployeeSalaryForm = React.memo(() => {
                                                     </InputAdornment>
                                                 ),
                                             }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        background: 'rgba(255,255,255,1)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                                                    },
+                                                },
+                                            }}
                                         />
                                     </Grid>
-                                </Grid>
 
-                                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => navigate('/salaries')}
-                                        startIcon={<ArrowBackIcon />}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        variant="contained"
-                                        color="primary"
-                                        disabled={isLoading}
-                                        startIcon={isLoading ? <CircularProgress size={20} /> : <SaveIcon />}
-                                    >
-                                        {isLoading ? 'Saving...' : (id ? 'Update' : 'Create')}
-                                    </Button>
-                                </Box>
+                                    <Grid item xs={12}>
+                                        <Box sx={{ 
+                                            mt: 4, 
+                                            pt: 3,
+                                            borderTop: '2px solid',
+                                            borderColor: 'rgba(61, 82, 160, 0.1)',
+                                            display: 'flex', 
+                                            justifyContent: 'flex-end', 
+                                            gap: 2 
+                                        }}>
+                                            <Button
+                                                variant="outlined"
+                                                onClick={() => navigate('/salaries')}
+                                                startIcon={<CancelIcon />}
+                                                sx={{
+                                                    borderWidth: '2px',
+                                                    '&:hover': {
+                                                        borderWidth: '2px',
+                                                    },
+                                                }}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                type="submit"
+                                                variant="contained"
+                                                disabled={isLoading}
+                                                startIcon={isLoading ? <CircularProgress size={20} /> : <SaveIcon />}
+                                                sx={{
+                                                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                                    boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                                                    '&:hover': {
+                                                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                                        boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                                                    },
+                                                    '&:disabled': {
+                                                        background: 'rgba(0, 0, 0, 0.12)',
+                                                    },
+                                                }}
+                                            >
+                                                {isLoading ? 'Saving...' : (id ? 'Update' : 'Create')}
+                                            </Button>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
                             </form>
                         )}
                     </Paper>
 
-                    <Snackbar open={!!apiError} autoHideDuration={6000} onClose={() => setError(null)}>
-                        <Alert severity="error" onClose={() => setError(null)}>
+                    <Snackbar 
+                        open={!!apiError} 
+                        autoHideDuration={6000} 
+                        onClose={() => setError(null)}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    >
+                        <Alert 
+                            severity="error" 
+                            onClose={() => setError(null)}
+                            sx={{ 
+                                borderRadius: 2,
+                                background: 'linear-gradient(145deg, #ef4444, #dc2626)',
+                                color: 'white',
+                                '& .MuiAlert-icon': {
+                                    color: 'white',
+                                },
+                            }}
+                        >
                             {apiError}
                         </Alert>
                     </Snackbar>

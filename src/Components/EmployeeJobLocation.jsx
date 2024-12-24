@@ -20,6 +20,11 @@ import {
   InputAdornment,
   Chip,
   IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,6 +38,10 @@ import {
   LocationCity as CityIcon,
   Public as CountryIcon,
   Home as AddressIcon,
+  Settings as SettingsIcon,
+  SearchOff as SearchOffIcon,
+  Cancel as CancelIcon,
+  Tag as TagIcon,
 } from '@mui/icons-material';
 import useDebounce from '../hooks/useDebounce';
 import { useJobLocationData } from '../hooks/useJobLocationData';
@@ -366,23 +375,111 @@ const EmployeeJobLocation = React.memo(() => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 2 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography 
-            variant="h4" 
-            gutterBottom 
-            sx={{ 
-              textAlign: "center", 
-              color: "primary.main",
-              marginBottom: 4
-            }}
-          >
-            Job Location Management
-          </Typography>
+          <Box sx={{ 
+            position: 'sticky',
+            top: 0,
+            zIndex: 1200,
+            backgroundColor: 'background.default',
+            pt: 2,
+            pb: 3,
+          }}>
+            {!showForm && (
+              <>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  mb: 3
+                }}>
+                  <Typography 
+                    variant="h4" 
+                    sx={{ 
+                      color: "primary.main",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <LocationIcon sx={{ fontSize: 40 }} />
+                    Job Location Management
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Chip
+                      icon={<LocationIcon />}
+                      label={`Total Records: ${filteredLocations.length}`}
+                      color="primary"
+                      sx={{ 
+                        fontWeight: 'bold',
+                        background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                        '& .MuiChip-icon': { color: 'white' }
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Search and Add Button Section */}
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    backgroundColor: 'background.paper',
+                    borderRadius: 3,
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    flexWrap: 'wrap',
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
+                  }}
+                >
+                  <TextField
+                    placeholder="Search by City, State or Country..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    sx={{ 
+                      flex: 1, 
+                      minWidth: '200px',
+                      '& .MuiOutlinedInput-root': {
+                        background: 'rgba(255,255,255,0.9)',
+                      }
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: 'primary.main' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    size="small"
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => setShowForm(true)}
+                    startIcon={<AddIcon />}
+                    sx={{
+                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                      boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                        boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                      }
+                    }}
+                  >
+                    Add New Location
+                  </Button>
+                </Paper>
+              </>
+            )}
+          </Box>
 
           <ToastContainer />
 
@@ -394,41 +491,77 @@ const EmployeeJobLocation = React.memo(() => {
               transition={{ duration: 0.3 }}
             >
               <Paper
+                elevation={0}
                 sx={{
                   backgroundColor: 'background.paper',
                   borderRadius: 3,
-                  p: 4,
+                  p: { xs: 2, sm: 3, md: 4 },
                   maxWidth: 800,
                   margin: '0 auto',
                   border: '1px solid',
                   borderColor: 'divider',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
                   mb: 3,
-                  gap: 1
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2
                 }}>
-                  <IconButton 
+                  <IconButton
                     onClick={resetForm}
-                    sx={{ mr: 1 }}
-                  >
-                    <ArrowBackIcon />
-                  </IconButton>
-                  <Typography
-                    variant="h5"
                     sx={{
-                      fontWeight: "bold",
-                      color: "primary.main",
+                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                      color: 'white',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                        transform: 'translateY(-2px)',
+                      },
                     }}
                   >
-                    {selectedLocation ? "Edit Job Location" : "Create Job Location"}
+                    <CancelIcon />
+                  </IconButton>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <LocationIcon sx={{ fontSize: 40 }} />
+                    {selectedLocation ? "Edit Location" : "Create Location"}
                   </Typography>
                 </Box>
 
                 <form onSubmit={handleSubmit}>
                   <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Box sx={{ 
+                        mb: 3,
+                        pb: 2,
+                        borderBottom: '2px solid',
+                        borderColor: 'rgba(61, 82, 160, 0.1)',
+                      }}>
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            color: 'primary.main',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            fontWeight: 600,
+                          }}
+                        >
+                          <LocationIcon />
+                          Location Details
+                        </Typography>
+                      </Box>
+                    </Grid>
+
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
@@ -437,21 +570,22 @@ const EmployeeJobLocation = React.memo(() => {
                         value={formData.city}
                         onChange={handleInputChange}
                         required
-                        placeholder="Enter city name (e.g., Mumbai)"
+                        placeholder="Enter city name"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <CityIcon sx={{ color: 'text.secondary' }} />
+                              <CityIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
                           ),
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderWidth: '2px',
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                             },
                           },
                         }}
@@ -465,21 +599,22 @@ const EmployeeJobLocation = React.memo(() => {
                         value={formData.state}
                         onChange={handleInputChange}
                         required
-                        placeholder="Enter state name (e.g., Maharashtra)"
+                        placeholder="Enter state name"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <LocationIcon sx={{ color: 'text.secondary' }} />
+                              <LocationIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
                           ),
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderWidth: '2px',
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                             },
                           },
                         }}
@@ -493,21 +628,22 @@ const EmployeeJobLocation = React.memo(() => {
                         value={formData.country}
                         onChange={handleInputChange}
                         required
-                        placeholder="Enter country name (e.g., India)"
+                        placeholder="Enter country name"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <CountryIcon sx={{ color: 'text.secondary' }} />
+                              <CountryIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
                           ),
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderWidth: '2px',
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                             },
                           },
                         }}
@@ -521,58 +657,74 @@ const EmployeeJobLocation = React.memo(() => {
                         value={formData.address}
                         onChange={handleInputChange}
                         multiline
-                        rows={2}
-                        placeholder="Enter complete address details"
+                        rows={3}
+                        placeholder="Enter complete address"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <AddressIcon sx={{ color: 'text.secondary' }} />
+                              <AddressIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
                           ),
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderWidth: '2px',
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                             },
                           },
                         }}
                       />
                     </Grid>
-                  </Grid>
 
-                  <Box sx={{ 
-                    display: "flex", 
-                    gap: 2, 
-                    mt: 4,
-                    justifyContent: 'flex-end'
-                  }}>
-                    <Button 
-                      variant="outlined" 
-                      onClick={resetForm}
-                      startIcon={<ArrowBackIcon />}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      variant="contained" 
-                      color="primary"
-                      startIcon={<AddIcon />}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <CircularProgress size={24} sx={{ color: 'inherit' }} />
-                      ) : selectedLocation ? (
-                        "Update Location"
-                      ) : (
-                        "Create Location"
-                      )}
-                    </Button>
-                  </Box>
+                    <Grid item xs={12}>
+                      <Box sx={{ 
+                        mt: 4, 
+                        pt: 3,
+                        borderTop: '2px solid',
+                        borderColor: 'rgba(61, 82, 160, 0.1)',
+                        display: 'flex', 
+                        justifyContent: 'flex-end', 
+                        gap: 2 
+                      }}>
+                        <Button
+                          variant="outlined"
+                          onClick={resetForm}
+                          startIcon={<CancelIcon />}
+                          sx={{
+                            borderWidth: '2px',
+                            '&:hover': {
+                              borderWidth: '2px',
+                            },
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          disabled={isLoading}
+                          startIcon={isLoading ? <CircularProgress size={20} /> : <AddIcon />}
+                          sx={{
+                            background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                            boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                            '&:hover': {
+                              background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                              boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                            },
+                            '&:disabled': {
+                              background: 'rgba(0, 0, 0, 0.12)',
+                            },
+                          }}
+                        >
+                          {isLoading ? 'Saving...' : (selectedLocation ? 'Update Location' : 'Create Location')}
+                        </Button>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </form>
               </Paper>
             </motion.div>
@@ -582,71 +734,6 @@ const EmployeeJobLocation = React.memo(() => {
               initial="hidden"
               animate="visible"
             >
-              {/* Search Section */}
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  backgroundColor: 'background.paper',
-                  borderRadius: 3,
-                  p: 3,
-                  mb: 3,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 3,
-                    color: 'text.primary',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    '&::after': {
-                      content: '""',
-                      flex: 1,
-                      height: '2px',
-                      background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0))',
-                      ml: 2
-                    }
-                  }}
-                >
-                  <SearchIcon sx={{ color: 'primary.main' }} />
-                  Search Locations
-                </Typography>
-
-                <TextField
-                  fullWidth
-                  placeholder="Search by City, State or Country..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'background.paper',
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'background.paper',
-                        '& fieldset': {
-                          borderWidth: '2px',
-                          borderColor: 'primary.main',
-                        },
-                      },
-                    },
-                  }}
-                />
-              </Paper>
-
               {/* Locations List Section */}
               <Paper 
                 elevation={0}
@@ -656,95 +743,91 @@ const EmployeeJobLocation = React.memo(() => {
                   overflow: 'hidden',
                   border: '1px solid',
                   borderColor: 'divider',
+                  height: 'calc(100vh - 200px)',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  mt: 2,
                 }}
               >
-                <Box sx={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center",
-                  p: 3,
-                  borderBottom: '1px solid',
-                  borderColor: 'divider'
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        color: 'text.primary',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}
-                    >
-                      <LocationIcon sx={{ color: 'primary.main' }} />
-                      Job Locations List
-                    </Typography>
-                    <Chip 
-                      label={`Total: ${filteredLocations.length}`}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: 'primary.light',
-                        color: 'primary.main',
-                        fontWeight: 500,
-                      }}
-                    />
-                  </Box>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setShowForm(true)}
-                    startIcon={<AddIcon />}
-                  >
-                    Add Location
-                  </Button>
-                </Box>
-
                 {isLoading ? (
                   <Box sx={{ 
                     display: "flex", 
                     justifyContent: "center", 
                     alignItems: "center",
-                    minHeight: "400px",
+                    height: "100%",
                     flexDirection: 'column',
                     gap: 2
                   }}>
-                    <CircularProgress size={48} thickness={4} />
-                    <Typography variant="body1" color="text.secondary">
+                    <CircularProgress 
+                      size={48} 
+                      thickness={4}
+                      sx={{
+                        color: 'primary.main',
+                        '& .MuiCircularProgress-circle': {
+                          strokeLinecap: 'round',
+                        }
+                      }}
+                    />
+                    <Typography variant="h6" color="primary">
                       Loading locations...
                     </Typography>
                   </Box>
                 ) : (
-                  <TableContainer 
-                    sx={{ 
-                      maxHeight: 'calc(100vh - 50px)',
-                      '&::-webkit-scrollbar': {
-                        width: '8px',
-                        height: '8px',
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: 'rgba(0,0,0,0.1)',
-                        borderRadius: '4px',
-                      },
-                    }}
-                  >
+                  <TableContainer sx={{ height: '100%' }}>
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
-                          {['#', 'City', 'State', 'Country', 'Actions'].map((header) => (
-                            <TableCell
-                              key={header}
-                              sx={{ 
-                                backgroundColor: 'background.paper',
-                                fontWeight: 600,
-                                color: 'text.primary',
-                                borderBottom: '2px solid',
-                                borderColor: 'primary.light',
-                              }}
-                            >
-                              {header}
-                            </TableCell>
-                          ))}
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <TagIcon sx={{ color: 'primary.main' }} />
+                              #
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CityIcon sx={{ color: 'primary.main' }} />
+                              City
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationIcon sx={{ color: 'primary.main' }} />
+                              State
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CountryIcon sx={{ color: 'primary.main' }} />
+                              Country
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center" sx={{ 
+                            width: '120px',
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                              <SettingsIcon sx={{ color: 'primary.main' }} />
+                              Actions
+                            </Box>
+                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -756,15 +839,18 @@ const EmployeeJobLocation = React.memo(() => {
                                 align="center"
                                 sx={{ 
                                   py: 8,
-                                  color: 'text.secondary',
+                                  background: 'linear-gradient(145deg, rgba(245,247,255,0.5), rgba(232,236,255,0.5))'
                                 }}
                               >
-                                <Typography variant="h6" gutterBottom>
-                                  No locations available
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  Try adjusting your search criteria or add a new location
-                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                  <SearchOffIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+                                  <Typography variant="h6" gutterBottom color="primary">
+                                    No locations found
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    Try adjusting your search criteria or add a new location
+                                  </Typography>
+                                </Box>
                               </TableCell>
                             </TableRow>
                           ) : (
@@ -778,15 +864,22 @@ const EmployeeJobLocation = React.memo(() => {
                                 component={TableRow}
                                 sx={{
                                   '&:nth-of-type(odd)': {
-                                    backgroundColor: 'action.hover',
+                                    backgroundColor: 'rgba(245, 247, 255, 0.5)',
                                   },
                                   '&:hover': {
-                                    backgroundColor: 'action.selected',
+                                    backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                                    transform: 'scale(1.001) translateZ(0)',
+                                    boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
                                   },
-                                  transition: 'background-color 0.2s ease-in-out',
+                                  transition: 'all 0.2s ease-in-out',
                                 }}
                               >
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    {index + 1}
+                                  </Box>
+                                </TableCell>
                                 <TableCell>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <CityIcon sx={{ color: 'primary.main', fontSize: 20 }} />
@@ -795,48 +888,52 @@ const EmployeeJobLocation = React.memo(() => {
                                 </TableCell>
                                 <TableCell>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <LocationIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    <LocationIcon sx={{ color: 'warning.main', fontSize: 20 }} />
                                     {location.state}
                                   </Box>
                                 </TableCell>
                                 <TableCell>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <CountryIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    <CountryIcon sx={{ color: 'success.main', fontSize: 20 }} />
                                     {location.country}
                                   </Box>
                                 </TableCell>
                                 <TableCell>
-                                  <Box sx={{ display: "flex", gap: 1 }}>
-                                    <IconButton
-                                      color="primary"
-                                      onClick={() => handleEdit(location)}
-                                      size="small"
-                                      sx={{
-                                        backgroundColor: 'primary.light',
-                                        color: 'primary.main',
-                                        '&:hover': {
-                                          backgroundColor: 'primary.main',
+                                  <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
+                                    <Tooltip title="Edit Location">
+                                      <IconButton
+                                        color="primary"
+                                        onClick={() => handleEdit(location)}
+                                        size="small"
+                                        sx={{
+                                          background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                                           color: 'white',
-                                        },
-                                      }}
-                                    >
-                                      <EditIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton
-                                      color="error"
-                                      onClick={() => handleDelete(location)}
-                                      size="small"
-                                      sx={{
-                                        backgroundColor: 'error.light',
-                                        color: 'error.main',
-                                        '&:hover': {
-                                          backgroundColor: 'error.main',
+                                          '&:hover': {
+                                            background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                            transform: 'translateY(-2px)',
+                                          },
+                                        }}
+                                      >
+                                        <EditIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete Location">
+                                      <IconButton
+                                        color="error"
+                                        onClick={() => handleDelete(location)}
+                                        size="small"
+                                        sx={{
+                                          background: 'linear-gradient(45deg, #dc2626, #ef4444)',
                                           color: 'white',
-                                        },
-                                      }}
-                                    >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
+                                          '&:hover': {
+                                            background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                                            transform: 'translateY(-2px)',
+                                          },
+                                        }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
                                   </Box>
                                 </TableCell>
                               </motion.tr>
@@ -852,11 +949,66 @@ const EmployeeJobLocation = React.memo(() => {
           )}
         </motion.div>
 
-        <ConfirmationDialog
+        <Dialog
           open={dialogOpen}
           onClose={() => setDialogOpen(false)}
-          onConfirm={confirmDelete}
-        />
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              width: '100%',
+              maxWidth: 400,
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+              backdropFilter: 'blur(10px)',
+            }
+          }}
+        >
+          <DialogTitle sx={{ 
+            pb: 1,
+            color: 'error.main',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            borderBottom: '2px solid',
+            borderColor: 'error.light'
+          }}>
+            <DeleteIcon />
+            Confirm Deletion
+          </DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            <Typography>
+              Are you sure you want to delete this location? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, pt: 0 }}>
+            <Button 
+              onClick={() => setDialogOpen(false)}
+              variant="outlined"
+              startIcon={<CancelIcon />}
+              sx={{
+                borderWidth: '2px',
+                '&:hover': {
+                  borderWidth: '2px',
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmDelete}
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+              sx={{
+                background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </ThemeProvider>
   );

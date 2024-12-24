@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo } from "react";
-import ConfirmationDialog from "./ConfirmationDialog";
 import { ToastContainer, toast } from "react-toastify";
 import useDebounce from '../hooks/useDebounce';
 import useJobRoleData from '../hooks/useJobRoleData';
@@ -25,6 +24,11 @@ import {
   InputAdornment,
   Chip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip,
 } from "@mui/material";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +42,9 @@ import {
   Domain as DomainIcon,
   Work as WorkIcon,
   Code as CodeIcon,
+  Cancel as CancelIcon,
+  SearchOff as SearchOffIcon,
+  Tag as TagIcon,
 } from '@mui/icons-material';
 
 const theme = createTheme({
@@ -354,41 +361,115 @@ const JobRole = React.memo(() => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 2 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography 
-            variant="h4" 
-            gutterBottom 
-            sx={{ 
-              textAlign: "center", 
-              color: "primary.main",
-              marginBottom: 4
-            }}
-          >
-            Job Role Management
-          </Typography>
+          <Box sx={{ 
+            position: 'sticky',
+            top: 0,
+            zIndex: 1200,
+            backgroundColor: 'background.default',
+            pt: 2,
+            pb: 3,
+          }}>
+            {!showForm && (
+              <>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  mb: 3
+                }}>
+                  <Typography 
+                    variant="h4" 
+                    sx={{ 
+                      color: "primary.main",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <WorkIcon sx={{ fontSize: 40 }} />
+                    Job Role Management
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Chip
+                      icon={<WorkIcon />}
+                      label={`Total Records: ${filteredJobRoles.length}`}
+                      color="primary"
+                      sx={{ 
+                        fontWeight: 'bold',
+                        background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                        '& .MuiChip-icon': { color: 'white' }
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Search and Add Button Section */}
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    backgroundColor: 'background.paper',
+                    borderRadius: 3,
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    flexWrap: 'wrap',
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
+                  }}
+                >
+                  <TextField
+                    placeholder="Search by Job Title or Department..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    sx={{ 
+                      flex: 1, 
+                      minWidth: '200px',
+                      '& .MuiOutlinedInput-root': {
+                        background: 'rgba(255,255,255,0.9)',
+                      }
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: 'primary.main' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    size="small"
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => setShowForm(true)}
+                    startIcon={<AddIcon />}
+                    sx={{
+                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                      boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                        boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                      }
+                    }}
+                  >
+                    Add New Role
+                  </Button>
+                </Paper>
+              </>
+            )}
+          </Box>
 
           <ToastContainer />
 
-          {isLoading ? (
-            <Box sx={{ 
-              display: "flex", 
-              justifyContent: "center", 
-              alignItems: "center",
-              minHeight: "400px",
-              flexDirection: 'column',
-              gap: 2
-            }}>
-              <CircularProgress size={48} thickness={4} />
-              <Typography variant="body1" color="text.secondary">
-                Loading job roles...
-              </Typography>
-            </Box>
-          ) : showForm ? (
+          {showForm ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -396,41 +477,77 @@ const JobRole = React.memo(() => {
               transition={{ duration: 0.3 }}
             >
               <Paper
+                elevation={0}
                 sx={{
                   backgroundColor: 'background.paper',
                   borderRadius: 3,
-                  p: 4,
+                  p: { xs: 2, sm: 3, md: 4 },
                   maxWidth: 800,
                   margin: '0 auto',
                   border: '1px solid',
                   borderColor: 'divider',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
                   mb: 3,
-                  gap: 1
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2
                 }}>
-                  <IconButton 
+                  <IconButton
                     onClick={resetForm}
-                    sx={{ mr: 1 }}
-                  >
-                    <ArrowBackIcon />
-                  </IconButton>
-                  <Typography
-                    variant="h5"
                     sx={{
-                      fontWeight: "bold",
-                      color: "primary.main",
+                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                      color: 'white',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                        transform: 'translateY(-2px)',
+                      },
                     }}
                   >
+                    <CancelIcon />
+                  </IconButton>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <WorkIcon sx={{ fontSize: 40 }} />
                     {selectedJobRole ? "Edit Job Role" : "Create Job Role"}
                   </Typography>
                 </Box>
 
                 <form onSubmit={handleSubmit}>
                   <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Box sx={{ 
+                        mb: 3,
+                        pb: 2,
+                        borderBottom: '2px solid',
+                        borderColor: 'rgba(61, 82, 160, 0.1)',
+                      }}>
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            color: 'primary.main',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            fontWeight: 600,
+                          }}
+                        >
+                          <WorkIcon />
+                          Role Details
+                        </Typography>
+                      </Box>
+                    </Grid>
+
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
@@ -439,21 +556,22 @@ const JobRole = React.memo(() => {
                         value={jobRole.jobRoleCode}
                         onChange={handleChange}
                         required
-                        placeholder="Enter job role code (e.g., JR001)"
+                        placeholder="Enter job role code"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <CodeIcon sx={{ color: 'text.secondary' }} />
+                              <CodeIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
                           ),
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderWidth: '2px',
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                             },
                           },
                         }}
@@ -467,21 +585,22 @@ const JobRole = React.memo(() => {
                         value={jobRole.title}
                         onChange={handleChange}
                         required
-                        placeholder="Enter job title (e.g., Software Engineer)"
+                        placeholder="Enter job title"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <WorkIcon sx={{ color: 'text.secondary' }} />
+                              <WorkIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
                           ),
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderWidth: '2px',
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                             },
                           },
                         }}
@@ -493,11 +612,12 @@ const JobRole = React.memo(() => {
                         required
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderWidth: '2px',
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
                             },
                           },
                         }}
@@ -510,7 +630,7 @@ const JobRole = React.memo(() => {
                           label="Department"
                           startAdornment={
                             <InputAdornment position="start">
-                              <DomainIcon sx={{ color: 'text.secondary', ml: 1 }} />
+                              <DomainIcon sx={{ color: 'primary.main', ml: 1 }} />
                             </InputAdornment>
                           }
                         >
@@ -528,31 +648,52 @@ const JobRole = React.memo(() => {
                         </Select>
                       </FormControl>
                     </Grid>
-                  </Grid>
 
-                  <Box sx={{ 
-                    display: "flex", 
-                    gap: 2, 
-                    mt: 4,
-                    justifyContent: 'flex-end'
-                  }}>
-                    <Button 
-                      variant="outlined" 
-                      onClick={resetForm}
-                      startIcon={<ArrowBackIcon />}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      variant="contained" 
-                      color="primary"
-                      startIcon={<AddIcon />}
-                      disabled={!jobRole.title || !jobRole.departmentId}
-                    >
-                      {selectedJobRole ? "Update Job Role" : "Create Job Role"}
-                    </Button>
-                  </Box>
+                    <Grid item xs={12}>
+                      <Box sx={{ 
+                        mt: 4, 
+                        pt: 3,
+                        borderTop: '2px solid',
+                        borderColor: 'rgba(61, 82, 160, 0.1)',
+                        display: 'flex', 
+                        justifyContent: 'flex-end', 
+                        gap: 2 
+                      }}>
+                        <Button
+                          variant="outlined"
+                          onClick={resetForm}
+                          startIcon={<CancelIcon />}
+                          sx={{
+                            borderWidth: '2px',
+                            '&:hover': {
+                              borderWidth: '2px',
+                            },
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          disabled={!jobRole.title || !jobRole.departmentId || isLoading}
+                          startIcon={isLoading ? <CircularProgress size={20} /> : <AddIcon />}
+                          sx={{
+                            background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                            boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                            '&:hover': {
+                              background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                              boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                            },
+                            '&:disabled': {
+                              background: 'rgba(0, 0, 0, 0.12)',
+                            },
+                          }}
+                        >
+                          {isLoading ? 'Saving...' : (selectedJobRole ? 'Update Role' : 'Create Role')}
+                        </Button>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </form>
               </Paper>
             </motion.div>
@@ -562,71 +703,6 @@ const JobRole = React.memo(() => {
               initial="hidden"
               animate="visible"
             >
-              {/* Search Section */}
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  backgroundColor: 'background.paper',
-                  borderRadius: 3,
-                  p: 3,
-                  mb: 3,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 3,
-                    color: 'text.primary',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    '&::after': {
-                      content: '""',
-                      flex: 1,
-                      height: '2px',
-                      background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0))',
-                      ml: 2
-                    }
-                  }}
-                >
-                  <SearchIcon sx={{ color: 'primary.main' }} />
-                  Search Job Roles
-                </Typography>
-
-                <TextField
-                  fullWidth
-                  placeholder="Search by Job Title or Department Name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'background.paper',
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'background.paper',
-                        '& fieldset': {
-                          borderWidth: '2px',
-                          borderColor: 'primary.main',
-                        },
-                      },
-                    },
-                  }}
-                />
-              </Paper>
-
               {/* Job Roles List Section */}
               <Paper 
                 elevation={0}
@@ -636,191 +712,272 @@ const JobRole = React.memo(() => {
                   overflow: 'hidden',
                   border: '1px solid',
                   borderColor: 'divider',
+                  height: 'calc(100vh - 200px)',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  mt: 2,
                 }}
               >
-                <Box sx={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center",
-                  p: 3,
-                  borderBottom: '1px solid',
-                  borderColor: 'divider'
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        color: 'text.primary',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}
-                    >
-                      <WorkIcon sx={{ color: 'primary.main' }} />
-                      Job Roles List
-                    </Typography>
-                    <Chip 
-                      label={`Total: ${filteredJobRoles.length}`}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: 'primary.light',
+                {isLoading ? (
+                  <Box sx={{ 
+                    display: "flex", 
+                    justifyContent: "center", 
+                    alignItems: "center",
+                    height: "100%",
+                    flexDirection: 'column',
+                    gap: 2
+                  }}>
+                    <CircularProgress 
+                      size={48} 
+                      thickness={4}
+                      sx={{
                         color: 'primary.main',
-                        fontWeight: 500,
+                        '& .MuiCircularProgress-circle': {
+                          strokeLinecap: 'round',
+                        }
                       }}
                     />
+                    <Typography variant="h6" color="primary">
+                      Loading job roles...
+                    </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setShowForm(true)}
-                    startIcon={<AddIcon />}
-                  >
-                    Add Job Role
-                  </Button>
-                </Box>
-
-                <TableContainer 
-                  sx={{ 
-                    maxHeight: 'calc(100vh - 50px)',
-                    '&::-webkit-scrollbar': {
-                      width: '8px',
-                      height: '8px',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: 'rgba(0,0,0,0.1)',
-                      borderRadius: '4px',
-                    },
-                  }}
-                >
-                  <Table stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        {['#', 'Job Role Code', 'Title', 'Department Name', 'Actions'].map((header) => (
-                          <TableCell
-                            key={header}
-                            sx={{ 
-                              backgroundColor: 'background.paper',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              borderBottom: '2px solid',
-                              borderColor: 'primary.light',
-                            }}
-                          >
-                            {header}
+                ) : (
+                  <TableContainer sx={{ height: '100%' }}>
+                    <Table stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <TagIcon sx={{ color: 'primary.main' }} />
+                              #
+                            </Box>
                           </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <AnimatePresence>
-                        {filteredJobRoles.length === 0 ? (
-                          <TableRow>
-                            <TableCell 
-                              colSpan={5} 
-                              align="center"
-                              sx={{ 
-                                py: 8,
-                                color: 'text.secondary',
-                              }}
-                            >
-                              <Typography variant="h6" gutterBottom>
-                                No job roles available
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Try adjusting your search criteria or add a new job role
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          filteredJobRoles.map((role, index) => (
-                            <motion.tr
-                              key={role.id}
-                              variants={itemVariants}
-                              initial="hidden"
-                              animate="visible"
-                              exit="hidden"
-                              component={TableRow}
-                              sx={{
-                                '&:nth-of-type(odd)': {
-                                  backgroundColor: 'action.hover',
-                                },
-                                '&:hover': {
-                                  backgroundColor: 'action.selected',
-                                },
-                                transition: 'background-color 0.2s ease-in-out',
-                              }}
-                            >
-                              <TableCell>{index + 1}</TableCell>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <CodeIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                                  {role.jobRoleCode}
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CodeIcon sx={{ color: 'primary.main' }} />
+                              Job Role Code
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <WorkIcon sx={{ color: 'primary.main' }} />
+                              Title
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <DomainIcon sx={{ color: 'primary.main' }} />
+                              Department
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center" sx={{ 
+                            width: '120px',
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                              <BusinessIcon sx={{ color: 'primary.main' }} />
+                              Actions
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <AnimatePresence>
+                          {filteredJobRoles.length === 0 ? (
+                            <TableRow>
+                              <TableCell 
+                                colSpan={5} 
+                                align="center"
+                                sx={{ 
+                                  py: 8,
+                                  background: 'linear-gradient(145deg, rgba(245,247,255,0.5), rgba(232,236,255,0.5))'
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                  <SearchOffIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+                                  <Typography variant="h6" gutterBottom color="primary">
+                                    No job roles found
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    Try adjusting your search criteria or add a new job role
+                                  </Typography>
                                 </Box>
                               </TableCell>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <WorkIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                                  {role.title}
-                                </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <DomainIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                                  {role.departmentName || "N/A"}
-                                </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Box sx={{ display: "flex", gap: 1 }}>
-                                  <IconButton
-                                    color="primary"
-                                    onClick={() => handleEdit(role)}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: 'primary.light',
-                                      color: 'primary.main',
-                                      '&:hover': {
-                                        backgroundColor: 'primary.main',
-                                        color: 'white',
-                                      },
-                                    }}
-                                  >
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                  <IconButton
-                                    color="error"
-                                    onClick={() => handleDelete(role.id)}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: 'error.light',
-                                      color: 'error.main',
-                                      '&:hover': {
-                                        backgroundColor: 'error.main',
-                                        color: 'white',
-                                      },
-                                    }}
-                                  >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Box>
-                              </TableCell>
-                            </motion.tr>
-                          ))
-                        )}
-                      </AnimatePresence>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                            </TableRow>
+                          ) : (
+                            filteredJobRoles.map((role, index) => (
+                              <motion.tr
+                                key={role.id}
+                                variants={itemVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="hidden"
+                                component={TableRow}
+                                sx={{
+                                  '&:nth-of-type(odd)': {
+                                    backgroundColor: 'rgba(245, 247, 255, 0.5)',
+                                  },
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                                    transform: 'scale(1.001) translateZ(0)',
+                                    boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
+                                  },
+                                  transition: 'all 0.2s ease-in-out',
+                                }}
+                              >
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    {index + 1}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <CodeIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    {role.jobRoleCode}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <WorkIcon sx={{ color: 'warning.main', fontSize: 20 }} />
+                                    {role.title}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <DomainIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                                    {role.departmentName || "N/A"}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
+                                    <Tooltip title="Edit Role">
+                                      <IconButton
+                                        color="primary"
+                                        onClick={() => handleEdit(role)}
+                                        size="small"
+                                        sx={{
+                                          background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                          color: 'white',
+                                          '&:hover': {
+                                            background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                            transform: 'translateY(-2px)',
+                                          },
+                                        }}
+                                      >
+                                        <EditIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete Role">
+                                      <IconButton
+                                        color="error"
+                                        onClick={() => handleDelete(role.id)}
+                                        size="small"
+                                        sx={{
+                                          background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                                          color: 'white',
+                                          '&:hover': {
+                                            background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                                            transform: 'translateY(-2px)',
+                                          },
+                                        }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
+                                </TableCell>
+                              </motion.tr>
+                            ))
+                          )}
+                        </AnimatePresence>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
               </Paper>
             </motion.div>
           )}
-
-          <ConfirmationDialog
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)}
-            onConfirm={confirmDelete}
-          />
         </motion.div>
+
+        <Dialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              width: '100%',
+              maxWidth: 400,
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+              backdropFilter: 'blur(10px)',
+            }
+          }}
+        >
+          <DialogTitle sx={{ 
+            pb: 1,
+            color: 'error.main',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            borderBottom: '2px solid',
+            borderColor: 'error.light'
+          }}>
+            <DeleteIcon />
+            Confirm Deletion
+          </DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            <Typography>
+              Are you sure you want to delete this job role? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, pt: 0 }}>
+            <Button 
+              onClick={() => setDialogOpen(false)}
+              variant="outlined"
+              startIcon={<CancelIcon />}
+              sx={{
+                borderWidth: '2px',
+                '&:hover': {
+                  borderWidth: '2px',
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmDelete}
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+              sx={{
+                background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </ThemeProvider>
   );

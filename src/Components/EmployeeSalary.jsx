@@ -24,6 +24,7 @@ import {
     TextField,
     InputAdornment,
     CircularProgress,
+    Tooltip,
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +39,13 @@ import {
     AccountBalance as BankIcon,
     CalendarToday as CalendarIcon,
     Payment as PaymentIcon,
+    Home as HomeIcon,
+    AccountBalanceWallet as AccountBalanceWalletIcon,
+    Payments as PaymentsIcon,
+    CurrencyExchange as CurrencyExchangeIcon,
+    Settings as SettingsIcon,
+    SearchOff as SearchOffIcon,
+    Cancel as CancelIcon,
 } from '@mui/icons-material';
 
 const theme = createTheme({
@@ -96,8 +104,8 @@ const theme = createTheme({
                 root: {
                     background: 'linear-gradient(135deg, #F5F7FF 0%, #E8ECFF 100%)',
                     minHeight: '100vh',
-                    paddingTop: '2rem',
-                    paddingBottom: '2rem',
+                    paddingTop: '1rem',
+                    paddingBottom: '1rem',
                 },
             },
         },
@@ -187,15 +195,20 @@ const theme = createTheme({
         },
         MuiTableCell: {
             styleOverrides: {
+                root: {
+                    padding: '8px 16px',
+                    fontSize: '0.875rem',
+                    borderColor: 'rgba(61, 82, 160, 0.08)',
+                },
                 head: {
                     backgroundColor: 'rgba(245, 247, 255, 0.95)',
                     fontWeight: 600,
                     color: '#3D52A0',
                     borderBottom: '2px solid',
                     borderColor: 'rgba(61, 82, 160, 0.1)',
-                },
-                root: {
-                    borderColor: 'rgba(61, 82, 160, 0.08)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
                 },
             },
         },
@@ -303,23 +316,107 @@ const EmployeeSalary = React.memo(() => {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container maxWidth="xl" sx={{ py: 4 }}>
+            <Container maxWidth="xl" sx={{ py: 2 }}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <Typography 
-                        variant="h4" 
-                        gutterBottom 
-                        sx={{ 
-                            textAlign: "center", 
-                            color: "primary.main",
-                            marginBottom: 4
-                        }}
-                    >
-                        Employee Salary Management
-                    </Typography>
+                    <Box sx={{ 
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 1200,
+                        backgroundColor: 'background.default',
+                        pt: 2,
+                        pb: 3,
+                    }}>
+                        <Box sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            mb: 3
+                        }}>
+                            <Typography 
+                                variant="h4" 
+                                sx={{ 
+                                    color: "primary.main",
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}
+                            >
+                                <PaymentIcon sx={{ fontSize: 40 }} />
+                                Employee Salary Management
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                <Chip
+                                    icon={<MoneyIcon />}
+                                    label={`Total Records: ${filteredSalaries.length}`}
+                                    color="primary"
+                                    sx={{ 
+                                        fontWeight: 'bold',
+                                        background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                        '& .MuiChip-icon': { color: 'white' }
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+
+                        {/* Search and Add Button Section */}
+                        <Paper 
+                            elevation={0}
+                            sx={{ 
+                                backgroundColor: 'background.paper',
+                                borderRadius: 3,
+                                p: 2,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 2,
+                                flexWrap: 'wrap',
+                                background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                                backdropFilter: 'blur(10px)',
+                                boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
+                            }}
+                        >
+                            <TextField
+                                placeholder="Search salary records..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                sx={{ 
+                                    flex: 1, 
+                                    minWidth: '200px',
+                                    '& .MuiOutlinedInput-root': {
+                                        background: 'rgba(255,255,255,0.9)',
+                                    }
+                                }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon sx={{ color: 'primary.main' }} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                size="small"
+                            />
+                            <Button
+                                variant="contained"
+                                onClick={() => navigate('/salary/create')}
+                                startIcon={<AddIcon />}
+                                sx={{
+                                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                    boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                        boxShadow: '0 6px 16px rgba(61, 82, 160, 0.3)',
+                                    }
+                                }}
+                            >
+                                Add New Salary Record
+                            </Button>
+                        </Paper>
+                    </Box>
 
                     <ToastContainer />
 
@@ -328,72 +425,7 @@ const EmployeeSalary = React.memo(() => {
                         initial="hidden"
                         animate="visible"
                     >
-                        {/* Search Section */}
-                        <Paper 
-                            elevation={0}
-                            sx={{ 
-                                backgroundColor: 'background.paper',
-                                borderRadius: 3,
-                                p: 3,
-                                mb: 3,
-                                border: '1px solid',
-                                borderColor: 'divider',
-                            }}
-                        >
-                            <Typography 
-                                variant="h6" 
-                                sx={{ 
-                                    mb: 3,
-                                    color: 'text.primary',
-                                    fontWeight: 600,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1,
-                                    '&::after': {
-                                        content: '""',
-                                        flex: 1,
-                                        height: '2px',
-                                        background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0))',
-                                        ml: 2
-                                    }
-                                }}
-                            >
-                                <SearchIcon sx={{ color: 'primary.main' }} />
-                                Search Salary Records
-                            </Typography>
-
-                            <TextField
-                                fullWidth
-                                placeholder="Search salary records..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchIcon sx={{ color: 'text.secondary' }} />
-                                        </InputAdornment>
-                                    ),
-                                }}
-                                sx={{
-                                    '& .MuiOutlinedInput-root': {
-                                        backgroundColor: 'background.paper',
-                                        transition: 'all 0.2s ease-in-out',
-                                        '&:hover': {
-                                            backgroundColor: 'action.hover',
-                                        },
-                                        '&.Mui-focused': {
-                                            backgroundColor: 'background.paper',
-                                            '& fieldset': {
-                                                borderWidth: '2px',
-                                                borderColor: 'primary.main',
-                                            },
-                                        },
-                                    },
-                                }}
-                            />
-                        </Paper>
-
-                        {/* Salary Records List */}
+                        {/* Salary Records Table */}
                         <Paper 
                             elevation={0}
                             sx={{ 
@@ -402,140 +434,111 @@ const EmployeeSalary = React.memo(() => {
                                 overflow: 'hidden',
                                 border: '1px solid',
                                 borderColor: 'divider',
+                                height: 'calc(100vh - 200px)',
+                                background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                                backdropFilter: 'blur(10px)',
+                                mt: 2,
                             }}
                         >
-                            <Box sx={{ 
-                                display: "flex", 
-                                justifyContent: "space-between", 
-                                alignItems: "center",
-                                p: 3,
-                                borderBottom: '1px solid',
-                                borderColor: 'divider'
-                            }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Typography 
-                                        variant="h6" 
-                                        sx={{ 
-                                            color: 'text.primary',
-                                            fontWeight: 600,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 1
-                                        }}
-                                    >
-                                        <PaymentIcon sx={{ color: 'primary.main' }} />
-                                        Salary Records
-                                    </Typography>
-                                    <Chip 
-                                        label={`Total: ${filteredSalaries.length}`}
-                                        size="small"
-                                        sx={{ 
-                                            backgroundColor: 'primary.light',
-                                            color: 'primary.main',
-                                            fontWeight: 500,
-                                        }}
-                                    />
-                                </Box>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => navigate('/salary/create')}
-                                    startIcon={<AddIcon />}
-                                >
-                                    Add Salary Record
-                                </Button>
-                            </Box>
-
                             {isLoading ? (
                                 <Box sx={{ 
                                     display: "flex", 
                                     justifyContent: "center", 
                                     alignItems: "center",
-                                    minHeight: "400px",
+                                    height: "100%",
                                     flexDirection: 'column',
                                     gap: 2
                                 }}>
-                                    <CircularProgress size={48} thickness={4} />
-                                    <Typography variant="body1" color="text.secondary">
+                                    <CircularProgress 
+                                        size={48} 
+                                        thickness={4}
+                                        sx={{
+                                            color: 'primary.main',
+                                            '& .MuiCircularProgress-circle': {
+                                                strokeLinecap: 'round',
+                                            }
+                                        }}
+                                    />
+                                    <Typography variant="h6" color="primary">
                                         Loading salary records...
                                     </Typography>
                                 </Box>
                             ) : (
-                                <TableContainer 
-                                    sx={{ 
-                                        maxHeight: 'calc(100vh - 50px)',
-                                        '&::-webkit-scrollbar': {
-                                            width: '8px',
-                                            height: '8px',
-                                        },
-                                        '&::-webkit-scrollbar-thumb': {
-                                            backgroundColor: 'rgba(0,0,0,0.1)',
-                                            borderRadius: '4px',
-                                        },
-                                    }}
-                                >
+                                <TableContainer sx={{ height: '100%' }}>
                                     <Table stickyHeader>
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell sx={{ 
-                                                    backgroundColor: 'background.paper',
+                                                    background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                                                     fontWeight: 600,
-                                                    color: 'text.primary',
-                                                    borderBottom: '2px solid',
-                                                    borderColor: 'primary.light',
+                                                    color: 'primary.main',
                                                 }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                         <MoneyIcon sx={{ color: 'primary.main' }} />
-                                                        Basic
+                                                        Basic Salary
                                                     </Box>
                                                 </TableCell>
                                                 <TableCell sx={{ 
-                                                    backgroundColor: 'background.paper',
+                                                    background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                                                     fontWeight: 600,
-                                                    color: 'text.primary',
-                                                    borderBottom: '2px solid',
-                                                    borderColor: 'primary.light',
-                                                }}>HRA</TableCell>
+                                                    color: 'primary.main',
+                                                }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <HomeIcon sx={{ color: 'primary.main' }} />
+                                                        HRA
+                                                    </Box>
+                                                </TableCell>
                                                 <TableCell sx={{ 
-                                                    backgroundColor: 'background.paper',
+                                                    background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                                                     fontWeight: 600,
-                                                    color: 'text.primary',
-                                                    borderBottom: '2px solid',
-                                                    borderColor: 'primary.light',
-                                                }}>Gross</TableCell>
+                                                    color: 'primary.main',
+                                                }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <AccountBalanceWalletIcon sx={{ color: 'primary.main' }} />
+                                                        Gross
+                                                    </Box>
+                                                </TableCell>
                                                 <TableCell sx={{ 
-                                                    backgroundColor: 'background.paper',
+                                                    background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                                                     fontWeight: 600,
-                                                    color: 'text.primary',
-                                                    borderBottom: '2px solid',
-                                                    borderColor: 'primary.light',
-                                                }}>Net Pay</TableCell>
+                                                    color: 'primary.main',
+                                                }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <PaymentsIcon sx={{ color: 'primary.main' }} />
+                                                        Net Pay
+                                                    </Box>
+                                                </TableCell>
                                                 <TableCell sx={{ 
-                                                    backgroundColor: 'background.paper',
+                                                    background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                                                     fontWeight: 600,
-                                                    color: 'text.primary',
-                                                    borderBottom: '2px solid',
-                                                    borderColor: 'primary.light',
-                                                }}>Currency</TableCell>
+                                                    color: 'primary.main',
+                                                }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <CurrencyExchangeIcon sx={{ color: 'primary.main' }} />
+                                                        Currency
+                                                    </Box>
+                                                </TableCell>
                                                 <TableCell sx={{ 
-                                                    backgroundColor: 'background.paper',
+                                                    background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                                                     fontWeight: 600,
-                                                    color: 'text.primary',
-                                                    borderBottom: '2px solid',
-                                                    borderColor: 'primary.light',
+                                                    color: 'primary.main',
                                                 }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                         <CalendarIcon sx={{ color: 'primary.main' }} />
                                                         Effective Date
                                                     </Box>
                                                 </TableCell>
-                                                <TableCell sx={{ 
-                                                    backgroundColor: 'background.paper',
+                                                <TableCell align="center" sx={{ 
+                                                    width: '120px',
+                                                    background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
                                                     fontWeight: 600,
-                                                    color: 'text.primary',
-                                                    borderBottom: '2px solid',
-                                                    borderColor: 'primary.light',
-                                                }}>Actions</TableCell>
+                                                    color: 'primary.main',
+                                                }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                                                        <SettingsIcon sx={{ color: 'primary.main' }} />
+                                                        Actions
+                                                    </Box>
+                                                </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -547,15 +550,18 @@ const EmployeeSalary = React.memo(() => {
                                                             align="center"
                                                             sx={{ 
                                                                 py: 8,
-                                                                color: 'text.secondary',
+                                                                background: 'linear-gradient(145deg, rgba(245,247,255,0.5), rgba(232,236,255,0.5))'
                                                             }}
                                                         >
-                                                            <Typography variant="h6" gutterBottom>
-                                                                No salary records available
-                                                            </Typography>
-                                                            <Typography variant="body2" color="text.secondary">
-                                                                Try adjusting your search criteria or add a new salary record
-                                                            </Typography>
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                                                <SearchOffIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+                                                                <Typography variant="h6" gutterBottom color="primary">
+                                                                    No salary records found
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    Try adjusting your search criteria or add a new salary record
+                                                                </Typography>
+                                                            </Box>
                                                         </TableCell>
                                                     </TableRow>
                                                 ) : (
@@ -569,30 +575,49 @@ const EmployeeSalary = React.memo(() => {
                                                             component={TableRow}
                                                             sx={{
                                                                 '&:nth-of-type(odd)': {
-                                                                    backgroundColor: 'action.hover',
+                                                                    backgroundColor: 'rgba(245, 247, 255, 0.5)',
                                                                 },
                                                                 '&:hover': {
-                                                                    backgroundColor: 'action.selected',
+                                                                    backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                                                                    transform: 'scale(1.001) translateZ(0)',
+                                                                    boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
                                                                 },
-                                                                transition: 'background-color 0.2s ease-in-out',
+                                                                transition: 'all 0.2s ease-in-out',
                                                             }}
                                                         >
                                                             <TableCell>
                                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                    <MoneyIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                                                    <MoneyIcon sx={{ color: 'success.main', fontSize: 20 }} />
                                                                     {formatCurrency(salary.basic, salary.currency)}
                                                                 </Box>
                                                             </TableCell>
-                                                            <TableCell>{formatCurrency(salary.hra, salary.currency)}</TableCell>
-                                                            <TableCell>{formatCurrency(salary.gross, salary.currency)}</TableCell>
-                                                            <TableCell>{formatCurrency(salary.netPay, salary.currency)}</TableCell>
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <HomeIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                                                    {formatCurrency(salary.hra, salary.currency)}
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <AccountBalanceWalletIcon sx={{ color: 'warning.main', fontSize: 20 }} />
+                                                                    {formatCurrency(salary.gross, salary.currency)}
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <PaymentsIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                                                                    {formatCurrency(salary.netPay, salary.currency)}
+                                                                </Box>
+                                                            </TableCell>
                                                             <TableCell>
                                                                 <Chip 
+                                                                    icon={<CurrencyExchangeIcon />}
                                                                     label={salary.currency}
                                                                     size="small"
                                                                     sx={{ 
-                                                                        backgroundColor: 'primary.light',
-                                                                        color: 'primary.main',
+                                                                        background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                                                        color: 'white',
+                                                                        '& .MuiChip-icon': { color: 'white' }
                                                                     }}
                                                                 />
                                                             </TableCell>
@@ -603,37 +628,41 @@ const EmployeeSalary = React.memo(() => {
                                                                 </Box>
                                                             </TableCell>
                                                             <TableCell>
-                                                                <Box sx={{ display: "flex", gap: 1 }}>
-                                                                    <IconButton
-                                                                        color="primary"
-                                                                        onClick={() => navigate(`/salary/edit/${salary.id}`)}
-                                                                        size="small"
-                                                                        sx={{
-                                                                            backgroundColor: 'primary.light',
-                                                                            color: 'primary.main',
-                                                                            '&:hover': {
-                                                                                backgroundColor: 'primary.main',
+                                                                <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
+                                                                    <Tooltip title="Edit Record">
+                                                                        <IconButton
+                                                                            color="primary"
+                                                                            onClick={() => navigate(`/salary/edit/${salary.id}`)}
+                                                                            size="small"
+                                                                            sx={{
+                                                                                background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
                                                                                 color: 'white',
-                                                                            },
-                                                                        }}
-                                                                    >
-                                                                        <EditIcon fontSize="small" />
-                                                                    </IconButton>
-                                                                    <IconButton
-                                                                        color="error"
-                                                                        onClick={() => handleDelete(salary.id)}
-                                                                        size="small"
-                                                                        sx={{
-                                                                            backgroundColor: 'error.light',
-                                                                            color: 'error.main',
-                                                                            '&:hover': {
-                                                                                backgroundColor: 'error.main',
+                                                                                '&:hover': {
+                                                                                    background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                                                                    transform: 'translateY(-2px)',
+                                                                                },
+                                                                            }}
+                                                                        >
+                                                                            <EditIcon fontSize="small" />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                    <Tooltip title="Delete Record">
+                                                                        <IconButton
+                                                                            color="error"
+                                                                            onClick={() => handleDelete(salary.id)}
+                                                                            size="small"
+                                                                            sx={{
+                                                                                background: 'linear-gradient(45deg, #dc2626, #ef4444)',
                                                                                 color: 'white',
-                                                                            },
-                                                                        }}
-                                                                    >
-                                                                        <DeleteIcon fontSize="small" />
-                                                                    </IconButton>
+                                                                                '&:hover': {
+                                                                                    background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                                                                                    transform: 'translateY(-2px)',
+                                                                                },
+                                                                            }}
+                                                                        >
+                                                                            <DeleteIcon fontSize="small" />
+                                                                        </IconButton>
+                                                                    </Tooltip>
                                                                 </Box>
                                                             </TableCell>
                                                         </motion.tr>
@@ -645,52 +674,63 @@ const EmployeeSalary = React.memo(() => {
                                 </TableContainer>
                             )}
                         </Paper>
-                    </motion.div>
 
-                    {/* Delete Confirmation Dialog */}
-                    <Dialog
-                        open={deleteDialogOpen}
-                        onClose={() => setDeleteDialogOpen(false)}
-                        PaperProps={{
-                            sx: {
-                                borderRadius: 2,
-                                width: '100%',
-                                maxWidth: 400,
-                            }
-                        }}
-                    >
-                        <DialogTitle sx={{ 
-                            pb: 1,
-                            color: 'error.main',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                        }}>
-                            <DeleteIcon />
-                            Confirm Deletion
-                        </DialogTitle>
-                        <DialogContent>
-                            <Typography>
-                                Are you sure you want to delete this salary record? This action cannot be undone.
-                            </Typography>
-                        </DialogContent>
-                        <DialogActions sx={{ p: 2, pt: 0 }}>
-                            <Button 
-                                onClick={() => setDeleteDialogOpen(false)}
-                                variant="outlined"
-                            >
-                                Cancel
-                            </Button>
-                            <Button 
-                                onClick={confirmDelete}
-                                variant="contained"
-                                color="error"
-                                startIcon={<DeleteIcon />}
-                            >
-                                Delete
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
+                        {/* Delete Confirmation Dialog */}
+                        <Dialog
+                            open={deleteDialogOpen}
+                            onClose={() => setDeleteDialogOpen(false)}
+                            PaperProps={{
+                                sx: {
+                                    borderRadius: 3,
+                                    width: '100%',
+                                    maxWidth: 400,
+                                    background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+                                    backdropFilter: 'blur(10px)',
+                                }
+                            }}
+                        >
+                            <DialogTitle sx={{ 
+                                pb: 1,
+                                color: 'error.main',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                borderBottom: '2px solid',
+                                borderColor: 'error.light'
+                            }}>
+                                <DeleteIcon />
+                                Confirm Deletion
+                            </DialogTitle>
+                            <DialogContent sx={{ mt: 2 }}>
+                                <Typography>
+                                    Are you sure you want to delete this salary record? This action cannot be undone.
+                                </Typography>
+                            </DialogContent>
+                            <DialogActions sx={{ p: 2, pt: 0 }}>
+                                <Button 
+                                    onClick={() => setDeleteDialogOpen(false)}
+                                    variant="outlined"
+                                    startIcon={<CancelIcon />}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button 
+                                    onClick={confirmDelete}
+                                    variant="contained"
+                                    color="error"
+                                    startIcon={<DeleteIcon />}
+                                    sx={{
+                                        background: 'linear-gradient(45deg, #dc2626, #ef4444)',
+                                        '&:hover': {
+                                            background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
+                                        }
+                                    }}
+                                >
+                                    Delete
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
+                    </motion.div>
                 </motion.div>
             </Container>
         </ThemeProvider>

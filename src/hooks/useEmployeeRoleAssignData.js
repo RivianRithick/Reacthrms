@@ -101,25 +101,33 @@ export const useEmployeeRoleAssignData = (assignmentFilter = 'all', searchQuery 
 // Helper function to normalize employee data
 const normalizeEmployees = (data) => {
   return data.map((item) => {
-    const employeeData = item.Employee || item.employee || item;
+    // Employee data comes in lowercase 'employee' property
+    const employeeData = item.employee;
+
+    // Add debug logging
+    console.log('Item structure:', item);
+    console.log('Employee data:', employeeData);
+
     return {
-      id: item.Id || item.id,
-      assignmentId: item.Id || item.id,
-      isAssigned: item.IsAssigned || item.isAssigned || false,
-      firstName: employeeData.FirstName || employeeData.firstName || "N/A",
-      lastName: employeeData.LastName || employeeData.lastName || "N/A",
-      email: employeeData.Email || employeeData.email || "N/A",
-      isDeleted: employeeData.IsDeleted || employeeData.isDeleted || false,
-      clientName: item.Client?.ClientName || "N/A",
-      clientCode: item.Client?.ClientCode || "N/A",
-      departmentName: item.Department?.DepartmentName || item.Department?.name || "N/A",
-      departmentCode: item.Department?.DepartmentCode || item.Department?.departmentCode || "N/A",
-      jobTitle: item.JobRole?.JobTitle || item.JobRole?.title || "N/A",
-      jobRoleCode: item.JobRole?.JobRoleCode || item.JobRole?.jobRoleCode || "N/A",
-      location: item.JobLocation ? 
-        `${item.JobLocation.City}, ${item.JobLocation.State}, ${item.JobLocation.Country}` : "N/A",
-      dateOfJoining: item.DateOfJoining ? new Date(item.DateOfJoining).toLocaleDateString() : "N/A",
-      hasGeneratedOfferLetter: item.HasGeneratedOfferLetter || false
+      id: item.id,
+      assignmentId: item.id,
+      isAssigned: item.isAssigned || false,
+      firstName: employeeData?.firstName || "N/A",
+      lastName: employeeData?.lastName || "N/A",
+      email: employeeData?.email || "N/A",
+      isDeleted: employeeData?.isDeleted || false,
+      contact: employeeData?.contact || "N/A",
+      presentDistrict: employeeData?.presentDistrict || "N/A",
+      clientName: item.client?.clientName || "N/A",
+      clientCode: item.client?.clientCode || "N/A",
+      departmentName: item.department?.departmentName || "N/A",
+      departmentCode: item.department?.departmentCode || "N/A",
+      jobTitle: item.jobRole?.jobTitle || "N/A",
+      jobRoleCode: item.jobRole?.jobRoleCode || "N/A",
+      location: item.jobLocation ? 
+        `${item.jobLocation.city}, ${item.jobLocation.state}, ${item.jobLocation.country}` : "N/A",
+      dateOfJoining: item.dateOfJoining ? new Date(item.dateOfJoining).toLocaleDateString() : "N/A",
+      hasGeneratedOfferLetter: item.hasGeneratedOfferLetter || false
     };
   });
 };

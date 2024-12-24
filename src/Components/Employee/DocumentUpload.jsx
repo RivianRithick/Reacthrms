@@ -4,7 +4,8 @@ import {
   Button,
   Typography,
   IconButton,
-  Tooltip
+  Tooltip,
+  Paper
 } from '@mui/material';
 import { IoIosAddCircle } from "react-icons/io";
 import { Visibility as VisibilityIcon, GetApp as GetAppIcon } from "@mui/icons-material";
@@ -79,14 +80,12 @@ const DocumentUpload = ({
 
   const handleView = async () => {
     try {
-      // Create the URL with a timestamp to prevent caching
       const timestamp = new Date().getTime();
       const backendDocType = getBackendDocumentType(documentType);
       const url = `${baseUrl}/api/employee-registration/download-document?contact=${encodeURIComponent(
         contact
       )}&documentType=${encodeURIComponent(backendDocType)}&t=${timestamp}`;
 
-      // Open URL directly in a new tab
       const newWindow = window.open(url, '_blank');
       if (newWindow) {
         newWindow.focus();
@@ -130,33 +129,34 @@ const DocumentUpload = ({
   };
 
   return (
-    <Box
+    <Paper
+      elevation={0}
       sx={{
-        border: '2px dashed rgba(61, 82, 160, 0.2)',
-        borderRadius: '16px',
-        p: 3,
-        textAlign: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(8px)',
-        transition: 'all 0.2s ease-in-out',
-        height: '100%',
-        minHeight: '300px',
+        position: 'relative',
+        background: 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '12px',
+        p: 2,
+        minHeight: '200px',
         display: 'flex',
         flexDirection: 'column',
+        transition: 'all 0.2s ease-in-out',
+        border: '1px solid',
+        borderColor: documentUrl ? 'rgba(5, 150, 105, 0.2)' : 'rgba(0, 0, 0, 0.08)',
         '&:hover': {
-          borderColor: '#3D52A0',
-          backgroundColor: 'rgba(61, 82, 160, 0.04)',
           transform: 'translateY(-2px)',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+          borderColor: documentUrl ? 'rgba(5, 150, 105, 0.4)' : 'rgba(0, 0, 0, 0.12)',
         },
       }}
     >
-      <Box sx={{ flex: '0 0 auto', mb: 2 }}>
+      <Box sx={{ mb: 1.5 }}>
         <Typography 
           variant="subtitle1" 
           sx={{ 
-            fontWeight: 600, 
-            color: '#3D52A0',
-            mb: 1
+            fontWeight: 600,
+            color: 'text.primary',
+            fontSize: '0.95rem',
           }}
         >
           {label}
@@ -167,7 +167,8 @@ const DocumentUpload = ({
             sx={{ 
               color: 'text.secondary',
               display: 'block',
-              mb: 2
+              mt: 0.5,
+              fontSize: '0.8rem',
             }}
           >
             {description}
@@ -175,112 +176,158 @@ const DocumentUpload = ({
         )}
       </Box>
 
-      <Box sx={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <input
-          type="file"
-          onChange={handleFileUpload}
-          style={{ display: 'none' }}
-          ref={fileInputRef}
-          accept=".jpg,.jpeg,.png,.pdf"
-        />
-        <Button
-          onClick={() => fileInputRef.current.click()}
-          variant="outlined"
-          sx={{
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            padding: '10px 24px',
-            borderColor: '#3D52A0',
-            color: '#3D52A0',
-            '&:hover': {
-              borderColor: '#2A3B7D',
-              backgroundColor: 'rgba(61, 82, 160, 0.04)',
-              transform: 'translateY(-1px)',
-            },
-            transition: 'all 0.2s ease-in-out',
+      <input
+        type="file"
+        onChange={handleFileUpload}
+        style={{ display: 'none' }}
+        ref={fileInputRef}
+        accept=".jpg,.jpeg,.png,.pdf"
+      />
+
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: 1, 
+        alignItems: 'center',
+        mt: 'auto',
+        width: '100%'
+      }}>
+        {documentUrl ? (
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1,
+              width: '100%',
+            }}>
+              <Tooltip title="View Document">
+                <Button
+                  onClick={handleView}
+                  variant="contained"
+                  size="small"
+                  sx={{
+                    flex: 1,
+                    minWidth: 'auto',
+                    borderRadius: '6px',
+                    p: 1,
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                    },
+                  }}
+                >
+                  <VisibilityIcon sx={{ fontSize: 18 }} />
+                </Button>
+              </Tooltip>
+              <Tooltip title="Download Document">
+                <Button
+                  onClick={handleDownload}
+                  variant="contained"
+                  size="small"
+                  sx={{
+                    flex: 1,
+                    minWidth: 'auto',
+                    borderRadius: '6px',
+                    p: 1,
+                    background: 'linear-gradient(45deg, #059669, #34d399)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #047857, #10b981)',
+                    },
+                  }}
+                >
+                  <GetAppIcon sx={{ fontSize: 18 }} />
+                </Button>
+              </Tooltip>
+            </Box>
+            <Button
+              onClick={() => fileInputRef.current.click()}
+              variant="outlined"
+              size="small"
+              sx={{
+                borderRadius: '6px',
+                textTransform: 'none',
+                fontWeight: 500,
+                fontSize: '0.7rem',
+                py: 0.5,
+                borderColor: 'rgba(0, 0, 0, 0.12)',
+                color: 'text.secondary',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
+                },
+              }}
+            >
+              Replace File
+            </Button>
+          </Box>
+        ) : (
+          <Button
+            onClick={() => fileInputRef.current.click()}
+            variant="outlined"
+            fullWidth
+            sx={{
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              py: 1,
+              borderColor: 'rgba(0, 0, 0, 0.12)',
+              color: 'text.primary',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: 'primary.main',
+              },
+            }}
+          >
+            Choose File
+          </Button>
+        )}
+
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: 'text.secondary',
+            fontSize: '0.75rem',
+            textAlign: 'center',
+            width: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
         >
-          Choose File
-        </Button>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          {selectedFile ? selectedFile.name : (filePath ? 'File uploaded' : 'No file chosen')}
+          {selectedFile ? selectedFile.name : (documentUrl ? 'File uploaded' : 'No file chosen')}
         </Typography>
-        {uploadSuccess && (
-          <Box sx={{ 
-            mt: 2,
-            p: 2,
-            borderRadius: '12px',
-            backgroundColor: 'rgba(5, 150, 105, 0.1)',
-            border: '1px solid rgba(5, 150, 105, 0.2)',
-            animation: 'pulse 2s infinite',
-            '@keyframes pulse': {
-              '0%': {
-                boxShadow: '0 0 0 0 rgba(5, 150, 105, 0.4)',
-              },
-              '70%': {
-                boxShadow: '0 0 0 10px rgba(5, 150, 105, 0)',
-              },
-              '100%': {
-                boxShadow: '0 0 0 0 rgba(5, 150, 105, 0)',
-              },
-            },
-          }}>
-            <Typography variant="body2" color="success.main" sx={{ fontWeight: 600 }}>
-              File uploaded successfully!
-            </Typography>
-          </Box>
-        )}
       </Box>
 
-      {/* View and Download Buttons */}
-      {documentUrl && (
-        <Box sx={{ mt: 'auto', pt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
-          <Button
-            onClick={handleView}
-            variant="contained"
-            startIcon={<VisibilityIcon />}
-            sx={{
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              padding: '10px 24px',
-              background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-              boxShadow: 'none',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
-              },
-              transition: 'all 0.2s ease-in-out',
-            }}
-          >
-            View
-          </Button>
-          <Button
-            onClick={handleDownload}
-            variant="contained"
-            startIcon={<GetAppIcon />}
-            sx={{
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              padding: '10px 24px',
-              background: 'linear-gradient(45deg, #059669, #34d399)',
-              boxShadow: 'none',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #047857, #10b981)',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)',
-              },
-              transition: 'all 0.2s ease-in-out',
-            }}
-          >
-            Download
-          </Button>
-        </Box>
+      {uploadSuccess && (
+        <Box sx={{ 
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          backgroundColor: '#059669',
+          animation: 'pulse 2s infinite',
+          '@keyframes pulse': {
+            '0%': {
+              transform: 'scale(0.95)',
+              boxShadow: '0 0 0 0 rgba(5, 150, 105, 0.4)',
+            },
+            '70%': {
+              transform: 'scale(1)',
+              boxShadow: '0 0 0 6px rgba(5, 150, 105, 0)',
+            },
+            '100%': {
+              transform: 'scale(0.95)',
+              boxShadow: '0 0 0 0 rgba(5, 150, 105, 0)',
+            },
+          },
+        }} />
       )}
-    </Box>
+    </Paper>
   );
 };
 

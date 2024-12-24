@@ -19,6 +19,7 @@ import {
   Avatar,
   Chip,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +31,10 @@ import {
   BusinessCenter as BusinessCenterIcon,
   Autorenew as AutorenewIcon,
   Download as DownloadIcon,
+  Tag as TagIcon,
+  Domain as DomainIcon,
+  Settings as SettingsIcon,
+  SearchOff as SearchOffIcon,
 } from '@mui/icons-material';
 
 const theme = createTheme({
@@ -318,355 +323,355 @@ const AssignedEmployee = React.memo(() => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 2 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography 
-            variant="h4" 
-            gutterBottom 
-            sx={{ 
-              textAlign: "center", 
-              color: "primary.main",
-              marginBottom: 4
-            }}
-          >
-            Assigned Employee Management
-          </Typography>
-
-          {/* Search & Filters Section */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Paper 
-              elevation={0}
-              sx={{ 
-                backgroundColor: 'background.paper',
-                borderRadius: 3,
-                p: 3,
-                mb: 3,
-                border: '1px solid',
-                borderColor: 'divider',
-              }}
-            >
+          <Box sx={{ 
+            position: 'sticky',
+            top: 0,
+            zIndex: 1200,
+            backgroundColor: 'background.default',
+            pt: 2,
+            pb: 3,
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              mb: 3
+            }}>
               <Typography 
-                variant="h6" 
+                variant="h4" 
                 sx={{ 
-                  mb: 3,
-                  color: 'text.primary',
-                  fontWeight: 600,
+                  color: "primary.main",
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1,
-                  '&::after': {
-                    content: '""',
-                    flex: 1,
-                    height: '2px',
-                    background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0))',
-                    ml: 2
-                  }
+                  gap: 2
                 }}
               >
-                <BusinessCenterIcon sx={{ color: 'primary.main' }} />
-                Search & Filters
+                <WorkIcon sx={{ fontSize: 40 }} />
+                Assigned Employee Management
               </Typography>
-
-              <motion.div variants={itemVariants}>
-                <TextField
-                  fullWidth
-                  placeholder="Search by Employee Name, Client Name, Department Name, or Job Title..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'background.paper',
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'background.paper',
-                        '& fieldset': {
-                          borderWidth: '2px',
-                          borderColor: 'primary.main',
-                        },
-                      },
-                    },
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip
+                  icon={<WorkIcon />}
+                  label={`Total Records: ${filteredEmployees.length}`}
+                  color="primary"
+                  sx={{ 
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                    '& .MuiChip-icon': { color: 'white' }
                   }}
                 />
-              </motion.div>
-            </Paper>
-          </motion.div>
+              </Box>
+            </Box>
 
-          {/* Employees List Section */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+            {/* Search Section */}
             <Paper 
               elevation={0}
               sx={{ 
                 backgroundColor: 'background.paper',
                 borderRadius: 3,
-                overflow: 'hidden',
+                p: 2,
                 border: '1px solid',
                 borderColor: 'divider',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flexWrap: 'wrap',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
               }}
             >
+              <TextField
+                fullWidth
+                placeholder="Search by Employee Name, Client Name, Department Name, or Job Title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{ 
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': {
+                    background: 'rgba(255,255,255,0.9)',
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: 'primary.main' }} />
+                    </InputAdornment>
+                  ),
+                }}
+                size="small"
+              />
+            </Paper>
+          </Box>
+
+          {/* Employees List Section */}
+          <Paper 
+            elevation={0}
+            sx={{ 
+              backgroundColor: 'background.paper',
+              borderRadius: 3,
+              overflow: 'hidden',
+              border: '1px solid',
+              borderColor: 'divider',
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+              backdropFilter: 'blur(10px)',
+              mt: 2,
+            }}
+          >
+            {isLoading ? (
               <Box sx={{ 
                 display: "flex", 
-                justifyContent: "space-between", 
+                justifyContent: "center", 
                 alignItems: "center",
-                p: 3,
-                borderBottom: '1px solid',
-                borderColor: 'divider'
+                py: 8,
+                flexDirection: 'column',
+                gap: 2
               }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    color: 'text.primary',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
+                <CircularProgress 
+                  size={48} 
+                  thickness={4}
+                  sx={{
+                    color: 'primary.main',
+                    '& .MuiCircularProgress-circle': {
+                      strokeLinecap: 'round',
+                    }
                   }}
-                >
-                  <WorkIcon sx={{ color: 'primary.main' }} />
-                  Assigned Employees List
-                  <Chip 
-                    label={`Total: ${filteredEmployees.length}`}
-                    size="small"
-                    sx={{ 
-                      backgroundColor: 'primary.light',
-                      color: 'primary.main',
-                      fontWeight: 500,
-                      ml: 2
-                    }}
-                  />
+                />
+                <Typography variant="h6" color="primary">
+                  Loading employee data...
                 </Typography>
               </Box>
-
-              {isLoading ? (
-                <Box sx={{ 
-                  display: "flex", 
-                  justifyContent: "center", 
-                  alignItems: "center",
-                  minHeight: "400px",
-                  flexDirection: 'column',
-                  gap: 2
-                }}>
-                  <CircularProgress size={48} thickness={4} />
-                  <Typography variant="body1" color="text.secondary">
-                    Loading employee data...
-                  </Typography>
-                </Box>
-              ) : filteredEmployees.length === 0 ? (
-                <Box sx={{ 
-                  py: 8,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 2
-                }}>
-                  <Typography variant="h6" color="text.secondary">
-                    No assigned employees found
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Try adjusting your search criteria
-                  </Typography>
-                </Box>
-              ) : (
-                <TableContainer sx={{ maxHeight: 'calc(100vh - 50px)' }}>
-                  <Table stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ 
-                          backgroundColor: 'background.paper',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          borderBottom: '2px solid',
-                          borderColor: 'primary.light',
-                        }}>#</TableCell>
-                        <TableCell sx={{ 
-                          backgroundColor: 'background.paper',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          borderBottom: '2px solid',
-                          borderColor: 'primary.light',
-                        }}>Employee Name</TableCell>
-                        <TableCell sx={{ 
-                          backgroundColor: 'background.paper',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          borderBottom: '2px solid',
-                          borderColor: 'primary.light',
-                        }}>Client</TableCell>
-                        <TableCell sx={{ 
-                          backgroundColor: 'background.paper',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          borderBottom: '2px solid',
-                          borderColor: 'primary.light',
-                        }}>Department</TableCell>
-                        <TableCell sx={{ 
-                          backgroundColor: 'background.paper',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          borderBottom: '2px solid',
-                          borderColor: 'primary.light',
-                        }}>Job Role</TableCell>
-                        <TableCell sx={{ 
-                          backgroundColor: 'background.paper',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          borderBottom: '2px solid',
-                          borderColor: 'primary.light',
-                        }}>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <AnimatePresence>
-                        {filteredEmployees.map((item, index) => (
-                          <motion.tr
-                            key={item.id}
-                            variants={itemVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="hidden"
-                            component={TableRow}
-                            sx={{
-                              '&:nth-of-type(odd)': {
-                                backgroundColor: 'action.hover',
-                              },
-                              '&:hover': {
-                                backgroundColor: 'action.selected',
-                              },
-                              transition: 'background-color 0.2s ease-in-out',
-                            }}
-                          >
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Avatar 
-                                  sx={{ 
-                                    width: 32, 
-                                    height: 32,
-                                    backgroundColor: 'primary.light',
-                                    color: 'primary.main',
-                                    fontSize: '0.875rem',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {(item.employee?.firstName?.[0] || '').toUpperCase()}
-                                </Avatar>
-                                <Typography variant="body2">
-                                  {`${item.employee?.firstName || "N/A"} ${item.employee?.lastName || ""}`}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
+            ) : filteredEmployees.length === 0 ? (
+              <Box sx={{ 
+                py: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2
+              }}>
+                <SearchOffIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+                <Typography variant="h6" color="primary">
+                  No assigned employees found
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Try adjusting your search criteria
+                </Typography>
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ 
+                        background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TagIcon sx={{ color: 'primary.main' }} />
+                          #
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ 
+                        background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <WorkIcon sx={{ color: 'primary.main' }} />
+                          Employee Name
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ 
+                        background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <BusinessCenterIcon sx={{ color: 'primary.main' }} />
+                          Client
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ 
+                        background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <DomainIcon sx={{ color: 'primary.main' }} />
+                          Department
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ 
+                        background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <WorkIcon sx={{ color: 'primary.main' }} />
+                          Job Role
+                        </Box>
+                      </TableCell>
+                      <TableCell align="center" sx={{ 
+                        width: '250px',
+                        background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                          <SettingsIcon sx={{ color: 'primary.main' }} />
+                          Actions
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <AnimatePresence>
+                      {filteredEmployees.map((item, index) => (
+                        <motion.tr
+                          key={item.id}
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          component={TableRow}
+                          sx={{
+                            '&:nth-of-type(odd)': {
+                              backgroundColor: 'rgba(245, 247, 255, 0.5)',
+                            },
+                            '&:hover': {
+                              backgroundColor: 'rgba(61, 82, 160, 0.04)',
+                              transform: 'scale(1.001) translateZ(0)',
+                              boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
+                            },
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                        >
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                              {index + 1}
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Avatar 
+                                sx={{ 
+                                  width: 32, 
+                                  height: 32,
+                                  background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                  color: 'white',
+                                  fontSize: '0.875rem',
+                                  fontWeight: 600
+                                }}
+                              >
+                                {(item.employee?.firstName?.[0] || '').toUpperCase()}
+                              </Avatar>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                {`${item.employee?.firstName || "N/A"} ${item.employee?.lastName || ""}`}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <BusinessCenterIcon sx={{ color: 'warning.main', fontSize: 20 }} />
                               <Typography variant="body2">
                                 {item.client?.clientName || "N/A"}
                               </Typography>
-                            </TableCell>
-                            <TableCell>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <DomainIcon sx={{ color: 'success.main', fontSize: 20 }} />
                               <Typography variant="body2">
                                 {item.department?.departmentName || "N/A"}
                               </Typography>
-                            </TableCell>
-                            <TableCell>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <WorkIcon sx={{ color: 'info.main', fontSize: 20 }} />
                               <Typography variant="body2">
                                 {item.jobRole?.jobTitle || "N/A"}
                               </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ 
-                                display: "flex", 
-                                gap: 2
-                              }}>
-                                <Button
-                                  variant="contained"
-                                  disabled={!!assignedMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
-                                  onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
-                                  startIcon={loadingMap[item.id] ? 
-                                    <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 
-                                    <AutorenewIcon />
-                                  }
-                                  sx={{
-                                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                                    color: '#FFFFFF',
-                                    borderRadius: '12px',
-                                    textTransform: 'none',
-                                    fontWeight: 600,
-                                    padding: '10px 24px',
-                                    boxShadow: 'none',
-                                    '&:hover': {
-                                      background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
-                                      transform: 'translateY(-1px)',
-                                      boxShadow: '0 4px 12px rgba(61, 82, 160, 0.2)',
-                                    },
-                                    '&.Mui-disabled': {
-                                      background: 'rgba(0, 0, 0, 0.12)',
-                                      color: 'rgba(0, 0, 0, 0.26)',
-                                    },
-                                    transition: 'all 0.2s ease-in-out',
-                                  }}
-                                >
-                                  {assignedMap.get(item.id)?.hasGeneratedOfferLetter ? "Generated" : "Generate"}
-                                </Button>
-                                <Button
-                                  variant="contained"
-                                  disabled={!assignedMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
-                                  onClick={() => handleDownloadOfferLetter(assignedMap.get(item.id)?.id)}
-                                  startIcon={loadingMap[item.id] ? 
-                                    <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 
-                                    <DownloadIcon />
-                                  }
-                                  sx={{
-                                    background: 'linear-gradient(45deg, #059669, #34d399)',
-                                    color: '#FFFFFF',
-                                    borderRadius: '12px',
-                                    textTransform: 'none',
-                                    fontWeight: 600,
-                                    padding: '10px 24px',
-                                    boxShadow: 'none',
-                                    '&:hover': {
-                                      background: 'linear-gradient(45deg, #047857, #10b981)',
-                                      transform: 'translateY(-1px)',
-                                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)',
-                                    },
-                                    '&.Mui-disabled': {
-                                      background: 'rgba(0, 0, 0, 0.12)',
-                                      color: 'rgba(0, 0, 0, 0.26)',
-                                    },
-                                    transition: 'all 0.2s ease-in-out',
-                                  }}
-                                >
-                                  Download
-                                </Button>
-                              </Box>
-                            </TableCell>
-                          </motion.tr>
-                        ))}
-                      </AnimatePresence>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </Paper>
-          </motion.div>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
+                              <Tooltip title={assignedMap.get(item.id)?.hasGeneratedOfferLetter ? "Already Generated" : "Generate Offer Letter"}>
+                                <span>
+                                  <Button
+                                    variant="contained"
+                                    disabled={!!assignedMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
+                                    onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
+                                    startIcon={loadingMap[item.id] ? 
+                                      <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 
+                                      <AutorenewIcon />
+                                    }
+                                    size="small"
+                                    sx={{
+                                      minWidth: '150px',
+                                      background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
+                                      color: '#FFFFFF',
+                                      '&:hover': {
+                                        background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
+                                        transform: 'translateY(-1px)',
+                                      },
+                                      '&.Mui-disabled': {
+                                        background: 'rgba(0, 0, 0, 0.12)',
+                                        color: 'rgba(0, 0, 0, 0.26)',
+                                      },
+                                    }}
+                                  >
+                                    {assignedMap.get(item.id)?.hasGeneratedOfferLetter ? "Generated" : "Generate"}
+                                  </Button>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title={!assignedMap.get(item.id)?.hasGeneratedOfferLetter ? "Generate offer letter first" : "Download Offer Letter"}>
+                                <span>
+                                  <Button
+                                    variant="contained"
+                                    disabled={!assignedMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
+                                    onClick={() => handleDownloadOfferLetter(assignedMap.get(item.id)?.id)}
+                                    startIcon={loadingMap[item.id] ? 
+                                      <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 
+                                      <DownloadIcon />
+                                    }
+                                    size="small"
+                                    sx={{
+                                      minWidth: '150px',
+                                      background: 'linear-gradient(45deg, #059669, #34d399)',
+                                      color: '#FFFFFF',
+                                      '&:hover': {
+                                        background: 'linear-gradient(45deg, #047857, #10b981)',
+                                        transform: 'translateY(-1px)',
+                                      },
+                                      '&.Mui-disabled': {
+                                        background: 'rgba(0, 0, 0, 0.12)',
+                                        color: 'rgba(0, 0, 0, 0.26)',
+                                      },
+                                    }}
+                                  >
+                                    Download
+                                  </Button>
+                                </span>
+                              </Tooltip>
+                            </Box>
+                          </TableCell>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Paper>
 
           {/* Toast Messages */}
           <AnimatePresence>
