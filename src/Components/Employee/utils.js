@@ -27,11 +27,18 @@ export const validateForm = (employee) => {
   const errors = {};
   
   // Required fields validation
-  if (!employee.contact) errors.contact = "Contact is required";
-  if (employee.contact) {
-    const contactWithoutPrefix = employee.contact.replace("+91", "");
-    if (!/^\d{10}$/.test(contactWithoutPrefix)) {
-      errors.contact = "Contact must be 10 digits after +91 prefix";
+  if (!employee.contact) {
+    errors.contact = "Contact number is required";
+  } else {
+    // Remove any spaces, dashes, or other non-digit characters
+    const cleanedContact = employee.contact.replace(/\D/g, '');
+    
+    // Handle numbers with or without +91 prefix
+    const contactNumber = cleanedContact.startsWith('91') ? 
+      cleanedContact.slice(2) : cleanedContact;
+
+    if (contactNumber.length !== 10) {
+      errors.contact = "Please enter a valid 10-digit mobile number. You can optionally include +91 prefix.";
     }
   }
 

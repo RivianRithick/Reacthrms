@@ -129,14 +129,14 @@ const Login = () => {
       try {
         setIsLoading(true);
         const response = await axiosInstance.post("/api/admin-login", values);
-        const accessToken = response.data?.data?.accessToken;
-        const refreshToken = response.data?.data?.refreshToken;
+        const { accessToken, refreshToken, role } = response.data?.data || {};
 
         if (accessToken && refreshToken) {
           localStorage.setItem("token", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
           localStorage.setItem("username", values.email);
           localStorage.setItem("email", values.email);
+          localStorage.setItem("role", role.toString());
 
           toast.success(response.data?.message || "Login successful!");
           setTimeout(() => navigate("/employees", { replace: true }), 1000);

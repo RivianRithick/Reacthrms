@@ -300,7 +300,12 @@ const EmployeeForm = ({
     return (
       <StyledCard
         component="form"
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (employee.contact && employee.contact.length === 10) {
+            handleSubmit(employee);
+          }
+        }}
         sx={{
           maxWidth: 800,
           margin: '0 auto',
@@ -352,13 +357,30 @@ const EmployeeForm = ({
             fullWidth
             label="Contact Number"
             name="contact"
-            value={employee.contact}
-            onChange={handleContactChange}
+            value={employee.contact || ''}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              // Allow only numbers and check length
+              if (/^\d*$/.test(inputValue) && inputValue.length <= 10) {
+                handleContactChange({
+                  target: {
+                    name: 'contact',
+                    value: inputValue
+                  }
+                });
+              }
+            }}
             required
+            placeholder="Enter 10 digit number"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <PhoneIcon sx={{ color: 'primary.main' }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PhoneIcon sx={{ color: 'primary.main' }} />
+                    <Typography sx={{ color: 'text.secondary', userSelect: 'none' }}>
+                      +91
+                    </Typography>
+                  </Box>
                 </InputAdornment>
               ),
             }}
@@ -387,7 +409,7 @@ const EmployeeForm = ({
                 }
               }
             }}
-            helperText="Format: +91 followed by 10 digits"
+            helperText={`${employee.contact ? employee.contact.length : 0}/10 digits entered`}
           />
 
           <Box sx={{ 
@@ -397,9 +419,14 @@ const EmployeeForm = ({
             mt: 2
           }}>
             <Button 
-              type="submit" 
+              onClick={(e) => {
+                e.preventDefault();
+                if (employee.contact && employee.contact.length === 10) {
+                  handleSubmit(employee);
+                }
+              }}
               variant="contained" 
-              disabled={isLoading}
+              disabled={isLoading || !employee.contact || employee.contact.length !== 10}
               sx={{
                 minWidth: '180px',
                 background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
@@ -1367,6 +1394,7 @@ const EmployeeForm = ({
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Present State</InputLabel>
+                  {console.log('Present State in Form:', employee.presentState)}
                   <Select
                     name="presentState"
                     value={employee.presentState || ""}
@@ -1749,8 +1777,13 @@ const EmployeeForm = ({
             variant="contained"
             color={employee.isApproved ? "error" : "success"}
             onClick={() => {
-              setBlockDialogOpen(true);
-              setTempIsBlocked(!employee.isBlocked);
+              // Update local state immediately
+              setEmployee(prev => ({
+                ...prev,
+                isApproved: !prev.isApproved
+              }));
+              // Make API call
+              handleVerifyEmployee();
             }}
             disabled={assignedEmployees.some(id => id === employee.id)}
             sx={{

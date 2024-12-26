@@ -20,7 +20,7 @@ export const useClientData = (searchQuery = '', filter = 'all') => {
 
   // Add client mutation
   const addClient = useMutation(
-    (newClient) => axiosInstance.post('/api/client-registration/create', newClient),
+    (newClient) => axiosInstance.post('/api/client-registration', newClient),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('clients');
@@ -31,7 +31,7 @@ export const useClientData = (searchQuery = '', filter = 'all') => {
   // Update client mutation
   const updateClient = useMutation(
     (updatedClient) => 
-      axiosInstance.post('/api/client-registration/update', updatedClient),
+      axiosInstance.put(`/api/client-registration/${updatedClient.id}`, updatedClient),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('clients');
@@ -42,7 +42,7 @@ export const useClientData = (searchQuery = '', filter = 'all') => {
   // Delete client mutation
   const deleteClient = useMutation(
     (clientId) => 
-      axiosInstance.post('/api/client-registration/delete', clientId),
+      axiosInstance.delete(`/api/client-registration/${clientId}`),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('clients');

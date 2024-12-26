@@ -343,7 +343,7 @@ const OnboardingManager = () => {
     try {
       await deleteManager.mutateAsync({
         id: selectedManager.onboardingManagerId,
-        remarks: deleteRemarks,
+        remarks: deleteRemarks.trim()
       });
       toast.success('Onboarding manager deleted successfully!');
       handleCloseDeleteDialog();
@@ -1135,6 +1135,22 @@ const OnboardingManager = () => {
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   Are you sure you want to delete this manager? This action cannot be undone.
                 </Typography>
+                <TextField
+                  fullWidth
+                  label="Remarks"
+                  value={deleteRemarks}
+                  onChange={(e) => setDeleteRemarks(e.target.value)}
+                  required
+                  multiline
+                  rows={2}
+                  placeholder="Please provide a reason for deletion"
+                  sx={{
+                    mt: 2,
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'background.paper',
+                    }
+                  }}
+                />
               </Box>
 
               {/* Actions */}
@@ -1166,7 +1182,7 @@ const OnboardingManager = () => {
                   onClick={handleDelete}
                   variant="contained"
                   color="error"
-                  disabled={deleteManager.isLoading}
+                  disabled={deleteManager.isLoading || !deleteRemarks.trim()}
                   startIcon={deleteManager.isLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
                   sx={{
                     minWidth: '100px',

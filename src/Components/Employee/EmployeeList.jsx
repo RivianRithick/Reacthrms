@@ -16,6 +16,10 @@ import {
   Avatar,
   TextField,
   InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -28,6 +32,8 @@ import {
   VerifiedUser as VerifiedUserIcon,
   CircleOutlined as StatusIcon,
   Settings as SettingsIcon,
+  Clear as ClearIcon,
+  Block as BlockIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -65,7 +71,9 @@ const EmployeeList = ({
   setSelectedEmployee,
   assignedEmployees,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  filters,
+  handleFilterChange
 }) => {
   const tableContainerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -149,43 +157,40 @@ const EmployeeList = ({
         </Box>
 
         {/* Search and Add Section */}
+        <Box sx={{ position: 'relative' }}>
         <Paper 
           elevation={0}
           sx={{ 
             backgroundColor: 'background.paper',
             borderRadius: 3,
-            p: 2,
+              p: 0,
             border: '1px solid',
             borderColor: 'divider',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            flexWrap: 'wrap',
             background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
             backdropFilter: 'blur(10px)',
             boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
-          }}
-        >
-          <TextField
-            placeholder="Search employees..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ 
-              flex: 1, 
-              minWidth: '200px',
-              '& .MuiOutlinedInput-root': {
-                background: 'rgba(255,255,255,0.9)',
-              }
+              mb: 2,
+              position: 'sticky',
+              top: 0,
+              zIndex: 1100,
             }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: 'primary.main' }} />
-                </InputAdornment>
-              ),
-            }}
-            size="small"
-          />
+          >
+            {/* Header Section with Create Button */}
+            <Box sx={{ 
+              px: 3,
+              py: 2,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+            }}>
+              <Box>
+                <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                  Employee Management
+                </Typography>
+              </Box>
           <Button
             variant="contained"
             onClick={() => {
@@ -214,10 +219,111 @@ const EmployeeList = ({
           >
             Create New Employee
           </Button>
-        </Paper>
       </Box>
 
-      <Paper 
+            {/* Filters Row */}
+            <Box sx={{ 
+              px: 3,
+              py: 2,
+              display: 'flex', 
+              gap: 2,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              background: 'white',
+            }}>
+              <FormControl 
+                size="small" 
+                sx={{ 
+                  minWidth: 200,
+                  flex: 1,
+                  maxWidth: 250,
+                  '& .MuiOutlinedInput-root': {
+                    background: 'white',
+                    '&:hover': {
+                      background: 'white',
+                    },
+                  }
+                }}
+              >
+                <InputLabel>Status</InputLabel>
+                <Select
+                  name="dataStatus"
+                  value={filters.dataStatus}
+                  onChange={handleFilterChange}
+                  label="Status"
+                >
+                  <MenuItem value="all">All Status</MenuItem>
+                  <MenuItem value="enabled">Enabled</MenuItem>
+                  <MenuItem value="disabled">Disabled</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl 
+                size="small" 
+                sx={{ 
+                  minWidth: 200,
+                  flex: 1,
+                  maxWidth: 250,
+                  '& .MuiOutlinedInput-root': {
+                    background: 'white',
+                    '&:hover': {
+                      background: 'white',
+                    },
+                  }
+                }}
+              >
+                <InputLabel>Block Status</InputLabel>
+                <Select
+                  name="isBlocked"
+                  value={filters.isBlocked}
+                  onChange={handleFilterChange}
+                  label="Block Status"
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="blocked">Blocked</MenuItem>
+                  <MenuItem value="unblocked">Unblocked</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                size="small"
+                placeholder="Search by name, email, contact..."
+                variant="outlined"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: 'primary.main' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchQuery && (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => setSearchQuery('')}
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ 
+                  flex: 2,
+                  minWidth: 300,
+                  '& .MuiOutlinedInput-root': {
+                    background: 'white',
+                    '&:hover': {
+                      background: 'white',
+                    },
+                  }
+                }}
+              />
+            </Box>
+          </Paper>
+
+          <TableContainer
+            component={Paper}
         elevation={0}
         sx={{ 
           backgroundColor: 'background.paper',
@@ -227,10 +333,8 @@ const EmployeeList = ({
           borderColor: 'divider',
           background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
           backdropFilter: 'blur(10px)',
-          mt: 2,
         }}
       >
-        <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
@@ -504,7 +608,8 @@ const EmployeeList = ({
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
+        </Box>
+      </Box>
     </motion.div>
   );
 };

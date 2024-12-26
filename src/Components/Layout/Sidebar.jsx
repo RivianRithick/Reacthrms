@@ -34,9 +34,24 @@ import {
   SupervisorAccount as SupervisorIcon,
   PersonSearch as RecruiterIcon,
 } from '@mui/icons-material';
+import { getAuthorizedMenuItems } from '../../utils/rbac';
 
 const drawerWidth = 280;
 const collapsedWidth = 80;
+
+// Map of icon strings to icon components
+const iconMap = {
+  PeopleIcon,
+  BusinessIcon,
+  LocationIcon,
+  WorkIcon,
+  MoneyIcon,
+  AssignmentIcon,
+  PersonIcon,
+  GroupIcon,
+  SupervisorIcon,
+  RecruiterIcon,
+};
 
 const Sidebar = ({ onToggle }) => {
   const [open, setOpen] = useState(true);
@@ -56,7 +71,7 @@ const Sidebar = ({ onToggle }) => {
   };
 
   const handleLogoutConfirm = () => {
-    localStorage.removeItem('token');
+    localStorage.clear();
     setLogoutDialogOpen(false);
     navigate('/login');
   };
@@ -65,18 +80,8 @@ const Sidebar = ({ onToggle }) => {
     setLogoutDialogOpen(false);
   };
 
-  const menuItems = [
-    { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
-    { text: 'Onboarding Managers', icon: <SupervisorIcon />, path: '/onboarding-managers' },
-    { text: 'Recruiters', icon: <RecruiterIcon />, path: '/recruiters' },
-    { text: 'Role Assignment', icon: <AssignmentIcon />, path: '/employee-role-assign' },
-    { text: 'Assigned Employees', icon: <GroupIcon />, path: '/assigned-employee' },
-    { text: 'Clients', icon: <PersonIcon />, path: '/clients' },
-    { text: 'Departments', icon: <BusinessIcon />, path: '/department' },
-    { text: 'Job Roles', icon: <WorkIcon />, path: '/jobRole' },
-    { text: 'Job Locations', icon: <LocationIcon />, path: '/employee-job-locations' },
-    { text: 'Salaries', icon: <MoneyIcon />, path: '/salaries' },
-  ];
+  // Get authorized menu items based on user role
+  const authorizedMenuItems = getAuthorizedMenuItems();
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -100,19 +105,10 @@ const Sidebar = ({ onToggle }) => {
           backgroundImage: 'linear-gradient(180deg, #1a237e 0%, #283593 100%)',
           color: 'white',
           overflowX: 'hidden',
-          borderRight: 'none',
-          boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
           boxShadow: '4px 0 8px rgba(0, 0, 0, 0.1)',
-          '& .MuiListItemIcon-root': {
-            minWidth: 0,
-            color: 'white',
-            marginRight: open ? 3 : 'auto',
-            justifyContent: 'center',
-            fontSize: '20px',
-          },
         },
       }}
     >
@@ -141,7 +137,7 @@ const Sidebar = ({ onToggle }) => {
             HRMS
           </Typography>
         )}
-        <IconButton 
+        <IconButton
           onClick={handleDrawerToggle} 
           sx={{ 
             color: 'white',
@@ -163,60 +159,61 @@ const Sidebar = ({ onToggle }) => {
         pb: 2,
         px: 1,
       }}>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            component={Link}
-            to={item.path}
-            sx={{
-              minHeight: 48,
-              mb: 0.5,
-              justifyContent: open ? 'initial' : 'center',
-              borderRadius: '12px',
-              px: 2,
-              backgroundColor:
-                location.pathname === item.path
-                  ? alpha('#fff', 0.15)
-                  : 'transparent',
-              '&:hover': {
-                backgroundColor: alpha('#fff', 0.1),
-                transform: 'translateX(5px)',
-                transition: 'transform 0.2s ease-in-out',
-              },
-              transition: theme.transitions.create(['background-color', 'transform'], {
-                duration: '0.2s',
-              }),
-            }}
-          >
-            <ListItemIcon
+        {authorizedMenuItems.map((item) => {
+          const IconComponent = iconMap[item.icon];
+          return (
+            <ListItem
+              button
+              key={item.text}
+              component={Link}
+              to={item.path}
               sx={{
-                minWidth: 0,
-                mr: open ? 3 : 'auto',
-                justifyContent: 'center',
-                transition: theme.transitions.create(['margin'], {
+                minHeight: 48,
+                mb: 0.5,
+                justifyContent: open ? 'initial' : 'center',
+                borderRadius: '12px',
+                px: 2,
+                backgroundColor:
+                  location.pathname === item.path
+                    ? alpha('#fff', 0.15)
+                    : 'transparent',
+                '&:hover': {
+                  backgroundColor: alpha('#fff', 0.1),
+                  transform: 'translateX(5px)',
+                  transition: 'transform 0.2s ease-in-out',
+                },
+                transition: theme.transitions.create(['background-color', 'transform'], {
                   duration: '0.2s',
                 }),
               }}
             >
-              {item.icon}
-            </ListItemIcon>
-            {open && (
-              <ListItemText
-                primary={item.text}
+              <ListItemIcon
                 sx={{
-                  opacity: 1,
-                  '& .MuiTypography-root': {
-                    fontWeight: location.pathname === item.path ? 600 : 400,
-                    fontSize: '0.95rem',
-                    whiteSpace: 'nowrap',
-                    letterSpacing: '0.3px',
-                  },
+                  minWidth: 0,
+                  mr: open ? 3 : 'auto',
+                  justifyContent: 'center',
+                  color: 'white',
                 }}
-              />
-            )}
-          </ListItem>
-        ))}
+              >
+                {IconComponent && <IconComponent />}
+              </ListItemIcon>
+              {open && (
+                <ListItemText
+                  primary={item.text}
+                  sx={{
+                    opacity: 1,
+                    '& .MuiTypography-root': {
+                      fontWeight: location.pathname === item.path ? 600 : 400,
+                      fontSize: '0.95rem',
+                      whiteSpace: 'nowrap',
+                      letterSpacing: '0.3px',
+                    },
+                  }}
+                />
+              )}
+            </ListItem>
+          );
+        })}
       </List>
       <Divider sx={{ backgroundColor: alpha('#fff', 0.1), margin: '0' }} />
       <Box sx={{ p: 2 }}>

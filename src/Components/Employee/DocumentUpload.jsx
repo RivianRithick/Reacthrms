@@ -78,21 +78,46 @@ const DocumentUpload = ({
     }
   };
 
-  const handleView = async () => {
+  const handleViewDocument = async (documentType) => {
     try {
-      const timestamp = new Date().getTime();
       const backendDocType = getBackendDocumentType(documentType);
-      const url = `${baseUrl}/api/employee-registration/download-document?contact=${encodeURIComponent(
-        contact
-      )}&documentType=${encodeURIComponent(backendDocType)}&t=${timestamp}`;
+      const response = await fetch(
+        `${baseUrl}/api/employee-registration/download-document?contact=${encodeURIComponent(
+          contact
+        )}&documentType=${encodeURIComponent(backendDocType)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-      const newWindow = window.open(url, '_blank');
-      if (newWindow) {
-        newWindow.focus();
+      if (!response.ok) {
+        throw new Error(response.status === 404 ? 'Document not found' : 'Failed to view document');
       }
+
+      const blob = await response.blob();
+      const contentType = response.headers.get('content-type');
+      const fileUrl = window.URL.createObjectURL(blob);
+
+      // For images and PDFs, open in new tab
+      if (contentType.startsWith('image/') || contentType === 'application/pdf') {
+        window.open(fileUrl, '_blank');
+      } else {
+        // For other file types, trigger download
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = `${documentType}_${contact}.${contentType.split('/')[1]}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      // Clean up the blob URL
+      window.URL.revokeObjectURL(fileUrl);
     } catch (error) {
-      console.error("Error viewing document:", error);
-      toast.error(error.message || "Failed to view the document");
+      console.error('Error viewing document:', error);
+      toast.error('Error viewing document. Please try again.');
     }
   };
 
@@ -201,7 +226,7 @@ const DocumentUpload = ({
             }}>
               <Tooltip title="View Document">
                 <Button
-                  onClick={handleView}
+                  onClick={() => handleViewDocument(documentType)}
                   variant="contained"
                   size="small"
                   sx={{

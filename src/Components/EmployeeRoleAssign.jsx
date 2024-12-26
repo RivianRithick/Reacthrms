@@ -952,9 +952,29 @@ const EmployeeRoleAssign = React.memo(() => {
                         <MenuItem value="" disabled>Select Department</MenuItem>
                         {filteredDepartments.map((department) => (
                           <MenuItem key={department.id} value={department.id}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <DomainIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                              {`${department.name} (${department.departmentCode || 'No Code'})`}
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1,
+                              width: '100%',
+                              overflow: 'hidden'
+                            }}>
+                              <DomainIcon sx={{ 
+                                color: 'primary.main', 
+                                fontSize: 20,
+                                flexShrink: 0 
+                              }} />
+                              <Typography
+                                noWrap
+                                sx={{
+                                  flex: 1,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}
+                                title={`${department.name} (${department.departmentCode || 'No Code'})`}
+                              >
+                                {`${department.name} (${department.departmentCode || 'No Code'})`}
+                              </Typography>
                             </Box>
                           </MenuItem>
                         ))}
@@ -995,9 +1015,29 @@ const EmployeeRoleAssign = React.memo(() => {
                         <MenuItem value="" disabled>Select Job Role</MenuItem>
                         {jobRoles.map((role) => (
                           <MenuItem key={role.id} value={role.id}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <WorkIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                              {`${role.title} (${role.jobRoleCode || 'No Code'})`}
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1,
+                              width: '100%',
+                              overflow: 'hidden'
+                            }}>
+                              <WorkIcon sx={{ 
+                                color: 'primary.main', 
+                                fontSize: 20,
+                                flexShrink: 0 
+                              }} />
+                              <Typography
+                                noWrap
+                                sx={{
+                                  flex: 1,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}
+                                title={`${role.title} (${role.jobRoleCode || 'No Code'})`}
+                              >
+                                {`${role.title} (${role.jobRoleCode || 'No Code'})`}
+                              </Typography>
                             </Box>
                           </MenuItem>
                         ))}

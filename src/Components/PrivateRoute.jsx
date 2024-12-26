@@ -1,6 +1,7 @@
 import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
-import {jwtDecode} from "jwt-decode"; // Ensure jwt-decode is installed: npm install jwt-decode
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import { hasAccess } from "../utils/rbac";
 
 // Helper to check if the token is expired
 const isTokenExpired = (token) => {
@@ -20,14 +21,26 @@ const isTokenExpired = (token) => {
 
 const PrivateRoute = () => {
   const token = localStorage.getItem("token");
+  const location = useLocation();
 
   // Check for token presence and validity
   if (!token || isTokenExpired(token)) {
     localStorage.clear(); // Clear invalid session data
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Render protected content if the token is valid
+  // Allow access to the unauthorized page without checking permissions
+  if (location.pathname === "/unauthorized") {
+    return <Outlet />;
+  }
+
+  // Check for route access based on user role
+  if (!hasAccess(location.pathname)) {
+    // If user doesn't have access to this route, redirect to unauthorized page
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // Render protected content if the token is valid and user has access
   return <Outlet />;
 };
 

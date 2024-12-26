@@ -33,6 +33,7 @@ const EmployeeSalaryForm = lazy(() => import("./Components/EmployeeSalaryForm"))
 const Dashboard = lazy(() => import("./Components/Dashboard"));
 const OnboardingManager = lazy(() => import("./Components/OnboardingManager"));
 const Recruiter = lazy(() => import("./Components/Recruiter"));
+const Unauthorized = lazy(() => import("./Components/Unauthorized"));
 
 // Loading component
 const LoadingFallback = () => (
@@ -60,15 +61,13 @@ const App = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Navigate to="/login" />} />
-              <Route
-                path="/login"
-                element={<Login SetUserName={setUserName} SetEmail={setEmail} />}
-              />
+              <Route path="/login" element={<Login SetUserName={setUserName} SetEmail={setEmail} />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<AdminResetPassword />} />
 
               {/* Protected Routes */}
               <Route element={<PrivateRoute />}>
+                <Route path="/unauthorized" element={<Unauthorized />} />
                 <Route
                   path="/dashboard"
                   element={

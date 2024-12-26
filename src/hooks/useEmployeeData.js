@@ -26,6 +26,7 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
         }
 
         const data = await response.json();
+        console.log('Raw API Response:', data);
 
         if (data?.status !== "Success" || !Array.isArray(data.data)) {
           throw new Error("Invalid response format from server");
@@ -34,6 +35,7 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
         // Fetch verification details for each approved employee
         const employeesWithDetails = await Promise.all(
           data.data.map(async (emp) => {
+            console.log('Processing employee data:', emp);
             const isDisabled = emp.isDisabled === true || 
                              emp.isDisabled === 1 || 
                              emp.disabledBy !== null || 
@@ -43,7 +45,13 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
               ...emp,
               isActive: typeof emp.isActive === 'boolean' ? emp.isActive : true,
               isDisabled: isDisabled,
+              // Extract presentState from multiple possible sources
+              presentState: emp.presentState || 
+                          emp.PresentState || 
+                          (emp.presentAddress ? emp.presentAddress.split(',').slice(-2)[0]?.trim() : null) ||
+                          null,
             };
+            console.log('Processed employee data with state:', employeeData);
             
             if (emp.isApproved) {
               try {
@@ -125,21 +133,7 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
 
   // Add employee mutation
   const addEmployee = useMutation(
-    async (newEmployee) => {
-      const response = await fetch(`${baseUrl}/api/employee-registration`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(newEmployee)
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to add employee');
-      }
-      return response.json();
-    },
+    (employeeData) => apiService.post('/api/employee-registration/create', employeeData),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('employees');
@@ -150,6 +144,7 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
   // Update employee mutation
   const updateEmployee = useMutation(
     async (updatedEmployee) => {
+      console.log('Updating employee with data:', updatedEmployee);
       const response = await fetch(`${baseUrl}/api/employee-registration/update-by-contact`, {
         method: 'POST',
         headers: {
@@ -180,7 +175,9 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
 
           // Address Information
           presentAddress: updatedEmployee.presentAddress || null,
-          presentState: updatedEmployee.presentState || null,
+          presentState: updatedEmployee.presentState || 
+                       (updatedEmployee.presentAddress ? updatedEmployee.presentAddress.split(',').slice(-2)[0]?.trim() : null) ||
+                       null,
           presentDistrict: updatedEmployee.presentDistrict || null,
           permanentAddress: updatedEmployee.permanentAddress || null,
 
@@ -227,7 +224,9 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
         const error = await response.json();
         throw new Error(error.message || 'Failed to update employee');
       }
-      return response.json();
+      const result = await response.json();
+      console.log('Update response:', result);
+      return result;
     },
     {
       onSuccess: () => {

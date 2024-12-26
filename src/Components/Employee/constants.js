@@ -52,7 +52,7 @@ export const initialEmployeeState = {
   bloodGroup: "",
   maritalStatus: "",
   email: "",
-  contact: "+91",
+  contact: "",
   alternateContact: "",
   candidatePhotoPath: "",
 

@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import axiosInstance from '../apiService';
 import { useNavigate, useParams } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import {
     Box,
     TextField,
@@ -303,6 +304,14 @@ const EmployeeSalaryForm = React.memo(() => {
         if (!validateDates()) return;
         
         try {
+            const token = localStorage.getItem("token");
+            let createdBy = "System";
+            
+            if (token) {
+                const decodedToken = jwtDecode(token);
+                createdBy = decodedToken?.FirstName || decodedToken?.Email || decodedToken?.email || "System";
+            }
+
             const dataToSubmit = {
                 ...formData,
                 basic: parseFloat(formData.basic),
@@ -323,7 +332,8 @@ const EmployeeSalaryForm = React.memo(() => {
                 netPay: parseFloat(formData.netPay),
                 effectiveDate: formData.effectiveDate ? new Date(formData.effectiveDate + 'T12:00:00').toISOString() : null,
                 endDate: formData.endDate ? new Date(formData.endDate + 'T12:00:00').toISOString() : null,
-                id: id ? parseInt(id) : undefined
+                id: id ? parseInt(id) : undefined,
+                createdBy: createdBy
             };
             
             if (id) {
