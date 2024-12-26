@@ -25,6 +25,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -253,7 +257,45 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 };
 
-const baseUrl = process.env.REACT_APP_BASE_URL;
+// Add Indian states array
+const indianStates = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry"
+];
 
 const EmployeeJobLocation = React.memo(() => {
   const [formData, setFormData] = useState({
@@ -592,33 +634,39 @@ const EmployeeJobLocation = React.memo(() => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="State"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="Enter state name"
-                        InputProps={{
-                          startAdornment: (
+                      <FormControl fullWidth>
+                        <InputLabel>State</InputLabel>
+                        <Select
+                          name="state"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          label="State"
+                          required
+                          startAdornment={
                             <InputAdornment position="start">
                               <LocationIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            background: 'rgba(255,255,255,0.9)',
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              background: 'rgba(255,255,255,1)',
-                              transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                          }
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              background: 'rgba(255,255,255,0.9)',
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                background: 'rgba(255,255,255,1)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                              },
                             },
-                          },
-                        }}
-                      />
+                          }}
+                        >
+                          <MenuItem value="">Select State</MenuItem>
+                          {indianStates.map((state) => (
+                            <MenuItem key={state} value={state}>
+                              {state}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField

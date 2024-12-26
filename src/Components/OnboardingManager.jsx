@@ -237,7 +237,6 @@ const OnboardingManager = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedManager, setSelectedManager] = useState(null);
-  const [deleteRemarks, setDeleteRemarks] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -305,14 +304,12 @@ const OnboardingManager = () => {
 
   const handleOpenDeleteDialog = useCallback((manager) => {
     setSelectedManager(manager);
-    setDeleteRemarks('');
     setOpenDeleteDialog(true);
   }, []);
 
   const handleCloseDeleteDialog = useCallback(() => {
     setOpenDeleteDialog(false);
     setSelectedManager(null);
-    setDeleteRemarks('');
   }, []);
 
   const handleSubmit = async (e) => {
@@ -342,8 +339,7 @@ const OnboardingManager = () => {
   const handleDelete = async () => {
     try {
       await deleteManager.mutateAsync({
-        id: selectedManager.onboardingManagerId,
-        remarks: deleteRemarks.trim()
+        id: selectedManager.onboardingManagerId
       });
       toast.success('Onboarding manager deleted successfully!');
       handleCloseDeleteDialog();
@@ -1132,25 +1128,9 @@ const OnboardingManager = () => {
 
               {/* Content */}
               <Box sx={{ p: 2 }}>
-                <Typography variant="body1" sx={{ mb: 2 }}>
+                <Typography variant="body1">
                   Are you sure you want to delete this manager? This action cannot be undone.
                 </Typography>
-                <TextField
-                  fullWidth
-                  label="Remarks"
-                  value={deleteRemarks}
-                  onChange={(e) => setDeleteRemarks(e.target.value)}
-                  required
-                  multiline
-                  rows={2}
-                  placeholder="Please provide a reason for deletion"
-                  sx={{
-                    mt: 2,
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'background.paper',
-                    }
-                  }}
-                />
               </Box>
 
               {/* Actions */}
@@ -1182,7 +1162,7 @@ const OnboardingManager = () => {
                   onClick={handleDelete}
                   variant="contained"
                   color="error"
-                  disabled={deleteManager.isLoading || !deleteRemarks.trim()}
+                  disabled={deleteManager.isLoading}
                   startIcon={deleteManager.isLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
                   sx={{
                     minWidth: '100px',

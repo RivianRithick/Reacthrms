@@ -983,7 +983,7 @@ const EmployeeRoleAssign = React.memo(() => {
 
                     <Grid item xs={6}>
                       <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
-                        Job Role
+                        Designation
                       </InputLabel>
                       <Select
                         fullWidth
@@ -1012,7 +1012,7 @@ const EmployeeRoleAssign = React.memo(() => {
                           },
                         }}
                       >
-                        <MenuItem value="" disabled>Select Job Role</MenuItem>
+                        <MenuItem value="" disabled>Select Designation</MenuItem>
                         {jobRoles.map((role) => (
                           <MenuItem key={role.id} value={role.id}>
                             <Box sx={{ 

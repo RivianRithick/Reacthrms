@@ -389,7 +389,7 @@ const AssignedEmployee = React.memo(() => {
             >
               <TextField
                 fullWidth
-                placeholder="Search by Employee Name, Client Name, Department Name, or Job Title..."
+                placeholder="Search by Employee Name, Client Name, Department Name, or Designation..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 sx={{ 
@@ -515,7 +515,7 @@ const AssignedEmployee = React.memo(() => {
                       }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <WorkIcon sx={{ color: 'primary.main' }} />
-                          Job Role
+                          Designation
                         </Box>
                       </TableCell>
                       <TableCell align="center" sx={{ 

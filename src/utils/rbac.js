@@ -52,7 +52,7 @@ export const menuItems = [
     roles: [Roles.SUPER_ADMIN] 
   },
   { 
-    text: 'Job Roles', 
+    text: 'Designation', 
     icon: 'WorkIcon', 
     path: '/jobRole', 
     roles: [Roles.SUPER_ADMIN] 

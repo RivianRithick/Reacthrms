@@ -254,13 +254,13 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 };
 
-const JobRole = React.memo(() => {
+const Designation = React.memo(() => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [jobRoleToDelete, setJobRoleToDelete] = useState(null);
-  const [selectedJobRole, setSelectedJobRole] = useState(null);
+  const [designationToDelete, setDesignationToDelete] = useState(null);
+  const [selectedDesignation, setSelectedDesignation] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [jobRole, setJobRole] = useState({
+  const [designation, setDesignation] = useState({
     title: "",
     departmentId: "",
     jobRoleCode: "",
@@ -269,48 +269,48 @@ const JobRole = React.memo(() => {
   // Use debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Use job role data hook with caching
+  // Use designation data hook with caching
   const { 
-    jobRoles, 
+    jobRoles: designations, 
     departments,
     isLoading, 
     error, 
-    addJobRole, 
-    updateJobRole, 
-    deleteJobRole 
+    addJobRole: addDesignation, 
+    updateJobRole: updateDesignation, 
+    deleteJobRole: deleteDesignation 
   } = useJobRoleData();
 
   // Memoize handlers
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setJobRole(prev => ({ ...prev, [name]: value }));
+    setDesignation(prev => ({ ...prev, [name]: value }));
   }, []);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    if (!jobRole.title || !jobRole.departmentId) {
+    if (!designation.title || !designation.departmentId) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
     try {
-      if (selectedJobRole) {
-        await updateJobRole.mutateAsync({ id: selectedJobRole.id, ...jobRole });
-        toast.success("Job role updated successfully!");
+      if (selectedDesignation) {
+        await updateDesignation.mutateAsync({ id: selectedDesignation.id, ...designation });
+        toast.success("Designation updated successfully!");
       } else {
-        await addJobRole.mutateAsync(jobRole);
-        toast.success("Job role created successfully!");
+        await addDesignation.mutateAsync(designation);
+        toast.success("Designation created successfully!");
       }
       resetForm();
     } catch (error) {
-      console.error("Error saving job role:", error);
-      toast.error("Failed to save job role. Please try again.");
+      console.error("Error saving designation:", error);
+      toast.error("Failed to save designation. Please try again.");
     }
-  }, [jobRole, selectedJobRole, updateJobRole, addJobRole]);
+  }, [designation, selectedDesignation, updateDesignation, addDesignation]);
 
   const handleEdit = useCallback((role) => {
-    setSelectedJobRole(role);
-    setJobRole({
+    setSelectedDesignation(role);
+    setDesignation({
       title: role.title,
       departmentId: role.departmentId,
       jobRoleCode: role.jobRoleCode
@@ -319,33 +319,33 @@ const JobRole = React.memo(() => {
   }, []);
 
   const handleDelete = useCallback((id) => {
-    setJobRoleToDelete(id);
+    setDesignationToDelete(id);
     setDialogOpen(true);
   }, []);
 
   const confirmDelete = useCallback(async () => {
-    if (!jobRoleToDelete) return;
+    if (!designationToDelete) return;
     try {
-      await deleteJobRole.mutateAsync(jobRoleToDelete);
-      toast.success("Job role deleted successfully.");
+      await deleteDesignation.mutateAsync(designationToDelete);
+      toast.success("Designation deleted successfully.");
       setDialogOpen(false);
     } catch (error) {
-      console.error("Error deleting job role:", error);
-      toast.error("Failed to delete job role. Please try again.");
+      console.error("Error deleting designation:", error);
+      toast.error("Failed to delete designation. Please try again.");
     }
-  }, [jobRoleToDelete, deleteJobRole]);
+  }, [designationToDelete, deleteDesignation]);
 
   const resetForm = useCallback(() => {
-    setJobRole({ title: "", departmentId: "", jobRoleCode: "" });
-    setSelectedJobRole(null);
+    setDesignation({ title: "", departmentId: "", jobRoleCode: "" });
+    setSelectedDesignation(null);
     setShowForm(false);
   }, []);
 
-  // Memoize filtered job roles with local filtering
-  const filteredJobRoles = useMemo(() => {
-    if (!jobRoles) return [];
+  // Memoize filtered designations with local filtering
+  const filteredDesignations = useMemo(() => {
+    if (!designations) return [];
     
-    return jobRoles.filter((role) => {
+    return designations.filter((role) => {
       // Only apply search filter if there's a search query
       const searchMatch = !debouncedSearchQuery || 
         role.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
@@ -353,10 +353,10 @@ const JobRole = React.memo(() => {
       
       return searchMatch;
     });
-  }, [jobRoles, debouncedSearchQuery]);
+  }, [designations, debouncedSearchQuery]);
 
   if (error) {
-    toast.error("Error loading job roles.");
+    toast.error("Error loading designations.");
   }
 
   return (
@@ -393,12 +393,12 @@ const JobRole = React.memo(() => {
                     }}
                   >
                     <WorkIcon sx={{ fontSize: 40 }} />
-                    Job Role Management
+                    Designation Management
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Chip
                       icon={<WorkIcon />}
-                      label={`Total Records: ${filteredJobRoles.length}`}
+                      label={`Total Records: ${filteredDesignations.length}`}
                       color="primary"
                       sx={{ 
                         fontWeight: 'bold',
@@ -428,7 +428,7 @@ const JobRole = React.memo(() => {
                   }}
                 >
                   <TextField
-                    placeholder="Search by Job Title or Department..."
+                    placeholder="Search by Designation or Department..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     sx={{ 
@@ -460,7 +460,7 @@ const JobRole = React.memo(() => {
                       }
                     }}
                   >
-                    Add New Role
+                    Add New Designation
                   </Button>
                 </Paper>
               </>
@@ -519,7 +519,7 @@ const JobRole = React.memo(() => {
                     }}
                   >
                     <WorkIcon sx={{ fontSize: 40 }} />
-                    {selectedJobRole ? "Edit Job Role" : "Create Job Role"}
+                    {selectedDesignation ? "Edit Designation" : "Create Designation"}
                   </Typography>
                 </Box>
 
@@ -543,7 +543,7 @@ const JobRole = React.memo(() => {
                           }}
                         >
                           <WorkIcon />
-                          Role Details
+                          Designation Details
                         </Typography>
                       </Box>
                     </Grid>
@@ -551,12 +551,12 @@ const JobRole = React.memo(() => {
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label="Job Role Code"
+                        label="Designation Code"
                         name="jobRoleCode"
-                        value={jobRole.jobRoleCode}
+                        value={designation.jobRoleCode}
                         onChange={handleChange}
                         required
-                        placeholder="Enter job role code"
+                        placeholder="Enter designation code"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -580,12 +580,12 @@ const JobRole = React.memo(() => {
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label="Job Title"
+                        label="Designation Title"
                         name="title"
-                        value={jobRole.title}
+                        value={designation.title}
                         onChange={handleChange}
                         required
-                        placeholder="Enter job title"
+                        placeholder="Enter designation title"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -625,7 +625,7 @@ const JobRole = React.memo(() => {
                         <InputLabel>Department</InputLabel>
                         <Select
                           name="departmentId"
-                          value={jobRole.departmentId}
+                          value={designation.departmentId}
                           onChange={handleChange}
                           label="Department"
                           startAdornment={
@@ -675,7 +675,7 @@ const JobRole = React.memo(() => {
                         <Button
                           type="submit"
                           variant="contained"
-                          disabled={!jobRole.title || !jobRole.departmentId || isLoading}
+                          disabled={!designation.title || !designation.departmentId || isLoading}
                           startIcon={isLoading ? <CircularProgress size={20} /> : <AddIcon />}
                           sx={{
                             background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
@@ -689,7 +689,7 @@ const JobRole = React.memo(() => {
                             },
                           }}
                         >
-                          {isLoading ? 'Saving...' : (selectedJobRole ? 'Update Role' : 'Create Role')}
+                          {isLoading ? 'Saving...' : (selectedDesignation ? 'Update Designation' : 'Create Designation')}
                         </Button>
                       </Box>
                     </Grid>
@@ -703,7 +703,7 @@ const JobRole = React.memo(() => {
               initial="hidden"
               animate="visible"
             >
-              {/* Job Roles List Section */}
+              {/* Designations List Section */}
               <Paper 
                 elevation={0}
                 sx={{ 
@@ -738,7 +738,7 @@ const JobRole = React.memo(() => {
                       }}
                     />
                     <Typography variant="h6" color="primary">
-                      Loading job roles...
+                      Loading designations...
                     </Typography>
                   </Box>
                 ) : (
@@ -763,7 +763,7 @@ const JobRole = React.memo(() => {
                           }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <CodeIcon sx={{ color: 'primary.main' }} />
-                              Job Role Code
+                              Designation Code
                             </Box>
                           </TableCell>
                           <TableCell sx={{ 
@@ -801,7 +801,7 @@ const JobRole = React.memo(() => {
                       </TableHead>
                       <TableBody>
                         <AnimatePresence>
-                          {filteredJobRoles.length === 0 ? (
+                          {filteredDesignations.length === 0 ? (
                             <TableRow>
                               <TableCell 
                                 colSpan={5} 
@@ -814,16 +814,16 @@ const JobRole = React.memo(() => {
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                                   <SearchOffIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
                                   <Typography variant="h6" gutterBottom color="primary">
-                                    No job roles found
+                                    No designations found
                                   </Typography>
                                   <Typography variant="body2" color="text.secondary">
-                                    Try adjusting your search criteria or add a new job role
+                                    Try adjusting your search criteria or add a new designation
                                   </Typography>
                                 </Box>
                               </TableCell>
                             </TableRow>
                           ) : (
-                            filteredJobRoles.map((role, index) => (
+                            filteredDesignations.map((role, index) => (
                               <motion.tr
                                 key={role.id}
                                 variants={itemVariants}
@@ -869,7 +869,7 @@ const JobRole = React.memo(() => {
                                 </TableCell>
                                 <TableCell>
                                   <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
-                                    <Tooltip title="Edit Role">
+                                    <Tooltip title="Edit Designation">
                                       <IconButton
                                         color="primary"
                                         onClick={() => handleEdit(role)}
@@ -886,7 +886,7 @@ const JobRole = React.memo(() => {
                                         <EditIcon fontSize="small" />
                                       </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Delete Role">
+                                    <Tooltip title="Delete Designation">
                                       <IconButton
                                         color="error"
                                         onClick={() => handleDelete(role.id)}
@@ -945,7 +945,7 @@ const JobRole = React.memo(() => {
           </DialogTitle>
           <DialogContent sx={{ mt: 2 }}>
             <Typography>
-              Are you sure you want to delete this job role? This action cannot be undone.
+              Are you sure you want to delete this designation? This action cannot be undone.
             </Typography>
           </DialogContent>
           <DialogActions sx={{ p: 2, pt: 0 }}>
@@ -983,4 +983,4 @@ const JobRole = React.memo(() => {
   );
 });
 
-export default JobRole;
+export default Designation;

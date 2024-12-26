@@ -281,11 +281,13 @@ const EmployeeSalary = React.memo(() => {
     const filteredSalaries = useMemo(() => {
         if (!salaries) return [];
         const searchLower = debouncedSearchQuery.toLowerCase();
-        return salaries.filter(salary => 
+        const filtered = salaries.filter(salary => 
             Object.values(salary).some(value => 
                 String(value).toLowerCase().includes(searchLower)
             )
         );
+        // Sort by ID in descending order (newer records at the bottom)
+        return filtered.sort((a, b) => a.id - b.id);
     }, [salaries, debouncedSearchQuery]);
 
     // Handler functions with useCallback

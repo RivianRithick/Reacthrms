@@ -237,7 +237,6 @@ const Recruiter = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedRecruiter, setSelectedRecruiter] = useState(null);
-  const [deleteRemarks, setDeleteRemarks] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -311,7 +310,6 @@ const Recruiter = () => {
   const handleCloseDeleteDialog = useCallback(() => {
     setOpenDeleteDialog(false);
     setSelectedRecruiter(null);
-    setDeleteRemarks('');
   }, []);
 
   const handleSubmit = async (e) => {
@@ -341,8 +339,7 @@ const Recruiter = () => {
   const handleDelete = async () => {
     try {
       await deleteRecruiter.mutateAsync({
-        id: selectedRecruiter.recruiterId,
-        remarks: deleteRemarks.trim()
+        id: selectedRecruiter.recruiterId
       });
       toast.success('Recruiter deleted successfully!');
       handleCloseDeleteDialog();
@@ -1131,25 +1128,9 @@ const Recruiter = () => {
 
               {/* Content */}
               <Box sx={{ p: 2 }}>
-                <Typography variant="body1" sx={{ mb: 2 }}>
+                <Typography variant="body1">
                   Are you sure you want to delete this recruiter? This action cannot be undone.
                 </Typography>
-                <TextField
-                  fullWidth
-                  label="Remarks"
-                  value={deleteRemarks}
-                  onChange={(e) => setDeleteRemarks(e.target.value)}
-                  required
-                  multiline
-                  rows={2}
-                  placeholder="Please provide a reason for deletion"
-                  sx={{
-                    mt: 2,
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'background.paper',
-                    }
-                  }}
-                />
               </Box>
 
               {/* Actions */}
@@ -1181,7 +1162,7 @@ const Recruiter = () => {
                   onClick={handleDelete}
                   variant="contained"
                   color="error"
-                  disabled={deleteRecruiter.isLoading || !deleteRemarks.trim()}
+                  disabled={deleteRecruiter.isLoading}
                   startIcon={deleteRecruiter.isLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
                   sx={{
                     minWidth: '100px',
