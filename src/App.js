@@ -18,6 +18,7 @@ const queryClient = new QueryClient({
 
 // Lazy load components
 const Login = lazy(() => import("./Components/Login"));
+const OnboardingManagerLogin = lazy(() => import("./Components/OnboardingManagerLogin"));
 const ForgotPassword = lazy(() => import("./Components/ForgotPassword"));
 const AdminResetPassword = lazy(() => import("./Components/AdminResetPassword"));
 const Client = lazy(() => import("./Components/Client"));
@@ -62,6 +63,7 @@ const App = () => {
               {/* Public Routes */}
               <Route path="/" element={<Navigate to="/login" />} />
               <Route path="/login" element={<Login SetUserName={setUserName} SetEmail={setEmail} />} />
+              <Route path="/onboarding-manager/login" element={<OnboardingManagerLogin />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<AdminResetPassword />} />
 

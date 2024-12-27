@@ -11,6 +11,7 @@ import EmployeeDialogs from "./Employee/EmployeeDialogs";
 import { initialEmployeeState } from "./Employee/constants";
 import useEmployeeData from "../hooks/useEmployeeData";
 import { theme } from '../theme';
+import { Roles } from '../utils/rbac';
 
 const EmployeeComponent = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -49,6 +50,15 @@ const EmployeeComponent = () => {
   const filteredEmployees = useMemo(() => {
     const employeeList = employees || [];
     let filtered = [...employeeList];
+
+    // Get user role from localStorage
+    const userRole = parseInt(localStorage.getItem('role'));
+    const isOnboardingManager = userRole === Roles.ONBOARDING_MANAGER;
+
+    // If user is an onboarding manager, only show assigned employees
+    if (isOnboardingManager) {
+      filtered = filtered.filter(emp => emp.onboardingManagerId === parseInt(localStorage.getItem('userId')));
+    }
 
     // Apply status filters
     if (filters.dataStatus === 'enabled') {

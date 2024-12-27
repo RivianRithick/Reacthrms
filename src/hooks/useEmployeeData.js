@@ -54,33 +54,11 @@ export const useEmployeeData = (searchQuery = '', filters = {}) => {
             console.log('Processed employee data with state:', employeeData);
             
             if (emp.isApproved) {
-              try {
-                const verifyResponse = await fetch(
-                  `${baseUrl}/api/employee-registration/update-is-approved`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                    body: JSON.stringify({
-                      employeeId: emp.id,
-                      isApproved: emp.isApproved,
-                    }),
-                  }
-                );
-                
-                if (verifyResponse.ok) {
-                  const verifyData = await verifyResponse.json();
-                  return {
-                    ...employeeData,
-                    verifiedBy: verifyData.data.verifiedBy,
-                    verifiedOn: verifyData.data.verifiedOn,
-                  };
-                }
-              } catch (error) {
-                console.error("Error fetching verification details:", error);
-              }
+              return {
+                ...employeeData,
+                verifiedBy: emp.verifiedBy,
+                verifiedOn: emp.verifiedOn,
+              };
             }
             return employeeData;
           })

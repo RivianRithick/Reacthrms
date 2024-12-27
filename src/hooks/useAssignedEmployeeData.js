@@ -5,7 +5,7 @@ export const useAssignedEmployeeData = (searchQuery = '') => {
   const queryClient = useQueryClient();
 
   // Fetch assigned employees with caching
-  const { data: assignedEmployees = [], isLoading, error } = useQuery(
+  const { data: assignedData = {}, isLoading, error } = useQuery(
     ['assignedEmployees', searchQuery],
     async () => {
       const [roleAssignResponse, assignedEmployeeResponse] = await Promise.all([
@@ -16,6 +16,7 @@ export const useAssignedEmployeeData = (searchQuery = '') => {
       const roleAssignEmployees = roleAssignResponse.data?.data || [];
       const assignedEmployees = assignedEmployeeResponse.data?.data || [];
 
+      // Create a map of assigned employees with their offer letter status
       const assignedMap = new Map(
         assignedEmployees.map((item) => [
           item.roleAssignId,
@@ -26,16 +27,20 @@ export const useAssignedEmployeeData = (searchQuery = '') => {
         ])
       );
 
+      // Filter out unassigned and deleted employees
+      const filteredEmployees = roleAssignEmployees.filter(emp => 
+        emp.isAssigned === true && !emp.isDeleted
+      );
+
       return {
-        employees: roleAssignEmployees,
+        employees: filteredEmployees,
         assignedMap
       };
     },
     {
-      staleTime: 30000, // Data considered fresh for 30 seconds
-      cacheTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
+      staleTime: 30000,
+      cacheTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
-      refetchInterval: 30000, // Poll every 30 seconds
     }
   );
 
@@ -67,8 +72,8 @@ export const useAssignedEmployeeData = (searchQuery = '') => {
   );
 
   return {
-    assignedEmployees: assignedEmployees?.employees || [],
-    assignedMap: assignedEmployees?.assignedMap || new Map(),
+    assignedEmployees: assignedData?.employees || [],
+    assignedMap: assignedData?.assignedMap || new Map(),
     isLoading,
     error,
     generateOfferLetter,

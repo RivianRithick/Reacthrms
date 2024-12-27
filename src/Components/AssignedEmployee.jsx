@@ -230,18 +230,20 @@ const AssignedEmployee = React.memo(() => {
   const filteredEmployees = useMemo(() => {
     if (!assignedEmployees) return [];
     const searchLower = debouncedSearchQuery.toLowerCase();
-    return assignedEmployees.filter((item) => {
-      const employeeName = `${item.employee?.firstName || ""} ${item.employee?.lastName || ""}`.toLowerCase();
-      const clientName = item.client?.clientName?.toLowerCase() || "";
-      const departmentName = item.department?.departmentName?.toLowerCase() || "";
-      const jobTitle = item.jobRole?.jobTitle?.toLowerCase() || "";
+    return assignedEmployees
+      .filter(item => item.isAssigned === true && !item.isDeleted)
+      .filter((item) => {
+        const employeeName = `${item.employee?.firstName || ""} ${item.employee?.lastName || ""}`.toLowerCase();
+        const clientName = item.client?.clientName?.toLowerCase() || "";
+        const departmentName = item.department?.departmentName?.toLowerCase() || "";
+        const jobTitle = item.jobRole?.jobTitle?.toLowerCase() || "";
 
-      return (
-        employeeName.includes(searchLower) ||
-        clientName.includes(searchLower) ||
-        departmentName.includes(searchLower) ||
-        jobTitle.includes(searchLower)
-      );
+        return (
+          employeeName.includes(searchLower) ||
+          clientName.includes(searchLower) ||
+          departmentName.includes(searchLower) ||
+          jobTitle.includes(searchLower)
+        );
     });
   }, [assignedEmployees, debouncedSearchQuery]);
 
@@ -275,10 +277,7 @@ const AssignedEmployee = React.memo(() => {
 
   const handleDownloadOfferLetter = useCallback(async (assignedEmployeeId) => {
     setError("");
-    const roleAssignId = assignedEmployees.find(
-      emp => assignedMap.get(emp.id)?.id === assignedEmployeeId
-    )?.id;
-    updateLoadingMap(roleAssignId, true);
+    updateLoadingMap(assignedEmployeeId, true);
 
     try {
       await downloadOfferLetter.mutateAsync(assignedEmployeeId);
@@ -287,9 +286,9 @@ const AssignedEmployee = React.memo(() => {
       console.error("Error downloading offer letter:", error);
       setError("Failed to download offer letter.");
     } finally {
-      updateLoadingMap(roleAssignId, false);
+      updateLoadingMap(assignedEmployeeId, false);
     }
-  }, [assignedEmployees, assignedMap, downloadOfferLetter]);
+  }, [downloadOfferLetter]);
 
   // Effect for handling messages timeout
   React.useEffect(() => {

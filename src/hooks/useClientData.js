@@ -9,7 +9,9 @@ export const useClientData = (searchQuery = '', filter = 'all') => {
     ['clients', searchQuery, filter],
     async () => {
       const response = await axiosInstance.get('/api/client-registration');
-      return response.data?.data || [];
+      // Ensure we always return an array
+      const responseData = response.data?.data;
+      return Array.isArray(responseData) ? responseData : [];
     },
     {
       staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes

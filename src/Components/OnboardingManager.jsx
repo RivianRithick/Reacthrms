@@ -242,15 +242,16 @@ const OnboardingManager = () => {
     lastName: '',
     email: '',
     phoneNumber: '',
+    password: '',
     isActive: true,
   });
+  const [deleteRemarks, setDeleteRemarks] = useState('');
 
   // Use debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Use onboarding manager data hook
   const {
-    managers = [],
+    managers,
     isLoading,
     error,
     addManager,
@@ -258,18 +259,16 @@ const OnboardingManager = () => {
     deleteManager,
   } = useOnboardingManagerData(debouncedSearchQuery);
 
-  // Memoize handlers
-  const handleInputChange = useCallback((e) => {
+  const handleInputChange = (e) => {
     const { name, value, checked } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: name === 'isActive' ? checked : value,
+      [name]: name === 'isActive' ? checked : value
     }));
-  }, []);
+  };
 
-  const handleOpenDialog = useCallback((manager = null) => {
+  const handleOpenDialog = (manager = null) => {
     if (manager) {
-      setSelectedManager(manager);
       setFormData({
         firstName: manager.firstName,
         lastName: manager.lastName,
@@ -277,20 +276,22 @@ const OnboardingManager = () => {
         phoneNumber: manager.phoneNumber,
         isActive: manager.isActive,
       });
+      setSelectedManager(manager);
     } else {
-      setSelectedManager(null);
       setFormData({
         firstName: '',
         lastName: '',
         email: '',
         phoneNumber: '',
+        password: '',
         isActive: true,
       });
+      setSelectedManager(null);
     }
     setOpenDialog(true);
-  }, []);
+  };
 
-  const handleCloseDialog = useCallback(() => {
+  const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedManager(null);
     setFormData({
@@ -298,19 +299,10 @@ const OnboardingManager = () => {
       lastName: '',
       email: '',
       phoneNumber: '',
+      password: '',
       isActive: true,
     });
-  }, []);
-
-  const handleOpenDeleteDialog = useCallback((manager) => {
-    setSelectedManager(manager);
-    setOpenDeleteDialog(true);
-  }, []);
-
-  const handleCloseDeleteDialog = useCallback(() => {
-    setOpenDeleteDialog(false);
-    setSelectedManager(null);
-  }, []);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -318,869 +310,316 @@ const OnboardingManager = () => {
       if (selectedManager) {
         await updateManager.mutateAsync({
           id: selectedManager.onboardingManagerId,
-          ...formData,
+          ...formData
         });
-        toast.success('Onboarding manager updated successfully!');
+        toast.success('Onboarding manager updated successfully');
       } else {
         await addManager.mutateAsync(formData);
-        toast.success('Onboarding manager created successfully!');
+        toast.success('Onboarding manager created successfully');
       }
       handleCloseDialog();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Error processing request';
-      if (error.response?.status === 409) {
-        toast.error('Onboarding manager with this email already exists.');
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(error.response?.data?.message || 'An error occurred');
     }
+  };
+
+  const handleOpenDeleteDialog = (manager) => {
+    setSelectedManager(manager);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+    setSelectedManager(null);
+    setDeleteRemarks('');
   };
 
   const handleDelete = async () => {
     try {
       await deleteManager.mutateAsync({
-        id: selectedManager.onboardingManagerId
+        id: selectedManager.onboardingManagerId,
+        remarks: deleteRemarks
       });
-      toast.success('Onboarding manager deleted successfully!');
+      toast.success('Onboarding manager deleted successfully');
       handleCloseDeleteDialog();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error deleting onboarding manager');
+      toast.error(error.response?.data?.message || 'An error occurred');
     }
   };
 
-  // Memoize filtered managers
   const filteredManagers = useMemo(() => {
-    return managers.filter(manager => {
-      const searchMatch = !debouncedSearchQuery || 
-        Object.values(manager)
-          .join(' ')
-          .toLowerCase()
-          .includes(debouncedSearchQuery.toLowerCase());
-
-      const statusMatch = statusFilter === 'all' || 
+    return managers?.filter(manager => {
+      const matchesSearch = !debouncedSearchQuery || 
+        manager.firstName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        manager.lastName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        manager.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || 
         (statusFilter === 'active' && manager.isActive) ||
         (statusFilter === 'inactive' && !manager.isActive);
-
-      return searchMatch && statusMatch;
-    });
+      
+      return matchesSearch && matchesStatus;
+    }) || [];
   }, [managers, debouncedSearchQuery, statusFilter]);
 
   if (error) {
-    toast.error('Error loading onboarding managers.');
+    return (
+      <Container>
+        <Typography color="error" align="center">
+          Error loading onboarding managers: {error.message}
+        </Typography>
+      </Container>
+    );
   }
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" sx={{ py: 2 }}>
+      <Container>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
         >
-          {/* Sticky Header */}
-          <Box sx={{ 
-            position: 'sticky',
-            top: 0,
-            zIndex: 1200,
-            backgroundColor: 'background.default',
-            pt: 2,
-            pb: 3,
-          }}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              mb: 3
-            }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  color: "primary.main",
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2
-                }}
-              >
-                <PersonIcon sx={{ fontSize: 40 }} />
-                Onboarding Manager
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <Chip
-                  icon={<PersonIcon />}
-                  label={`Total Records: ${filteredManagers.length}`}
-                  color="primary"
-                  sx={{ 
-                    fontWeight: 'bold',
-                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                    '& .MuiChip-icon': { color: 'white' }
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h4" gutterBottom>
+              Onboarding Managers
+            </Typography>
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Search managers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
                   }}
                 />
-              </Box>
-            </Box>
-
-            {/* Search and Filters Section */}
-            <Paper 
-              elevation={0}
-              sx={{ 
-                backgroundColor: 'background.paper',
-                borderRadius: 3,
-                p: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                flexWrap: 'wrap',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 4px 20px rgba(61, 82, 160, 0.15)',
-              }}
-            >
-              <TextField
-                placeholder="Search by name, email, or phone number..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{ 
-                  flex: 1, 
-                  minWidth: '200px',
-                  '& .MuiOutlinedInput-root': {
-                    background: 'rgba(255,255,255,0.9)',
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: 'primary.main' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                size="small"
-              />
-              <FormControl sx={{ minWidth: 200 }}>
-                <Select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  displayEmpty
-                  size="small"
-                  sx={{
-                    background: 'rgba(255,255,255,0.9)',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'divider',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'primary.main',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderWidth: '2px',
-                    },
-                  }}
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    label="Status"
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="active">Active</MenuItem>
+                    <MenuItem value="inactive">Inactive</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={12} md={4}>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpenDialog()}
+                  fullWidth
                 >
-                  <MenuItem value="all">All Status</MenuItem>
-                  <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="inactive">Inactive</MenuItem>
-                </Select>
-              </FormControl>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleOpenDialog()}
-                startIcon={<AddIcon />}
-                sx={{
-                  minWidth: '120px',
-                  background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
-                    transform: 'translateY(-1px)',
-                  },
-                }}
-              >
-                Add Manager
-              </Button>
-            </Paper>
+                  Add Onboarding Manager
+                </Button>
+              </Grid>
+            </Grid>
           </Box>
 
-          {/* Onboarding Managers List Section */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Paper 
-              elevation={0}
-              sx={{ 
-                backgroundColor: 'background.paper',
-                borderRadius: 3,
-                overflow: 'hidden',
-                border: '1px solid',
-                borderColor: 'divider',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
-                backdropFilter: 'blur(10px)',
-                mt: 2,
-              }}
-            >
-              {isLoading ? (
-                <Box sx={{ 
-                  display: "flex", 
-                  justifyContent: "center", 
-                  alignItems: "center",
-                  py: 8,
-                  flexDirection: 'column',
-                  gap: 2
-                }}>
-                  <CircularProgress 
-                    size={48} 
-                    thickness={4}
-                    sx={{
-                      color: 'primary.main',
-                      '& .MuiCircularProgress-circle': {
-                        strokeLinecap: 'round',
-                      }
-                    }}
-                  />
-                  <Typography variant="h6" color="primary">
-                    Loading managers...
-                  </Typography>
-                </Box>
-              ) : filteredManagers.length === 0 ? (
-                <Box sx={{ 
-                  py: 8,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 2
-                }}>
-                  <SearchIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
-                  <Typography variant="h6" color="primary">
-                    No managers found
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Try adjusting your search criteria
-                  </Typography>
-                </Box>
-              ) : (
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ 
-                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
-                          fontWeight: 600,
-                          color: 'primary.main',
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <TagIcon sx={{ color: 'primary.main' }} />
-                            #
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ 
-                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
-                          fontWeight: 600,
-                          color: 'primary.main',
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <PersonIcon sx={{ color: 'primary.main' }} />
-                            First Name
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ 
-                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
-                          fontWeight: 600,
-                          color: 'primary.main',
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <PersonIcon sx={{ color: 'primary.main' }} />
-                            Last Name
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ 
-                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
-                          fontWeight: 600,
-                          color: 'primary.main',
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <EmailIcon sx={{ color: 'primary.main' }} />
-                            Email
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ 
-                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
-                          fontWeight: 600,
-                          color: 'primary.main',
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <PhoneIcon sx={{ color: 'primary.main' }} />
-                            Phone Number
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ 
-                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
-                          fontWeight: 600,
-                          color: 'primary.main',
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <SettingsIcon sx={{ color: 'primary.main' }} />
-                            Status
-                          </Box>
-                        </TableCell>
-                        <TableCell align="center" sx={{ 
-                          background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
-                          fontWeight: 600,
-                          color: 'primary.main',
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                            <SettingsIcon sx={{ color: 'primary.main' }} />
-                            Actions
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <AnimatePresence>
-                        {filteredManagers.map((manager, index) => (
-                          <motion.tr
-                            key={manager.onboardingManagerId}
-                            variants={itemVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="hidden"
-                            component={TableRow}
-                            sx={{
-                              '&:nth-of-type(odd)': {
-                                backgroundColor: 'rgba(245, 247, 255, 0.5)',
-                              },
-                              '&:hover': {
-                                backgroundColor: 'rgba(61, 82, 160, 0.04)',
-                                transform: 'scale(1.001) translateZ(0)',
-                                boxShadow: '0 4px 20px rgba(61, 82, 160, 0.08)',
-                              },
-                              transition: 'all 0.2s ease-in-out',
-                            }}
-                          >
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                                {index + 1}
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Avatar 
-                                  sx={{ 
-                                    width: 32, 
-                                    height: 32,
-                                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                                    color: 'white',
-                                    fontSize: '0.875rem',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {manager.firstName?.[0]?.toUpperCase() || ''}
-                                </Avatar>
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                  {manager.firstName}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                {manager.lastName}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <EmailIcon sx={{ color: 'info.main', fontSize: 20 }} />
-                                <Typography variant="body2">
-                                  {manager.email}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <PhoneIcon sx={{ color: 'success.main', fontSize: 20 }} />
-                                <Typography variant="body2" sx={{ 
-                                  color: 'success.main',
-                                  fontWeight: 500
-                                }}>
-                                  {manager.phoneNumber}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={manager.isActive ? "Active" : "Inactive"}
-                                color={manager.isActive ? "success" : "error"}
-                                size="small"
-                                sx={{ 
-                                  fontWeight: 500,
-                                  minWidth: 80,
-                                  background: manager.isActive ? 
-                                    'linear-gradient(45deg, #059669, #34d399)' : 
-                                    'linear-gradient(45deg, #dc2626, #ef4444)',
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ display: "flex", gap: 1, justifyContent: 'center' }}>
-                                <Tooltip title="Edit">
-                                <IconButton
-                                        color="primary"
-                                        onClick={() => handleOpenDialog(manager)}
-                                        size="small"
-                                        sx={{
-                                          background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                                          color: 'white',
-                                          '&:hover': {
-                                            background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
-                                            transform: 'translateY(-2px)',
-                                          },
-                                        }}
-                                      >
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                <IconButton
-                                        color="error"
-                                        onClick={() => handleOpenDeleteDialog(manager)}
-                                        size="small"
-                                        sx={{
-                                          background: 'linear-gradient(45deg, #dc2626, #ef4444)',
-                                          color: 'white',
-                                          '&:hover': {
-                                            background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
-                                            transform: 'translateY(-2px)',
-                                          },
-                                        }}
-                                      >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </TableCell>
-                          </motion.tr>
-                        ))}
-                      </AnimatePresence>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </Paper>
-          </motion.div>
-
-          {/* Create/Edit Dialog */}
-          <Dialog 
-            open={openDialog} 
-            onClose={handleCloseDialog} 
-            maxWidth="sm" 
-            fullWidth
-            PaperProps={{
-              sx: {
-                borderRadius: 3,
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
-                backdropFilter: 'blur(10px)',
-              }
-            }}
-          >
-            <Box sx={{ 
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-            }}>
-              {/* Fixed Header */}
-              <Box sx={{ 
-                p: 2,
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                }}>
-                  <Typography variant="h5" sx={{ 
-                    fontWeight: 600, 
-                    color: 'primary.main',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}>
-                    <PersonIcon />
-                    {selectedManager ? 'Edit Manager' : 'Add New Manager'}
-                  </Typography>
-                  <IconButton 
-                    onClick={handleCloseDialog}
-                    size="small"
-                    sx={{ 
-                      color: 'text.secondary',
-                      '&:hover': { 
-                        backgroundColor: 'error.light',
-                        color: 'error.main'
-                      }
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-              </Box>
-
-              {/* Content */}
-              <Box sx={{ p: 2 }}>
-                <form onSubmit={handleSubmit}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Box sx={{ 
-                        mb: 2,
-                        pb: 1,
-                        borderBottom: '2px solid',
-                        borderColor: 'rgba(61, 82, 160, 0.1)',
-                      }}>
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            color: 'primary.main',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            fontWeight: 600,
-                          }}
-                        >
-                          <PersonIcon />
-                          Manager Details
-                        </Typography>
-                      </Box>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
-                        First Name
-                      </InputLabel>
-                      <TextField
-                        fullWidth
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        required
-                        size="small"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <PersonIcon sx={{ color: 'primary.main' }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'background.paper',
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item xs={6}>
-                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
-                        Last Name
-                      </InputLabel>
-                      <TextField
-                        fullWidth
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        required
-                        size="small"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <PersonIcon sx={{ color: 'primary.main' }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'background.paper',
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
-                        Email
-                      </InputLabel>
-                      <TextField
-                        fullWidth
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        size="small"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <EmailIcon sx={{ color: 'primary.main' }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'background.paper',
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <InputLabel sx={{ mb: 0.5, fontSize: '0.875rem', fontWeight: 500 }}>
-                        Phone Number
-                      </InputLabel>
-                      <TextField
-                        fullWidth
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleInputChange}
-                        required
-                        size="small"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <PhoneIcon sx={{ color: 'primary.main' }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'background.paper',
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: 'primary.main',
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-
-                    {selectedManager && (
-                      <Grid item xs={12}>
-                        <Box sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: 1,
-                          mt: 1,
-                          backgroundColor: 'rgba(61, 82, 160, 0.04)',
-                          borderRadius: 1,
-                          p: 1
-                        }}>
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={formData.isActive}
-                                onChange={handleInputChange}
-                                name="isActive"
-                                color="success"
-                              />
-                            }
-                            label={
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                  fontWeight: 500,
-                                  color: formData.isActive ? 'success.main' : 'text.secondary'
-                                }}
-                              >
-                                {formData.isActive ? "Active" : "Inactive"}
-                              </Typography>
-                            }
-                          />
+          <TableContainer component={Paper} elevation={2}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <CircularProgress />
+                    </TableCell>
+                  </TableRow>
+                ) : filteredManagers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      No onboarding managers found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredManagers.map((manager) => (
+                    <TableRow key={manager.onboardingManagerId}>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
+                            {manager.firstName[0]}
+                          </Avatar>
+                          {`${manager.firstName} ${manager.lastName}`}
                         </Box>
-                      </Grid>
-                    )}
-                  </Grid>
-
-                  {/* Fixed Footer with Buttons */}
-                  <Box sx={{ 
-                    mt: 3,
-                    pt: 2,
-                    borderTop: '1px solid',
-                    borderColor: 'divider',
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    gap: 1
-                  }}>
-                    <Button 
-                      onClick={handleCloseDialog}
-                      variant="outlined" 
-                      color="inherit"
-                      sx={{
-                        borderColor: 'divider',
-                        color: 'text.secondary',
-                        '&:hover': {
-                          borderColor: 'primary.main',
-                          color: 'primary.main',
-                          backgroundColor: 'primary.light',
-                        },
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      variant="contained"
-                      disabled={addManager.isLoading || updateManager.isLoading}
-                      startIcon={
-                        (addManager.isLoading || updateManager.isLoading) ? 
-                          <CircularProgress size={20} /> : 
-                          selectedManager ? <EditIcon /> : <AddIcon />
-                      }
-                      sx={{
-                        minWidth: '100px',
-                        background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #2A3B7D, #5F739C)',
-                          transform: 'translateY(-1px)',
-                        },
-                      }}
-                    >
-                      {selectedManager ? 'Update' : 'Create'}
-                    </Button>
-                  </Box>
-                </form>
-              </Box>
-            </Box>
-          </Dialog>
-
-          {/* Delete Confirmation Dialog */}
-          <Dialog
-            open={openDeleteDialog}
-            onClose={handleCloseDeleteDialog}
-            maxWidth="xs"
-            PaperProps={{
-              sx: {
-                borderRadius: 3,
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
-                backdropFilter: 'blur(10px)',
-              }
-            }}
-          >
-            <Box sx={{ 
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-            }}>
-              {/* Header */}
-              <Box sx={{ 
-                p: 2,
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                }}>
-                  <Typography variant="h5" sx={{ 
-                    fontWeight: 600, 
-                    color: 'error.main',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}>
-                    <DeleteIcon />
-                    Delete Manager
-                  </Typography>
-                  <IconButton 
-                    onClick={handleCloseDeleteDialog}
-                    size="small"
-                    sx={{ 
-                      color: 'text.secondary',
-                      '&:hover': { 
-                        backgroundColor: 'error.light',
-                        color: 'error.main'
-                      }
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-              </Box>
-
-              {/* Content */}
-              <Box sx={{ p: 2 }}>
-                <Typography variant="body1">
-                  Are you sure you want to delete this manager? This action cannot be undone.
-                </Typography>
-              </Box>
-
-              {/* Actions */}
-              <Box sx={{ 
-                p: 2, 
-                borderTop: '1px solid',
-                borderColor: 'divider',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 1
-              }}>
-                <Button 
-                  onClick={handleCloseDeleteDialog}
-                  variant="outlined" 
-                  color="inherit"
-                  sx={{
-                    borderColor: 'divider',
-                    color: 'text.secondary',
-                    '&:hover': {
-                      borderColor: 'error.main',
-                      color: 'error.main',
-                      backgroundColor: 'error.light',
-                    },
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleDelete}
-                  variant="contained"
-                  color="error"
-                  disabled={deleteManager.isLoading}
-                  startIcon={deleteManager.isLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
-                  sx={{
-                    minWidth: '100px',
-                    background: 'linear-gradient(45deg, #dc2626, #ef4444)',
-                    '&:hover': {
-                      background: 'linear-gradient(45deg, #b91c1c, #dc2626)',
-                    },
-                  }}
-                >
-                  Delete
-                </Button>
-              </Box>
-            </Box>
-          </Dialog>
+                      </TableCell>
+                      <TableCell>{manager.email}</TableCell>
+                      <TableCell>{manager.phoneNumber}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={manager.isActive ? 'Active' : 'Inactive'}
+                          color={manager.isActive ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Edit">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleOpenDialog(manager)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleOpenDeleteDialog(manager)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </motion.div>
+
+        {/* Add/Edit Dialog */}
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {selectedManager ? 'Edit Onboarding Manager' : 'Add Onboarding Manager'}
+          </DialogTitle>
+          <DialogContent>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="First Name"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Last Name"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Grid>
+                {!selectedManager && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Password"
+                      name="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </Grid>
+                )}
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formData.isActive}
+                        onChange={handleInputChange}
+                        name="isActive"
+                      />
+                    }
+                    label="Active"
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog} color="inherit">
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} variant="contained">
+              {selectedManager ? 'Update' : 'Create'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+          <DialogTitle>Delete Onboarding Manager</DialogTitle>
+          <DialogContent>
+            <Typography gutterBottom>
+              Are you sure you want to delete this onboarding manager?
+            </Typography>
+            <TextField
+              fullWidth
+              label="Delete Remarks"
+              multiline
+              rows={3}
+              value={deleteRemarks}
+              onChange={(e) => setDeleteRemarks(e.target.value)}
+              sx={{ mt: 2 }}
+              required
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteDialog} color="inherit">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDelete}
+              color="error"
+              variant="contained"
+              disabled={!deleteRemarks.trim()}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </ThemeProvider>
   );
 };
 
-export default React.memo(OnboardingManager); 
+export default OnboardingManager; 

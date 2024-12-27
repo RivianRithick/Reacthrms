@@ -27,6 +27,7 @@ import {
   Avatar,
   Fade,
   FormControl,
+  Alert,
 } from "@mui/material";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -229,19 +230,31 @@ const EmployeeRoleAssign = React.memo(() => {
     error: apiError,
     assignRole,
     unassignRole,
-    refetch
+    userRole
   } = useEmployeeRoleAssignData(assignmentFilter, debouncedSearchQuery);
 
   // Memoize filtered employees
   const filteredEmployees = useMemo(() => {
     if (!employees) return [];
     const searchLower = debouncedSearchQuery.toLowerCase();
-    return employees.filter((employee) =>
-      employee.firstName?.toLowerCase().includes(searchLower) ||
-      employee.lastName?.toLowerCase().includes(searchLower) ||
-      employee.email?.toLowerCase().includes(searchLower)
-    );
-  }, [employees, debouncedSearchQuery]);
+    return employees.filter((item) => {
+      const employeeName = `${item.employee?.firstName || ""} ${item.employee?.lastName || ""}`.toLowerCase();
+      const clientName = item.client?.clientName?.toLowerCase() || "";
+      const departmentName = item.department?.departmentName?.toLowerCase() || "";
+      const jobTitle = item.jobRole?.jobTitle?.toLowerCase() || "";
+
+      const matchesSearch = employeeName.includes(searchLower) ||
+        clientName.includes(searchLower) ||
+        departmentName.includes(searchLower) ||
+        jobTitle.includes(searchLower);
+
+      const matchesFilter = assignmentFilter === 'all' ||
+        (assignmentFilter === 'assigned' && item.isAssigned) ||
+        (assignmentFilter === 'notAssigned' && !item.isAssigned);
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [employees, debouncedSearchQuery, assignmentFilter]);
 
   // Memoize filtered departments based on selected client
   const filteredDepartments = useMemo(() => {
@@ -286,23 +299,25 @@ const EmployeeRoleAssign = React.memo(() => {
     }));
   }, []);
 
-  const handleUnassign = useCallback(async (employeeId) => {
-    if (!employeeId) {
-      setError("Invalid employee ID for unassigning.");
-      return;
-    }
-
-    updateLoadingMap(employeeId, true);
-
+  const handleUnassign = useCallback(async (employeeRoleAssignId) => {
     try {
-      await unassignRole.mutateAsync({ EmployeeRoleAssignId: employeeId });
-      setSuccessMessage("Unassigned successfully!");
-      // Force reload after successful unassignment
-      window.location.reload();
+      setLoadingMap(prev => ({ ...prev, [employeeRoleAssignId]: true }));
+      await unassignRole.mutateAsync({ employeeRoleAssignId });
+      setSuccessMessage("Employee role unassigned successfully");
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
     } catch (error) {
-      setError(`Error in unassigning: ${error.message}`);
+      setError(error.message || "Failed to unassign role");
+      
+      // Clear error message after 3 seconds
+      setTimeout(() => {
+        setError("");
+      }, 3000);
     } finally {
-      updateLoadingMap(employeeId, false);
+      setLoadingMap(prev => ({ ...prev, [employeeRoleAssignId]: false }));
     }
   }, [unassignRole]);
 

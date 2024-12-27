@@ -23,7 +23,13 @@ export const useOnboardingManagerData = (searchQuery = '') => {
 
   // Add onboarding manager mutation
   const addManager = useMutation(
-    (newManager) => apiService.post('/api/OnboardingManager', newManager),
+    async (newManager) => {
+      const response = await apiService.post('/api/OnboardingManager', newManager);
+      if (response.data.statusCode === 200) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || 'Error creating onboarding manager');
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('onboardingManagers');
@@ -33,7 +39,13 @@ export const useOnboardingManagerData = (searchQuery = '') => {
 
   // Update onboarding manager mutation
   const updateManager = useMutation(
-    ({ id, ...data }) => apiService.post(`/api/OnboardingManager/update/${id}`, data),
+    async ({ id, ...data }) => {
+      const response = await apiService.post(`/api/OnboardingManager/update/${id}`, data);
+      if (response.data.statusCode === 200) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || 'Error updating onboarding manager');
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('onboardingManagers');
@@ -43,7 +55,13 @@ export const useOnboardingManagerData = (searchQuery = '') => {
 
   // Delete onboarding manager mutation
   const deleteManager = useMutation(
-    ({ id, remarks }) => apiService.post(`/api/OnboardingManager/soft-delete/${id}`, { remarks }),
+    async ({ id, remarks }) => {
+      const response = await apiService.post(`/api/OnboardingManager/soft-delete/${id}`, { deleteRemarks: remarks });
+      if (response.data.statusCode === 200) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || 'Error deleting onboarding manager');
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('onboardingManagers');

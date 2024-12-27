@@ -4,7 +4,8 @@ import { jwtDecode } from 'jwt-decode';
 export const Roles = {
   SUPER_ADMIN: 1,
   ADMIN: 2,
-  EMPLOYEE: 3
+  EMPLOYEE: 3,
+  ONBOARDING_MANAGER: 4
 };
 
 // Menu items configuration with role-based access
@@ -13,7 +14,7 @@ export const menuItems = [
     text: 'Employees', 
     icon: 'PeopleIcon', 
     path: '/employees', 
-    roles: [Roles.SUPER_ADMIN, Roles.ADMIN] 
+    roles: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER] 
   },
   { 
     text: 'Onboarding Managers', 
@@ -31,13 +32,13 @@ export const menuItems = [
     text: 'Role Assignment', 
     icon: 'AssignmentIcon', 
     path: '/employee-role-assign', 
-    roles: [Roles.SUPER_ADMIN, Roles.ADMIN] 
+    roles: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER] 
   },
   { 
     text: 'Assigned Employees', 
     icon: 'GroupIcon', 
     path: '/assigned-employee', 
-    roles: [Roles.SUPER_ADMIN, Roles.ADMIN] 
+    roles: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER] 
   },
   { 
     text: 'Clients', 
@@ -79,55 +80,55 @@ export const apiEndpoints = {
     create: [Roles.SUPER_ADMIN],
     update: [Roles.SUPER_ADMIN],
     delete: [Roles.SUPER_ADMIN],
-    logout: [Roles.SUPER_ADMIN, Roles.ADMIN]
+    logout: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER]
   },
   assignedEmployee: {
-    get: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    create: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    update: [Roles.SUPER_ADMIN, Roles.ADMIN],
+    get: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
+    create: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
+    update: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
     delete: [Roles.SUPER_ADMIN],
-    download: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE],
-    checkOfferLetter: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE]
+    download: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE, Roles.ONBOARDING_MANAGER],
+    checkOfferLetter: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE, Roles.ONBOARDING_MANAGER]
   },
   clientRegistration: {
-    get: [Roles.SUPER_ADMIN, Roles.ADMIN],
+    get: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
     create: [Roles.SUPER_ADMIN, Roles.ADMIN],
     update: [Roles.SUPER_ADMIN, Roles.ADMIN],
     delete: [Roles.SUPER_ADMIN]
   },
   department: {
-    get: [Roles.SUPER_ADMIN, Roles.ADMIN],
+    get: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
     create: [Roles.SUPER_ADMIN, Roles.ADMIN],
     update: [Roles.SUPER_ADMIN, Roles.ADMIN],
     delete: [Roles.SUPER_ADMIN]
   },
   employeeJobLocation: {
-    get: [Roles.SUPER_ADMIN, Roles.ADMIN],
+    get: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
     create: [Roles.SUPER_ADMIN, Roles.ADMIN],
     update: [Roles.SUPER_ADMIN, Roles.ADMIN],
     delete: [Roles.SUPER_ADMIN]
   },
   employeeRegistration: {
-    get: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    create: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    update: [Roles.SUPER_ADMIN, Roles.ADMIN],
+    get: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
+    create: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
+    update: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
     delete: [Roles.SUPER_ADMIN],
-    checkStatus: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE],
-    uploadDocument: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE],
-    downloadDocument: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE],
-    viewDocument: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE],
+    checkStatus: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE, Roles.ONBOARDING_MANAGER],
+    uploadDocument: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE, Roles.ONBOARDING_MANAGER],
+    downloadDocument: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE, Roles.ONBOARDING_MANAGER],
+    viewDocument: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.EMPLOYEE, Roles.ONBOARDING_MANAGER],
     updateIsBlocked: [Roles.SUPER_ADMIN, Roles.ADMIN],
     updateIsApproved: [Roles.SUPER_ADMIN, Roles.ADMIN],
     assignRecruiter: [Roles.SUPER_ADMIN, Roles.ADMIN],
     assignOnboardingManager: [Roles.SUPER_ADMIN, Roles.ADMIN]
   },
   employeeRoleAssign: {
-    get: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    create: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    update: [Roles.SUPER_ADMIN, Roles.ADMIN],
+    get: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
+    create: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
+    update: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
     delete: [Roles.SUPER_ADMIN],
-    unassign: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    getUnassigned: [Roles.SUPER_ADMIN, Roles.ADMIN]
+    unassign: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
+    getUnassigned: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER]
   },
   employeeSalary: {
     get: [Roles.SUPER_ADMIN, Roles.ADMIN],
@@ -136,7 +137,7 @@ export const apiEndpoints = {
     delete: [Roles.SUPER_ADMIN]
   },
   jobRole: {
-    get: [Roles.SUPER_ADMIN, Roles.ADMIN],
+    get: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.ONBOARDING_MANAGER],
     create: [Roles.SUPER_ADMIN, Roles.ADMIN],
     update: [Roles.SUPER_ADMIN, Roles.ADMIN],
     delete: [Roles.SUPER_ADMIN]
@@ -146,7 +147,8 @@ export const apiEndpoints = {
     getById: [Roles.SUPER_ADMIN, Roles.ADMIN],
     create: [Roles.SUPER_ADMIN, Roles.ADMIN],
     update: [Roles.SUPER_ADMIN, Roles.ADMIN],
-    delete: [Roles.SUPER_ADMIN]
+    delete: [Roles.SUPER_ADMIN],
+    login: [Roles.ONBOARDING_MANAGER]
   },
   recruiter: {
     get: [Roles.SUPER_ADMIN, Roles.ADMIN],
@@ -161,8 +163,12 @@ export const apiEndpoints = {
 export const getUserRole = () => {
   // First try to get role from localStorage
   const storedRole = localStorage.getItem('role');
+  console.log('Stored role from localStorage:', storedRole);
+  
   if (storedRole) {
-    return parseInt(storedRole);
+    const numericRole = parseInt(storedRole);
+    console.log('Parsed numeric role:', numericRole);
+    return numericRole;
   }
 
   // If no stored role, try to get it from the token
@@ -171,8 +177,10 @@ export const getUserRole = () => {
   
   try {
     const decoded = jwtDecode(token);
+    console.log('Decoded token:', decoded);
     // Try different possible claim names for role
     const role = decoded.role || decoded.Role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    console.log('Role from token:', role);
     return role ? parseInt(role) : null;
   } catch (error) {
     console.error('Error decoding token:', error);
@@ -183,11 +191,20 @@ export const getUserRole = () => {
 // Check if user has access to a specific route
 export const hasAccess = (path) => {
   const userRole = getUserRole();
-  if (!userRole) return false;
+  console.log('Checking access for path:', path);
+  console.log('User role:', userRole);
+
+  if (!userRole) {
+    console.log('No user role found');
+    return false;
+  }
 
   // Find exact path match first
   const exactMenuItem = menuItems.find(item => item.path === path);
   if (exactMenuItem) {
+    console.log('Found exact menu item:', exactMenuItem);
+    console.log('Allowed roles:', exactMenuItem.roles);
+    console.log('Has access:', exactMenuItem.roles.includes(userRole));
     return exactMenuItem.roles.includes(userRole);
   }
 
@@ -201,9 +218,13 @@ export const hasAccess = (path) => {
   );
 
   if (menuItemWithSubPath) {
+    console.log('Found menu item with subpath:', menuItemWithSubPath);
+    console.log('Allowed roles:', menuItemWithSubPath.roles);
+    console.log('Has access:', menuItemWithSubPath.roles.includes(userRole));
     return menuItemWithSubPath.roles.includes(userRole);
   }
 
+  console.log('No matching menu item found for path:', path);
   return false;
 };
 

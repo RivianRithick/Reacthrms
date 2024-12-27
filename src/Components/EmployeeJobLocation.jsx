@@ -46,6 +46,7 @@ import {
   SearchOff as SearchOffIcon,
   Cancel as CancelIcon,
   Tag as TagIcon,
+  Groups as GroupsIcon,
 } from '@mui/icons-material';
 import useDebounce from '../hooks/useDebounce';
 import { useJobLocationData } from '../hooks/useJobLocationData';
@@ -299,6 +300,7 @@ const indianStates = [
 
 const EmployeeJobLocation = React.memo(() => {
   const [formData, setFormData] = useState({
+    podId: '',
     city: '',
     state: '',
     country: '',
@@ -345,6 +347,7 @@ const EmployeeJobLocation = React.memo(() => {
     e.preventDefault();
     try {
       const payload = {
+        PodId: formData.podId,
         City: formData.city,
         State: formData.state,
         Country: formData.country,
@@ -386,6 +389,7 @@ const EmployeeJobLocation = React.memo(() => {
   const handleEdit = useCallback((location) => {
     setSelectedLocation(location);
     setFormData({
+      podId: location.podId,
       city: location.city,
       state: location.state,
       country: location.country,
@@ -396,6 +400,7 @@ const EmployeeJobLocation = React.memo(() => {
 
   const resetForm = useCallback(() => {
     setFormData({
+      podId: '',
       city: '',
       state: '',
       country: '',
@@ -607,6 +612,36 @@ const EmployeeJobLocation = React.memo(() => {
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
+                        label="Pod ID"
+                        name="podId"
+                        value={formData.podId}
+                        onChange={handleInputChange}
+                        required
+                        type="number"
+                        placeholder="Enter Pod ID"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <GroupsIcon sx={{ color: 'primary.main' }} />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            background: 'rgba(255,255,255,0.9)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              background: 'rgba(255,255,255,1)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(61, 82, 160, 0.08)',
+                            },
+                          },
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
                         label="City"
                         name="city"
                         value={formData.city}
@@ -791,7 +826,6 @@ const EmployeeJobLocation = React.memo(() => {
                   overflow: 'hidden',
                   border: '1px solid',
                   borderColor: 'divider',
-                  height: 'calc(100vh - 200px)',
                   background: 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)',
                   backdropFilter: 'blur(10px)',
                   mt: 2,
@@ -802,7 +836,7 @@ const EmployeeJobLocation = React.memo(() => {
                     display: "flex", 
                     justifyContent: "center", 
                     alignItems: "center",
-                    height: "100%",
+                    p: 4,
                     flexDirection: 'column',
                     gap: 2
                   }}>
@@ -821,8 +855,8 @@ const EmployeeJobLocation = React.memo(() => {
                     </Typography>
                   </Box>
                 ) : (
-                  <TableContainer sx={{ height: '100%' }}>
-                    <Table stickyHeader>
+                  <TableContainer>
+                    <Table>
                       <TableHead>
                         <TableRow>
                           <TableCell sx={{ 
@@ -833,6 +867,16 @@ const EmployeeJobLocation = React.memo(() => {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <TagIcon sx={{ color: 'primary.main' }} />
                               #
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ 
+                            background: 'linear-gradient(145deg, #F5F7FF, #E8ECFF)',
+                            fontWeight: 600,
+                            color: 'primary.main',
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <GroupsIcon sx={{ color: 'primary.main' }} />
+                              Pod ID
                             </Box>
                           </TableCell>
                           <TableCell sx={{ 
@@ -926,6 +970,12 @@ const EmployeeJobLocation = React.memo(() => {
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <TagIcon sx={{ color: 'primary.main', fontSize: 20 }} />
                                     {index + 1}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <GroupsIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                    {location.podId}
                                   </Box>
                                 </TableCell>
                                 <TableCell>

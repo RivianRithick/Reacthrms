@@ -9,7 +9,9 @@ export const useDepartmentData = (searchQuery = '') => {
     ['departments', searchQuery],
     async () => {
       const response = await axiosInstance.get("/api/departments");
-      return response.data?.data || [];
+      // Ensure we always return an array
+      const responseData = response.data?.data;
+      return Array.isArray(responseData) ? responseData : [];
     },
     {
       staleTime: 5 * 60 * 1000,
@@ -23,7 +25,10 @@ export const useDepartmentData = (searchQuery = '') => {
     'clients',
     async () => {
       const response = await axiosInstance.get("/api/client-registration");
-      return (response.data?.data || []).filter(client => !client.isBlocked);
+      // Ensure we always return an array and filter blocked clients
+      const responseData = response.data?.data;
+      const clientsArray = Array.isArray(responseData) ? responseData : [];
+      return clientsArray.filter(client => !client?.isBlocked);
     },
     {
       staleTime: 5 * 60 * 1000,

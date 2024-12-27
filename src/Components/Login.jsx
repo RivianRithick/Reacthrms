@@ -13,15 +13,21 @@ import {
   Container,
   InputAdornment,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../apiService";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
+import { Roles } from '../utils/rbac';
 
 const theme = createTheme({
   palette: {
@@ -110,41 +116,96 @@ const Login = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/employees", { replace: true });
+      navigate("/dashboard", { replace: true });
     }
   }, [navigate]);
 
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string().required("Password is required"),
+    role: Yup.string().required("Role is required"),
   });
 
   const formik = useFormik({
     initialValues: {
       email: "",
       password: "",
+      role: "",
     },
     validationSchema,
     onSubmit: async (values) => {
       try {
         setIsLoading(true);
-        const response = await axiosInstance.post("/api/admin-login", values);
-        const { accessToken, refreshToken, role } = response.data?.data || {};
+        const endpoint = values.role === 'OnboardingManager' 
+          ? '/api/OnboardingManager/login'
+          : '/api/admin-login';
 
-        if (accessToken && refreshToken) {
-          localStorage.setItem("token", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
-          localStorage.setItem("username", values.email);
-          localStorage.setItem("email", values.email);
-          localStorage.setItem("role", role.toString());
+        console.log('Sending request to:', endpoint, 'with data:', {
+          email: values.email,
+          password: '***'
+        });
 
-          toast.success(response.data?.message || "Login successful!");
-          setTimeout(() => navigate("/employees", { replace: true }), 1000);
+        const response = await axiosInstance.post(endpoint, {
+          email: values.email,
+          password: values.password,
+        });
+
+        console.log('Full response:', response);
+
+        if (response.data?.statusCode === 200 && response.data?.status === "Success") {
+          const { accessToken, refreshToken, role } = response.data?.data || {};
+          console.log('Response data:', response.data?.data);
+
+          if (accessToken && refreshToken) {
+            localStorage.setItem("token", accessToken);
+            localStorage.setItem("refreshToken", refreshToken);
+            localStorage.setItem("username", values.email);
+            localStorage.setItem("email", values.email);
+
+            if (values.role === 'OnboardingManager') {
+              const { onboardingManagerId, firstName, lastName } = response.data.data;
+              localStorage.setItem("userId", onboardingManagerId);
+              localStorage.setItem("userRole", 'OnboardingManager');
+              localStorage.setItem("role", Roles.ONBOARDING_MANAGER.toString());
+              localStorage.setItem("userInfo", JSON.stringify({
+                id: onboardingManagerId,
+                firstName,
+                lastName,
+                email: values.email,
+                role: values.role
+              }));
+            } else {
+              // For Super Admin
+              console.log('Admin Role from response:', role);
+              // Store the numeric role value first
+              localStorage.setItem("role", role.toString());
+              // Then store the role name
+              localStorage.setItem("userRole", 'SuperAdmin');
+              localStorage.setItem("userInfo", JSON.stringify({
+                email: values.email,
+                role: 'SuperAdmin'
+              }));
+            }
+
+            toast.success("Login successful!");
+            setTimeout(() => navigate("/employees", { replace: true }), 1000);
+          } else {
+            console.error('Missing tokens in response:', response.data);
+            toast.error("Login failed. No tokens received.");
+          }
         } else {
-          toast.error("Login failed. No tokens received.");
+          console.error('Login failed with response:', response.data);
+          toast.error(response.data?.message || "Login failed");
         }
       } catch (error) {
-        const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
+        console.error('Login error details:', {
+          error: error,
+          response: error.response,
+          data: error.response?.data,
+          status: error.response?.status,
+          message: error.message
+        });
+        const errorMessage = error.response?.data?.message || error.message || "Login failed. Please try again.";
         toast.error(errorMessage);
       } finally {
         setIsLoading(false);
@@ -232,6 +293,36 @@ const Login = () => {
             </Typography>
 
             <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
+              <FormControl 
+                fullWidth 
+                margin="normal"
+                error={formik.touched.role && Boolean(formik.errors.role)}
+              >
+                <InputLabel>Select Role</InputLabel>
+                <Select
+                  name="role"
+                  value={formik.values.role}
+                  onChange={formik.handleChange}
+                  label="Select Role"
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <PersonOutlineIcon sx={{ color: 'primary.main' }} />
+                    </InputAdornment>
+                  }
+                >
+                  <MenuItem value="">
+                    <em>Select a role</em>
+                  </MenuItem>
+                  <MenuItem value="SuperAdmin">Super Admin</MenuItem>
+                  <MenuItem value="OnboardingManager">Onboarding Manager</MenuItem>
+                </Select>
+                {formik.touched.role && formik.errors.role && (
+                  <Typography color="error" variant="caption" sx={{ mt: 1, ml: 2 }}>
+                    {formik.errors.role}
+                  </Typography>
+                )}
+              </FormControl>
+
               <TextField
                 fullWidth
                 margin="normal"
@@ -256,7 +347,8 @@ const Login = () => {
                 margin="normal"
                 label="Password"
                 name="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 error={formik.touched.password && Boolean(formik.errors.password)}
@@ -272,12 +364,6 @@ const Login = () => {
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
-                        sx={{
-                          color: 'primary.main',
-                          '&:hover': {
-                            backgroundColor: 'rgba(61, 82, 160, 0.04)',
-                          },
-                        }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -286,59 +372,35 @@ const Login = () => {
                 }}
               />
 
-              <Box sx={{ textAlign: 'right', mt: 1 }}>
-                <Link
-                  component="button"
-                  variant="body2"
-                  onClick={() => navigate("/forgot-password")}
-                  type="button"
-                  sx={{
-                    color: 'primary.main',
-                    textDecoration: 'none',
-                    fontWeight: 500,
-                    '&:hover': {
-                      textDecoration: 'underline',
-                    },
-                  }}
-                >
-                  Forgot Password?
-                </Link>
-              </Box>
-
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
                 disabled={isLoading}
-                sx={{
-                  mt: 4,
-                  mb: 2,
-                  py: 1.5,
-                  fontSize: '1rem',
-                  position: 'relative',
-                  '&:disabled': {
-                    background: 'linear-gradient(45deg, #3D52A0, #7091E6)',
-                    opacity: 0.7,
-                  },
-                }}
+                sx={{ mt: 3, mb: 2 }}
               >
                 {isLoading ? (
-                  <>
-                    <CircularProgress
-                      size={24}
-                      sx={{
-                        color: 'white',
-                        position: 'absolute',
-                        left: '50%',
-                        marginLeft: '-12px',
-                      }}
-                    />
-                    <span style={{ opacity: 0 }}>Sign In</span>
-                  </>
+                  <CircularProgress size={24} color="inherit" />
                 ) : (
                   "Sign In"
                 )}
               </Button>
+
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Link
+                  href="/forgot-password"
+                  variant="body2"
+                  sx={{
+                    color: 'primary.main',
+                    textDecoration: 'none',
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
+                  }}
+                >
+                  Forgot password?
+                </Link>
+              </Box>
             </form>
           </Paper>
         </motion.div>
