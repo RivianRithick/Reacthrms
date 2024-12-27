@@ -8,10 +8,11 @@ export const useDepartmentData = (searchQuery = '') => {
   const { data: departments = [], isLoading, error } = useQuery(
     ['departments', searchQuery],
     async () => {
-      const response = await axiosInstance.get("/api/departments");
-      // Ensure we always return an array
-      const responseData = response.data?.data;
-      return Array.isArray(responseData) ? responseData : [];
+      const response = await axiosInstance.get("/api/Department");
+      if (response.data.status === "Success") {
+        return response.data.data || [];
+      }
+      throw new Error(response.data.message || 'Failed to fetch departments');
     },
     {
       staleTime: 5 * 60 * 1000,
@@ -39,7 +40,13 @@ export const useDepartmentData = (searchQuery = '') => {
 
   // Add department mutation
   const addDepartment = useMutation(
-    (newDepartment) => axiosInstance.post("/api/create-department", newDepartment),
+    async (newDepartment) => {
+      const response = await axiosInstance.post("/api/Department", newDepartment);
+      if (response.data.status === "Success") {
+        return response.data;
+      }
+      throw new Error(response.data.message || 'Failed to create department');
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('departments');
@@ -49,8 +56,14 @@ export const useDepartmentData = (searchQuery = '') => {
 
   // Update department mutation
   const updateDepartment = useMutation(
-    (updatedDepartment) => 
-      axiosInstance.post("/api/create-department/update", updatedDepartment),
+    async (updatedDepartment) => {
+      const { Id, ...data } = updatedDepartment;
+      const response = await axiosInstance.put(`/api/Department/${Id}`, data);
+      if (response.data.status === "Success") {
+        return response.data;
+      }
+      throw new Error(response.data.message || 'Failed to update department');
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('departments');
@@ -60,8 +73,13 @@ export const useDepartmentData = (searchQuery = '') => {
 
   // Delete department mutation
   const deleteDepartment = useMutation(
-    (departmentId) => 
-      axiosInstance.post("/api/create-department/delete", departmentId),
+    async (departmentId) => {
+      const response = await axiosInstance.delete(`/api/Department/${departmentId}`);
+      if (response.data.status === "Success") {
+        return response.data;
+      }
+      throw new Error(response.data.message || 'Failed to delete department');
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('departments');

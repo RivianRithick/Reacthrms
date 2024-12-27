@@ -28,8 +28,11 @@ export const useJobRoleData = (searchQuery = '') => {
   const { data: departments = [] } = useQuery(
     'departments',
     async () => {
-      const response = await axiosInstance.get("/api/departments");
-      return response.data?.data || [];
+      const response = await axiosInstance.get("/api/Department");
+      if (response.data.status === "Success") {
+        return response.data.data || [];
+      }
+      throw new Error(response.data.message || 'Failed to fetch departments');
     },
     {
       staleTime: 5 * 60 * 1000,

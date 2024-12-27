@@ -48,7 +48,8 @@ export const useJobLocationData = (searchQuery = '') => {
   // Update job location
   const updateLocation = useMutation(
     async (locationData) => {
-      const response = await axiosInstance.post('/api/employeejoblocation/update', locationData);
+      const { Id, ...data } = locationData;
+      const response = await axiosInstance.put(`/api/employeejoblocation/${Id}`, data);
       if (response.data.status === "Success") {
         return response.data;
       }
@@ -64,7 +65,7 @@ export const useJobLocationData = (searchQuery = '') => {
   // Delete job location
   const deleteLocation = useMutation(
     async (locationId) => {
-      const response = await axiosInstance.post('/api/employeejoblocation/delete', locationId);
+      const response = await axiosInstance.delete(`/api/employeejoblocation/${locationId}`);
       if (response.data.status === "Success") {
         return response.data;
       }

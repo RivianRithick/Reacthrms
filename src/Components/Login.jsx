@@ -304,7 +304,24 @@ const Login = () => {
             </Typography>
 
             <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
-              <FormControl fullWidth margin="normal">
+              <FormControl 
+                fullWidth 
+                margin="normal"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 12,
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(8px)',
+                    '&:hover fieldset': {
+                      borderColor: '#7091E6',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#3D52A0',
+                      borderWidth: '2px',
+                    },
+                  }
+                }}
+              >
                 <InputLabel id="role-label">Role</InputLabel>
                 <Select
                   labelId="role-label"
@@ -314,6 +331,11 @@ const Login = () => {
                   onChange={formik.handleChange}
                   error={formik.touched.role && Boolean(formik.errors.role)}
                   label="Role"
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <PersonOutlineIcon sx={{ color: 'primary.main', ml: 1 }} />
+                    </InputAdornment>
+                  }
                 >
                   <MenuItem value="Admin">Admin</MenuItem>
                   <MenuItem value="OnboardingManager">Onboarding Manager</MenuItem>

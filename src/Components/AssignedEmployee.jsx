@@ -209,18 +209,19 @@ const baseUrl = process.env.REACT_APP_BASE_URL;
 
 const AssignedEmployee = React.memo(() => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [loadingMap, setLoadingMap] = useState({});
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   // Use debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Use assigned employee data hook
+  // Use assigned employee data hook with separate loading states
   const {
     assignedEmployees,
     assignedMap,
     isLoading,
+    isGenerating,
+    isDownloading,
     error: apiError,
     generateOfferLetter,
     downloadOfferLetter
@@ -248,17 +249,9 @@ const AssignedEmployee = React.memo(() => {
   }, [assignedEmployees, debouncedSearchQuery]);
 
   // Handler functions with useCallback
-  const updateLoadingMap = useCallback((id, isLoading) => {
-    setLoadingMap(prev => ({
-      ...prev,
-      [id]: isLoading
-    }));
-  }, []);
-
   const handleGenerateOfferLetter = useCallback(async (employeeId, roleAssignId) => {
     setError("");
     setSuccessMessage("");
-    updateLoadingMap(roleAssignId, true);
 
     try {
       await generateOfferLetter.mutateAsync({
@@ -270,14 +263,11 @@ const AssignedEmployee = React.memo(() => {
     } catch (error) {
       console.error("Error generating offer letter:", error);
       setError("Failed to generate offer letter.");
-    } finally {
-      updateLoadingMap(roleAssignId, false);
     }
   }, [generateOfferLetter]);
 
   const handleDownloadOfferLetter = useCallback(async (assignedEmployeeId) => {
     setError("");
-    updateLoadingMap(assignedEmployeeId, true);
 
     try {
       await downloadOfferLetter.mutateAsync(assignedEmployeeId);
@@ -285,8 +275,6 @@ const AssignedEmployee = React.memo(() => {
     } catch (error) {
       console.error("Error downloading offer letter:", error);
       setError("Failed to download offer letter.");
-    } finally {
-      updateLoadingMap(assignedEmployeeId, false);
     }
   }, [downloadOfferLetter]);
 
@@ -607,9 +595,9 @@ const AssignedEmployee = React.memo(() => {
                                 <span>
                                   <Button
                                     variant="contained"
-                                    disabled={!!assignedMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
+                                    disabled={!!assignedMap.get(item.id)?.hasGeneratedOfferLetter || isGenerating(item.id)}
                                     onClick={() => handleGenerateOfferLetter(item.employee?.id, item.id)}
-                                    startIcon={loadingMap[item.id] ? 
+                                    startIcon={isGenerating(item.id) ? 
                                       <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 
                                       <AutorenewIcon />
                                     }
@@ -636,9 +624,9 @@ const AssignedEmployee = React.memo(() => {
                                 <span>
                                   <Button
                                     variant="contained"
-                                    disabled={!assignedMap.get(item.id)?.hasGeneratedOfferLetter || loadingMap[item.id]}
+                                    disabled={!assignedMap.get(item.id)?.hasGeneratedOfferLetter || isDownloading(assignedMap.get(item.id)?.id)}
                                     onClick={() => handleDownloadOfferLetter(assignedMap.get(item.id)?.id)}
-                                    startIcon={loadingMap[item.id] ? 
+                                    startIcon={isDownloading(assignedMap.get(item.id)?.id) ? 
                                       <CircularProgress size={20} sx={{ color: 'inherit' }} /> : 
                                       <DownloadIcon />
                                     }
