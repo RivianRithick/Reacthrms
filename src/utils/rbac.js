@@ -1,11 +1,19 @@
 import { jwtDecode } from 'jwt-decode';
 
-// Role mapping from backend enum values
+// Role definitions matching backend enum
 export const Roles = {
-  SUPER_ADMIN: 1,
-  ADMIN: 2,
-  EMPLOYEE: 3,
-  ONBOARDING_MANAGER: 4
+    SUPER_ADMIN: 1,
+    ADMIN: 2,
+    EMPLOYEE: 3,
+    ONBOARDING_MANAGER: 4
+};
+
+// Role names for display
+export const RoleNames = {
+    [Roles.SUPER_ADMIN]: 'Super Admin',
+    [Roles.ADMIN]: 'Admin',
+    [Roles.ONBOARDING_MANAGER]: 'Onboarding Manager',
+    [Roles.EMPLOYEE]: 'Employee'
 };
 
 // Menu items configuration with role-based access
@@ -163,12 +171,8 @@ export const apiEndpoints = {
 export const getUserRole = () => {
   // First try to get role from localStorage
   const storedRole = localStorage.getItem('role');
-  console.log('Stored role from localStorage:', storedRole);
-  
   if (storedRole) {
-    const numericRole = parseInt(storedRole);
-    console.log('Parsed numeric role:', numericRole);
-    return numericRole;
+    return parseInt(storedRole);
   }
 
   // If no stored role, try to get it from the token
@@ -177,13 +181,10 @@ export const getUserRole = () => {
   
   try {
     const decoded = jwtDecode(token);
-    console.log('Decoded token:', decoded);
     // Try different possible claim names for role
     const role = decoded.role || decoded.Role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-    console.log('Role from token:', role);
     return role ? parseInt(role) : null;
   } catch (error) {
-    console.error('Error decoding token:', error);
     return null;
   }
 };
@@ -191,20 +192,16 @@ export const getUserRole = () => {
 // Check if user has access to a specific route
 export const hasAccess = (path) => {
   const userRole = getUserRole();
-  console.log('Checking access for path:', path);
-  console.log('User role:', userRole);
+  if (!userRole) return false;
 
-  if (!userRole) {
-    console.log('No user role found');
-    return false;
+  // Special case for root path
+  if (path === '/' || path === '') {
+    return true;
   }
 
   // Find exact path match first
   const exactMenuItem = menuItems.find(item => item.path === path);
   if (exactMenuItem) {
-    console.log('Found exact menu item:', exactMenuItem);
-    console.log('Allowed roles:', exactMenuItem.roles);
-    console.log('Has access:', exactMenuItem.roles.includes(userRole));
     return exactMenuItem.roles.includes(userRole);
   }
 
@@ -218,13 +215,9 @@ export const hasAccess = (path) => {
   );
 
   if (menuItemWithSubPath) {
-    console.log('Found menu item with subpath:', menuItemWithSubPath);
-    console.log('Allowed roles:', menuItemWithSubPath.roles);
-    console.log('Has access:', menuItemWithSubPath.roles.includes(userRole));
     return menuItemWithSubPath.roles.includes(userRole);
   }
 
-  console.log('No matching menu item found for path:', path);
   return false;
 };
 
@@ -245,4 +238,10 @@ export const getAuthorizedMenuItems = () => {
   if (!userRole) return [];
 
   return menuItems.filter(item => item.roles.includes(userRole));
+};
+
+// Role-based access control
+export const hasPermission = (userRole, requiredRole) => {
+    if (userRole === Roles.SUPER_ADMIN) return true;
+    return userRole === requiredRole;
 }; 

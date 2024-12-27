@@ -3,9 +3,21 @@ import { Box, Typography, Button, Container } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Block as BlockIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { getUserRole } from '../utils/rbac';
 
 const Unauthorized = () => {
   const navigate = useNavigate();
+
+  const handleNavigation = () => {
+    const userRole = getUserRole();
+    if (userRole) {
+      // If user is authenticated, go to employees page
+      navigate('/employees');
+    } else {
+      // If user is not authenticated, go to login
+      navigate('/login');
+    }
+  };
 
   return (
     <Container maxWidth="md">
@@ -79,7 +91,7 @@ const Unauthorized = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate('/login')}
+            onClick={handleNavigation}
             sx={{
               py: 1.5,
               px: 4,
@@ -95,7 +107,7 @@ const Unauthorized = () => {
               transition: 'all 0.2s ease-in-out',
             }}
           >
-            Go to Home
+            {getUserRole() ? 'Go to Employees' : 'Go to Login'}
           </Button>
         </motion.div>
       </Box>

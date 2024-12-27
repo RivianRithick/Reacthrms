@@ -136,9 +136,18 @@ const Login = () => {
     onSubmit: async (values) => {
       try {
         setIsLoading(true);
-        const endpoint = values.role === 'OnboardingManager' 
-          ? '/api/OnboardingManager/login'
-          : '/api/admin-login';
+        let endpoint;
+        
+        switch (values.role) {
+          case 'OnboardingManager':
+            endpoint = '/api/OnboardingManager/login';
+            break;
+          case 'Admin':
+            endpoint = '/api/admin-login';
+            break;
+          default:
+            endpoint = '/api/admin-login';
+        }
 
         console.log('Sending request to:', endpoint, 'with data:', {
           email: values.email,
@@ -159,39 +168,41 @@ const Login = () => {
           if (accessToken && refreshToken) {
             localStorage.setItem("token", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
-            localStorage.setItem("username", values.email);
             localStorage.setItem("email", values.email);
 
-            if (values.role === 'OnboardingManager') {
-              const { onboardingManagerId, firstName, lastName } = response.data.data;
-              localStorage.setItem("userId", onboardingManagerId);
-              localStorage.setItem("userRole", 'OnboardingManager');
-              localStorage.setItem("role", Roles.ONBOARDING_MANAGER.toString());
-              localStorage.setItem("userInfo", JSON.stringify({
-                id: onboardingManagerId,
-                firstName,
-                lastName,
-                email: values.email,
-                role: values.role
-              }));
-            } else {
-              // For Super Admin
-              console.log('Admin Role from response:', role);
-              // Store the numeric role value first
-              localStorage.setItem("role", role.toString());
-              // Then store the role name
-              localStorage.setItem("userRole", 'SuperAdmin');
-              localStorage.setItem("userInfo", JSON.stringify({
-                email: values.email,
-                role: 'SuperAdmin'
-              }));
+            switch (values.role) {
+              case 'OnboardingManager': {
+                const { onboardingManagerId, firstName, lastName, email } = response.data.data;
+                localStorage.setItem("userId", onboardingManagerId.toString());
+                localStorage.setItem("userRole", 'OnboardingManager');
+                localStorage.setItem("role", Roles.ONBOARDING_MANAGER.toString());
+                localStorage.setItem("userInfo", JSON.stringify({
+                  id: onboardingManagerId,
+                  firstName,
+                  lastName,
+                  email,
+                  role: Roles.ONBOARDING_MANAGER
+                }));
+                break;
+              }
+              default: {
+                // For Admin (both Super Admin and regular Admin)
+                console.log('Admin Role from response:', role);
+                localStorage.setItem("role", role.toString());
+                localStorage.setItem("userRole", role === Roles.SUPER_ADMIN ? 'SuperAdmin' : 'Admin');
+                localStorage.setItem("userInfo", JSON.stringify({
+                  email: values.email,
+                  role: role,
+                  roleType: role === Roles.SUPER_ADMIN ? 'SuperAdmin' : 'Admin'
+                }));
+              }
             }
 
-            toast.success("Login successful!");
+            toast.success(response.data.message || "Login successful!");
             setTimeout(() => navigate("/employees", { replace: true }), 1000);
           } else {
             console.error('Missing tokens in response:', response.data);
-            toast.error("Login failed. No tokens received.");
+            toast.error(response.data?.message || "Login failed. No tokens received.");
           }
         } else {
           console.error('Login failed with response:', response.data);
@@ -293,34 +304,20 @@ const Login = () => {
             </Typography>
 
             <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
-              <FormControl 
-                fullWidth 
-                margin="normal"
-                error={formik.touched.role && Boolean(formik.errors.role)}
-              >
-                <InputLabel>Select Role</InputLabel>
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="role-label">Role</InputLabel>
                 <Select
+                  labelId="role-label"
+                  id="role"
                   name="role"
                   value={formik.values.role}
                   onChange={formik.handleChange}
-                  label="Select Role"
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <PersonOutlineIcon sx={{ color: 'primary.main' }} />
-                    </InputAdornment>
-                  }
+                  error={formik.touched.role && Boolean(formik.errors.role)}
+                  label="Role"
                 >
-                  <MenuItem value="">
-                    <em>Select a role</em>
-                  </MenuItem>
-                  <MenuItem value="SuperAdmin">Super Admin</MenuItem>
+                  <MenuItem value="Admin">Admin</MenuItem>
                   <MenuItem value="OnboardingManager">Onboarding Manager</MenuItem>
                 </Select>
-                {formik.touched.role && formik.errors.role && (
-                  <Typography color="error" variant="caption" sx={{ mt: 1, ml: 2 }}>
-                    {formik.errors.role}
-                  </Typography>
-                )}
               </FormControl>
 
               <TextField

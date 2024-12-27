@@ -7,12 +7,13 @@ export const useEmployeeRoleAssignData = (assignmentFilter = 'all', searchQuery 
   const userRole = parseInt(localStorage.getItem('role'));
   const userId = localStorage.getItem('userId');
 
+  console.log('Current user role:', userRole);
+  console.log('Can access locations/salaries:', userRole === Roles.SUPER_ADMIN || userRole === Roles.ADMIN || userRole === Roles.ONBOARDING_MANAGER);
+
   // Fetch employees based on filter
-  const { data: employees = [], isLoading, error } = useQuery(
+  const { data: employees = [], isLoading: employeesLoading, error: employeesError } = useQuery(
     ['employees', assignmentFilter, searchQuery],
     async () => {
-      let employeesData = [];
-
       // Fetch both assigned and unassigned employees for all roles
       const [assignedResponse, unassignedResponse] = await Promise.all([
         axiosInstance.get('/api/employeeroleassign?isAssigned=true'),
@@ -55,32 +56,72 @@ export const useEmployeeRoleAssignData = (assignmentFilter = 'all', searchQuery 
     }
   );
 
-  // Fetch dropdown data (clients, departments, locations, salaries)
-  const { data: dropdownData = {} } = useQuery(
+  // Fetch dropdown data based on user role
+  const { data: dropdownData = {}, isLoading: dropdownsLoading, error: dropdownsError } = useQuery(
     ['employeeRoleAssignDropdowns', userRole, userId],
     async () => {
-      let clientResponse;
-      
-      // For Onboarding Manager, fetch only their assigned clients
-      if (userRole === Roles.ONBOARDING_MANAGER) {
-        clientResponse = await axiosInstance.get(`/api/employeeroleassign/manager-clients/${userId}`);
-      } else {
-        // For Super Admin and Admin, fetch all clients
-        clientResponse = await axiosInstance.get('/api/client-registration');
+      const responses = {
+        clients: [],
+        departments: [],
+        locations: [],
+        salaries: []
+      };
+
+      try {
+        // All roles can fetch clients
+        console.log('Fetching clients...');
+        const clientResponse = await axiosInstance.get('/api/client-registration');
+        console.log('Client response:', clientResponse.data);
+        if (clientResponse.data?.status === "Success") {
+          responses.clients = (clientResponse.data?.data || []).filter(client => !client.isBlocked);
+        }
+
+        // All roles can fetch departments
+        console.log('Fetching departments...');
+        const departmentResponse = await axiosInstance.get('/api/Department');
+        console.log('Department response:', departmentResponse.data);
+        if (departmentResponse.data?.status === "Success") {
+          responses.departments = departmentResponse.data?.data || [];
+        }
+
+        // Super Admin, Admin, and Onboarding Manager can fetch job locations and salaries
+        if (userRole === Roles.SUPER_ADMIN || userRole === Roles.ADMIN || userRole === Roles.ONBOARDING_MANAGER) {
+          console.log('Fetching locations and salaries...');
+          const [locationResponse, salaryResponse] = await Promise.all([
+            axiosInstance.get('/api/employeejoblocation'),
+            axiosInstance.get('/api/employeesalary')
+          ]);
+
+          console.log('Location response:', locationResponse.data);
+          console.log('Salary response:', salaryResponse.data);
+
+          if (locationResponse.data?.status === "Success") {
+            responses.locations = locationResponse.data?.data || [];
+          } else {
+            console.warn('Location fetch returned:', locationResponse.data?.message);
+          }
+
+          if (salaryResponse.data?.status === "Success") {
+            responses.salaries = salaryResponse.data?.data || [];
+          } else {
+            console.warn('Salary fetch returned:', salaryResponse.data?.message);
+          }
+        } else {
+          console.log('User role does not have access to locations and salaries');
+        }
+
+        console.log('Final dropdown responses:', responses);
+      } catch (error) {
+        console.error('Error fetching dropdown data:', {
+          message: error?.response?.data?.message || error.message,
+          status: error?.response?.data?.status,
+          statusCode: error?.response?.status,
+          endpoint: error?.config?.url,
+          role: userRole
+        });
       }
 
-      const [departmentResponse, locationResponse, salaryResponse] = await Promise.all([
-        axiosInstance.get('/api/departments'),
-        axiosInstance.get('/api/employeejoblocation'),
-        axiosInstance.get('/api/employeesalary')
-      ]);
-
-      return {
-        clients: (clientResponse.data?.data || []).filter(client => !client.isBlocked),
-        departments: departmentResponse.data?.data || [],
-        locations: locationResponse.data?.data || [],
-        salaries: salaryResponse.data?.data || []
-      };
+      return responses;
     },
     {
       staleTime: 5 * 60 * 1000,
@@ -106,25 +147,24 @@ export const useEmployeeRoleAssignData = (assignmentFilter = 'all', searchQuery 
       onSuccess: () => {
         queryClient.invalidateQueries('employees');
       },
-      onError: (error) => {
-        console.error('Failed to unassign role:', error.message);
-        throw error;
-      }
     }
   );
 
-  return {
+  const result = {
     employees: employees || [],
     clients: dropdownData.clients || [],
     departments: dropdownData.departments || [],
     locations: dropdownData.locations || [],
     salaries: dropdownData.salaries || [],
-    isLoading,
-    error,
+    isLoading: employeesLoading || dropdownsLoading,
+    error: employeesError || dropdownsError,
     assignRole,
     unassignRole,
     userRole
   };
+
+  console.log('Hook return value:', result);
+  return result;
 };
 
 // Helper function to normalize employee data
